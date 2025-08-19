@@ -1,0 +1,173 @@
+{
+  // Cursor AI Settings
+  "cursor.chat.defaultModel": "claude-3.5-sonnet",
+  "cursor.chat.enableCodeActions": true,
+  "cursor.chat.enableInlineChat": true,
+  "cursor.chat.enableTerminalChat": true,
+  // Editor Settings
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.rulers": [
+    80,
+    120
+  ],
+  // TypeScript Settings
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.preferences.importModuleSpecifier": "relative",
+  // File Associations
+  "files.associations": {
+    "*.ts": "typescript",
+    "*.test.ts": "typescript",
+    "*.mjs": "javascript",
+    "*.cursorrules": "markdown"
+  },
+  // Search Settings
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.git": true,
+    "**/main.js": true,
+    "**/package-lock.json": true,
+    "**/.test-vault": true
+  },
+  // Files Settings
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.git": true,
+    "**/main.js": true
+  },
+  // Auto Save
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  // Explorer Settings
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.expand": false,
+  "explorer.fileNesting.patterns": {
+    "*.ts": "${capture}.js, ${capture}.d.ts, ${capture}.test.ts, ${capture}.spec.ts",
+    "*.js": "${capture}.d.ts, ${capture}.test.js, ${capture}.spec.js",
+    "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml",
+    "tsconfig.json": "tsconfig.*.json",
+    "vitest.config.*": "vitest.config.*",
+    "esbuild.config.*": "esbuild.config.*"
+  },
+  // Terminal Settings
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.profiles.windows": {
+    "PowerShell": {
+      "source": "PowerShell",
+      "args": [
+        "-NoExit",
+        "-Command",
+        "cd '${workspaceFolder}'"
+      ],
+      "icon": "terminal-powershell"
+    }
+  },
+  // Git Settings
+  "git.autofetch": true,
+  "git.confirmSync": false,
+  "git.enableSmartCommit": true,
+  // Workbench Settings
+  "workbench.colorTheme": "Default Dark+",
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.startupEditor": "newUntitledFile",
+  // Extensions Settings
+  "eslint.workingDirectories": [
+    "."
+  ],
+  "eslint.validate": [
+    "typescript",
+    "javascript"
+  ],
+  "eslint.format.enable": true,
+  "vitest.enable": true,
+  "vitest.commandLine": "npm test",
+  "vitest.include": [
+    "test/**/*.test.ts"
+  ],
+  // Testing Settings
+  "testing.automaticallyOpenPeekView": "never",
+  "testing.followRunningTest": true,
+  // AI Assistant Settings
+  "github.copilot.enable": {
+    "*": true,
+    "plaintext": false,
+    "markdown": true,
+    "scminput": false,
+    "gitcommit": false,
+    "gitrebase": false,
+    "groovy": false,
+    "java": false,
+    "kotlin": false,
+    "scala": false,
+    "sql": false,
+    "yaml": false
+  },
+  // Code Actions
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": false,
+    "strings": true
+  },
+  // Minimap Settings
+  "editor.minimap.enabled": true,
+  "editor.minimap.showSlider": "always",
+  // Bracket Pair Colorization
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": true,
+  // Word Wrap
+  "editor.wordWrap": "on",
+  "editor.wordWrapColumn": 120,
+  // Folding
+  "editor.foldingStrategy": "indentation",
+  "editor.showFoldingControls": "always",
+  // Line Numbers
+  "editor.lineNumbers": "on",
+  "editor.renderLineHighlight": "all",
+  // Cursor Settings
+  "editor.cursorBlinking": "smooth",
+  "editor.cursorSmoothCaretAnimation": "on",
+  "editor.cursorWidth": 2,
+  // Selection Settings
+  "editor.multiCursorModifier": "alt",
+  "editor.multiCursorPaste": "full",
+  // Scroll Settings
+  "editor.smoothScrolling": true,
+  "editor.scrollBeyondLastLine": false,
+  // Performance Settings
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/.git/**": true
+  },
+  // Language Specific Settings
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit",
+      "source.organizeImports": "explicit"
+    }
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.wordWrap": "on"
+  }
+}

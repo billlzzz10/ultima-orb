@@ -1,0 +1,70 @@
+{
+  "models": {
+    "default": "claude-3.5-sonnet",
+    "chat": "claude-3.5-sonnet",
+    "edit": "claude-3.5-sonnet"
+  },
+  "commands": [
+    {
+      "name": "test-all",
+      "description": "Run all tests and checks for Ultima-Orb project",
+      "command": "npm run test:all"
+    },
+    {
+      "name": "dev-build",
+      "description": "Start development build with watch mode",
+      "command": "npm run dev"
+    },
+    {
+      "name": "lint-fix",
+      "description": "Fix ESLint issues automatically",
+      "command": "npm run lint:fix"
+    },
+    {
+      "name": "type-check",
+      "description": "Run TypeScript type checking",
+      "command": "npm run type-check"
+    },
+    {
+      "name": "build-prod",
+      "description": "Build production version",
+      "command": "npm run build"
+    }
+  ],
+  "contextProviders": [
+    {
+      "name": "project-structure",
+      "description": "Ultima-Orb project structure and architecture",
+      "context": "This is an Obsidian plugin project with TypeScript, following a modular architecture with AI providers, integrations, and UI components."
+    },
+    {
+      "name": "coding-standards",
+      "description": "Coding standards and conventions",
+      "context": "Use TypeScript with strict mode, ESLint + Prettier, Vitest for testing, and follow Obsidian plugin guidelines."
+    },
+    {
+      "name": "ai-providers",
+      "description": "AI provider implementation patterns",
+      "context": "All AI providers must extend BaseProvider, implement proper error handling, and use timeout/retry logic."
+    }
+  ],
+  "rules": [
+    "Use Thai language for explanations and comments",
+    "Follow TypeScript best practices with proper type definitions",
+    "Implement comprehensive error handling",
+    "Write unit tests for all new features",
+    "Use ESLint and Prettier for code formatting",
+    "Follow Obsidian plugin development guidelines",
+    "Implement proper logging with structured messages",
+    "Use design patterns (Singleton, Factory, Strategy) where appropriate",
+    "Ensure all external API calls are type-safe",
+    "Implement proper authentication handling for integrations"
+  ],
+  "prompts": {
+    "default": "You are an expert TypeScript developer working on the Ultima-Orb Obsidian plugin. This is a hybrid AI command center that integrates multiple AI providers and external services. Always consider the project's architecture and coding standards when providing suggestions.",
+    "testing": "When writing tests, use Vitest with proper mocking, test both success and error cases, and ensure good coverage. Mock external dependencies appropriately.",
+    "ai-provider": "When implementing AI providers, extend BaseProvider, implement all required methods, add proper error handling, and include comprehensive tests.",
+    "integration": "When implementing integrations, use MCP protocol where possible, implement proper authentication, handle rate limiting, and provide type-safe API calls.",
+    "ui-component": "When creating UI components, use Obsidian API patterns, implement responsive design, handle loading states, and provide user-friendly error messages."
+  }
+}

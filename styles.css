@@ -1,0 +1,229 @@
+/* Ultima-Orb Plugin Styles */
+
+/* Main Container */
+.ultima-orb-container {
+    padding: 20px;
+    font-family: var(--font-text);
+}
+
+/* Chat Interface */
+.ultima-orb-chat {
+    display: flex;
+    flex-direction: column;
+    height: 500px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.ultima-orb-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    background: var(--background-primary);
+}
+
+.ultima-orb-chat-input {
+    display: flex;
+    padding: 12px;
+    background: var(--background-secondary);
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.ultima-orb-chat-input textarea {
+    flex: 1;
+    margin-right: 8px;
+    resize: none;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    padding: 8px;
+    font-family: inherit;
+}
+
+/* Message Styles */
+.ultima-orb-message {
+    margin-bottom: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    max-width: 80%;
+}
+
+.ultima-orb-message.user {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    margin-left: auto;
+}
+
+.ultima-orb-message.assistant {
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+}
+
+/* Provider Selection */
+.ultima-orb-provider-selector {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: var(--background-secondary);
+    border-radius: 6px;
+}
+
+.ultima-orb-provider-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ultima-orb-provider-btn.active {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-color: var(--interactive-accent);
+}
+
+.ultima-orb-provider-btn:hover {
+    background: var(--background-modifier-hover);
+}
+
+/* Settings Tabs */
+.ultima-orb-settings-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--background-modifier-border);
+    margin-bottom: 20px;
+}
+
+.ultima-orb-tab {
+    padding: 12px 20px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.ultima-orb-tab.active {
+    border-bottom-color: var(--interactive-accent);
+    color: var(--interactive-accent);
+}
+
+.ultima-orb-tab:hover {
+    background: var(--background-modifier-hover);
+}
+
+/* Tool Management */
+.ultima-orb-tool-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.ultima-orb-tool-card {
+    padding: 16px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 8px;
+    background: var(--background-primary);
+}
+
+.ultima-orb-tool-card h4 {
+    margin: 0 0 8px 0;
+    color: var(--text-normal);
+}
+
+.ultima-orb-tool-card p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9em;
+}
+
+/* Knowledge Base */
+.ultima-orb-knowledge-workspace {
+    padding: 16px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 8px;
+    margin-bottom: 16px;
+    background: var(--background-primary);
+}
+
+.ultima-orb-knowledge-workspace h4 {
+    margin: 0 0 8px 0;
+    color: var(--text-normal);
+}
+
+.ultima-orb-knowledge-stats {
+    display: flex;
+    gap: 16px;
+    font-size: 0.9em;
+    color: var(--text-muted);
+}
+
+/* Buttons */
+.ultima-orb-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.ultima-orb-btn.primary {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-color: var(--interactive-accent);
+}
+
+.ultima-orb-btn:hover {
+    background: var(--background-modifier-hover);
+}
+
+.ultima-orb-btn.primary:hover {
+    background: var(--interactive-accent-hover);
+}
+
+/* Loading States */
+.ultima-orb-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: var(--text-muted);
+}
+
+.ultima-orb-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--background-modifier-border);
+    border-top: 2px solid var(--interactive-accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .ultima-orb-container {
+        padding: 12px;
+    }
+    
+    .ultima-orb-chat {
+        height: 400px;
+    }
+    
+    .ultima-orb-tool-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .ultima-orb-provider-selector {
+        flex-wrap: wrap;
+    }
+}

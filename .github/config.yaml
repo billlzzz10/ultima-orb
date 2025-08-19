@@ -1,0 +1,39 @@
+name: Local Assistant
+version: 1.0.0
+schema: v1
+description: Local model configuration for Obsidian Smart Assistant
+models:
+  - name: DeepSeek Coder 6.7b (instruct)
+    provider: ollama
+    model: deepseek-coder:6.7b-instruct
+  - name: GPT-OSS 20b
+    provider: ollama
+    model: gpt-oss:20b
+  - name: GPT-OSS (latest)
+    provider: ollama
+    model: gpt-oss:latest
+  - name: DeepSeek R1 8b
+    provider: ollama
+    model: deepseek-r1:8b
+  - name: DeepSeek R1 7b
+    provider: ollama
+    model: deepseek-r1:7b
+  - name: Qwen 3 8b
+    provider: ollama
+    model: qwen3:8b
+  - name: Llama 3.1 8b
+    provider: ollama
+    model: llama3.1:8b
+  - name: Nomic Embed Text (embeddings)
+    provider: ollama
+    model: nomic-embed-text:latest
+context:
+  - provider: code
+  - provider: docs
+  - provider: diff
+  - provider: terminal
+  - provider: problems
+  - provider: folder
+  - provider: codebase
+defaults:
+  model: deepseek-coder:6.7b-instruct

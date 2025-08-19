@@ -1,0 +1,146 @@
+# 🔮 Ultima-Orb: Cursor AI Development Rules
+
+## 📝 การใช้ภาษาและการสื่อสาร
+- ใช้ภาษาไทยในการอธิบายโค้ดและแนวคิดเชิงเทคนิค
+- รักษาศัพท์เทคนิคภาษาอังกฤษที่จำเป็น
+- อธิบายให้เข้าใจง่าย ตรงประเด็น
+
+## 💻 Code Style & Architecture
+- ใช้ TypeScript เต็มรูปแบบ พร้อม type definitions
+- แยก Interface ชัดเจนเพื่อรองรับการทดสอบ
+- ใช้ Design Patterns ที่เหมาะสม (Singleton, Factory, Strategy, etc.)
+- เน้นโค้ดที่ clean, efficient, และ scalable
+- ใช้ ESLint และ Prettier สำหรับ code formatting
+
+## 📚 File Structure & Organization
+```
+src/
+├── main.ts                 # Plugin entry point
+├── services/              # Core services (Logger, EventsBus, Storage, CredentialManager)
+├── ai/                    # AI providers & orchestrator
+│   ├── AIOrchestrator.ts
+│   └── providers/
+│       ├── BaseProvider.ts
+│       ├── OllamaProvider.ts
+│       ├── ClaudeProvider.ts
+│       ├── OpenAIProvider.ts
+│       └── GeminiProvider.ts
+├── core/                  # Business logic managers
+│   ├── ContextManager.ts
+│   ├── IntegrationManager.ts
+│   ├── ToolManager.ts
+│   ├── TemplateManager.ts
+│   └── KnowledgeManager.ts
+├── integrations/          # External service clients
+│   ├── NotionMCPClient.ts
+│   ├── AirtableClient.ts
+│   └── ClickUpClient.ts
+├── tools/                 # Tool implementations
+│   ├── NotionTools.ts
+│   ├── AirtableTools.ts
+│   └── ClickUpTools.ts
+├── ui/                    # User interface components
+│   ├── SettingsTab.ts
+│   ├── ChatView.ts
+│   └── views/
+├── automation/            # Obsidian commands & automation
+│   └── CommandManager.ts
+└── types/                 # Type definitions
+    ├── notion.d.ts
+    ├── notion-api.d.ts
+    └── obsidian.d.ts
+```
+
+## 🧪 Testing Requirements
+- Unit tests สำหรับ core logic (ใช้ Vitest)
+- Integration tests สำหรับ services
+- Mock external dependencies
+- Test error handling และ edge cases
+- Coverage target: 80%+
+
+## 🔍 Code Review Guidelines
+- ตรวจสอบ type safety
+- มองหาโอกาสในการ refactor
+- เสนอแนะการปรับปรุงประสิทธิภาพ
+- ระบุ potential edge cases
+- ตรวจสอบ error handling
+
+## 🚀 Development Workflow
+- ใช้ `npm run dev` สำหรับ development build
+- ใช้ `npm test` สำหรับรัน tests
+- ใช้ `npm run lint` สำหรับ code quality check
+- ใช้ `npm run build` สำหรับ production build
+
+## 🎯 Project-Specific Rules
+
+### AI Providers
+- ทุก AI Provider ต้อง extend BaseProvider
+- ใช้ interface ที่กำหนดไว้ใน BaseProvider
+- Implement error handling ที่เหมาะสม
+- ใช้ timeout และ retry logic
+
+### Integrations
+- ใช้ MCP (Model Context Protocol) สำหรับ external services
+- Implement proper authentication handling
+- ใช้ type-safe API calls
+- Handle rate limiting และ quotas
+
+### UI Components
+- ใช้ Obsidian API สำหรับ UI components
+- Implement responsive design
+- ใช้ consistent styling patterns
+- Handle loading states และ error states
+
+### Error Handling
+- ใช้ structured error logging
+- Implement graceful degradation
+- Provide user-friendly error messages
+- Log errors สำหรับ debugging
+
+## 📦 Package Management
+- ใช้ npm สำหรับ dependency management
+- ระบุ version ranges ที่เหมาะสม
+- ใช้ devDependencies สำหรับ development tools
+- ใช้ peerDependencies สำหรับ Obsidian API
+
+## 🔧 Build & Deployment
+- ใช้ esbuild สำหรับ bundling
+- Generate source maps สำหรับ debugging
+- Optimize bundle size
+- Test build output ใน Obsidian
+
+## 📊 Performance Considerations
+- Minimize bundle size
+- Use lazy loading สำหรับ heavy components
+- Implement caching strategies
+- Monitor memory usage
+
+## 🔐 Security Guidelines
+- Never expose API keys ใน client-side code
+- Use secure storage สำหรับ credentials
+- Validate user inputs
+- Implement proper authentication flows
+
+## 📚 Documentation
+- ใช้ JSDoc สำหรับ function documentation
+- Maintain README.md ที่อัพเดต
+- Document API interfaces
+- Provide usage examples
+
+## 🎨 UI/UX Guidelines
+- ใช้ Obsidian design patterns
+- Implement dark/light theme support
+- ใช้ consistent iconography
+- Provide keyboard shortcuts
+
+## 🔄 Git Workflow
+- ใช้ conventional commits
+- Create feature branches
+- Write descriptive commit messages
+- Review code before merging
+
+## 🚨 Important Notes
+- โปรเจ็คนี้เป็น Obsidian plugin
+- ต้อง compatible กับ Obsidian API
+- ใช้ TypeScript strict mode
+- Follow Obsidian plugin guidelines

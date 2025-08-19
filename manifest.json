@@ -1,0 +1,11 @@
+{
+	"id": "ultima-orb",
+	"name": "Ultima Orb",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"description": "Your Hybrid AI Command Center in Obsidian.",
+	"author": "Dollawatt Chidjai",
+	"authorUrl": "https://github.com/dollawatt",
+	"fundingUrl": "https://buymeacoffee.com/dollawatt",
+	"isDesktopOnly": false
+}
