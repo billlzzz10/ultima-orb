@@ -7,7 +7,11 @@ export class VisualizationManager {
   private featureManager: FeatureManager;
   private settings: UltimaOrbSettings;
 
-  constructor(app: App, featureManager: FeatureManager, settings: UltimaOrbSettings) {
+  constructor(
+    app: App,
+    featureManager: FeatureManager,
+    settings: UltimaOrbSettings
+  ) {
     this.app = app;
     this.featureManager = featureManager;
     this.settings = settings;
