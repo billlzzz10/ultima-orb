@@ -1,30 +1,39 @@
-import { BaseProvider, ChatMessage, ChatResponse, ProviderConfig } from './BaseProvider';
-import { Logger } from '../../services/Logger';
+import {
+  BaseProvider,
+  ProviderConfig,
+  AIRequest,
+  AIResponse,
+  ProviderStatus,
+} from "./BaseProvider";
+
+/**
+ * 🤖 Ollama Provider
+ * สำหรับ local models เช่น Llama 2, Mistral, CodeLlama และอื่นๆ
+ */
 
 interface OllamaRequest {
   model: string;
-  messages: Array<{
-    role: 'system' | 'user' | 'assistant';
-    content: string;
-  }>;
-  stream?: boolean;
+  prompt: string;
+  system?: string;
+  template?: string;
+  context?: number[];
   options?: {
     temperature?: number;
     num_predict?: number;
     top_k?: number;
     top_p?: number;
     repeat_penalty?: number;
+    seed?: number;
   };
+  stream?: boolean;
 }
 
 interface OllamaResponse {
   model: string;
   created_at: string;
-  message: {
-    role: 'assistant';
-    content: string;
-  };
+  response: string;
   done: boolean;
+  context?: number[];
   total_duration?: number;
   load_duration?: number;
   prompt_eval_count?: number;
@@ -33,333 +42,477 @@ interface OllamaResponse {
   eval_duration?: number;
 }
 
-interface OllamaModel {
-  name: string;
-  modified_at: string;
-  size: number;
-}
-
 export class OllamaProvider extends BaseProvider {
-  private logger: Logger;
+  private readonly supportedModels = [
+    "llama2",
+    "llama2:7b",
+    "llama2:13b",
+    "llama2:70b",
+    "llama2:7b-chat",
+    "llama2:13b-chat",
+    "llama2:70b-chat",
+    "mistral",
+    "mistral:7b",
+    "mistral:7b-instruct",
+    "codellama",
+    "codellama:7b",
+    "codellama:13b",
+    "codellama:34b",
+    "codellama:7b-instruct",
+    "codellama:13b-instruct",
+    "codellama:34b-instruct",
+    "neural-chat",
+    "orca-mini",
+    "vicuna",
+    "wizard-vicuna-uncensored",
+    "nous-hermes",
+    "nous-hermes-llama2",
+    "wizard-math",
+    "wizard-coder",
+    "wizard-vicuna",
+    "dolphin-phi",
+    "phi",
+    "phi:2.7b",
+    "phi:3.5b",
+    "phi:3.8b",
+  ];
 
-  constructor(config: ProviderConfig, logger: Logger) {
+  constructor(config: ProviderConfig) {
     super({
-      endpoint: 'http://localhost:11434',
-      model: 'llama2',
       ...config,
-      name: config.name || 'Ollama'
+      name: config.name || "Ollama",
+      model: config.model || "llama2",
+      endpoint: config.endpoint || "http://localhost:11434",
     });
-    this.logger = logger;
   }
 
-  async chat(messages: ChatMessage[]): Promise<ChatResponse> {
-    if (!this.status.connected) {
-      throw new Error('Ollama provider is not connected. Please test connection first.');
-    }
-
-    const requestBody: OllamaRequest = {
-      model: this.config.model || 'llama2',
-      messages: messages.map(msg => ({
-        role: msg.role,
-        content: msg.content
-      })),
-      stream: false,
-      options: {
-        temperature: this.config.temperature,
-        num_predict: this.config.maxTokens,
-        top_k: 40,
-        top_p: 0.9,
-        repeat_penalty: 1.1
-      }
-    };
-
+  /**
+   * Initialize Ollama provider
+   */
+  async initialize(): Promise<void> {
     try {
-      this.logger.debug('Sending request to Ollama:', {
-        model: requestBody.model,
-        messageCount: messages.length
-      });
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), this.config.timeout || 30000);
-      
-      try {
-        const response = await fetch(`${this.config.endpoint}/api/chat`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(requestBody),
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Ollama API error: ${response.status} - ${errorText}`);
-        }
-
-        return await response.json();
-      } catch (error) {
-        clearTimeout(timeoutId);
-        if (error instanceof Error && error.name === 'AbortError') {
-          throw new Error('Request timeout');
-        }
-        throw error;
+      if (!this.validateConfig()) {
+        throw new Error("Invalid Ollama configuration");
       }
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Ollama API error: ${response.status} - ${errorText}`);
+      // Test connection
+      const isAvailable = await this.isAvailable();
+      if (!isAvailable) {
+        throw new Error("Ollama server is not available");
       }
 
-      const ollamaResponse: OllamaResponse = await response.json();
-
-      const chatResponse: ChatResponse = {
-        content: ollamaResponse.message.content,
-        model: ollamaResponse.model,
-        usage: {
-          prompt_tokens: ollamaResponse.prompt_eval_count || 0,
-          completion_tokens: ollamaResponse.eval_count || 0,
-          total_tokens: (ollamaResponse.prompt_eval_count || 0) + (ollamaResponse.eval_count || 0)
-        },
-        metadata: {
-          total_duration: ollamaResponse.total_duration,
-          load_duration: ollamaResponse.load_duration,
-          prompt_eval_duration: ollamaResponse.prompt_eval_duration,
-          eval_duration: ollamaResponse.eval_duration
-        }
-      };
-
-      this.logger.debug('Received response from Ollama:', {
-        model: chatResponse.model,
-        contentLength: chatResponse.content.length,
-        totalTokens: chatResponse.usage?.total_tokens
-      });
-
-      return chatResponse;
+      this.isInitialized = true;
+      this.logger.info("Ollama provider initialized successfully");
     } catch (error) {
-      this.handleError(error);
-      this.logger.error('Ollama chat request failed:', error);
+      this.logger.error(
+        "Failed to initialize Ollama provider:",
+        error as Error
+      );
       throw error;
     }
   }
 
-  async testConnection(): Promise<boolean> {
+  /**
+   * Send request to Ollama API
+   */
+  async sendRequest(request: AIRequest): Promise<AIResponse> {
+    if (!this.isInitialized) {
+      throw new Error("Ollama provider not initialized");
+    }
+
+    if (!this.validateConfig()) {
+      throw new Error("Invalid Ollama configuration");
+    }
+
+    const model = request.model || this.config.model || "llama2";
+    const prompt = this.buildPrompt(request);
+
+    const ollamaRequest: OllamaRequest = {
+      model,
+      prompt,
+      system: request.systemPrompt,
+      options: {
+        temperature: request.temperature || this.config.temperature,
+        num_predict: request.maxTokens || this.config.maxTokens,
+        top_k: 40,
+        top_p: 0.9,
+        repeat_penalty: 1.1,
+      },
+      stream: false,
+    };
+
     try {
-      this.logger.debug('Testing Ollama connection...');
+      const response = await this.makeRequest(ollamaRequest);
+      return this.parseResponse(response);
+    } catch (error) {
+      this.logger.error("Ollama API request failed:", error as Error);
+      throw error;
+    }
+  }
 
-      // Test basic connectivity
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-      
-      try {
-        const response = await fetch(`${this.config.endpoint}/api/tags`, {
-          method: 'GET',
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const models: { models: OllamaModel[] } = await response.json();
-        
-        // Check if the configured model is available
-        const configuredModel = this.config.model || 'llama2';
-        const modelExists = models.models.some(model => model.name === configuredModel);
-        
-        if (!modelExists) {
-          this.logger.warn(`Configured model '${configuredModel}' not found. Available models:`, 
-            models.models.map(m => m.name));
-        }
-
-        this.updateStatus(true, configuredModel);
-        this.logger.info('Ollama connection test successful');
-        return true;
-      } catch (error) {
-        clearTimeout(timeoutId);
-        if (error instanceof Error && error.name === 'AbortError') {
-          throw new Error('Connection timeout');
-        }
-        throw error;
-      }
+  /**
+   * Check if Ollama provider is available
+   */
+  async isAvailable(): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.config.endpoint}/api/tags`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        return false;
       }
 
-      const models: { models: OllamaModel[] } = await response.json();
-      
-      // Check if the configured model is available
-      const configuredModel = this.config.model || 'llama2';
-      const modelExists = models.models.some(model => model.name === configuredModel);
-      
-      if (!modelExists) {
-        this.logger.warn(`Configured model '${configuredModel}' not found. Available models:`, 
-          models.models.map(m => m.name));
-      }
-
-      this.updateStatus(true, configuredModel);
-      this.logger.info('Ollama connection test successful');
-      return true;
+      const data = await response.json();
+      return !!data.models;
     } catch (error) {
-      this.handleError(error);
-      this.logger.error('Ollama connection test failed:', error);
       return false;
     }
   }
 
+  /**
+   * Get provider status
+   */
+  async getStatus(): Promise<ProviderStatus> {
+    const isAvailable = await this.isAvailable();
+    const isConfigured = this.validateConfig();
+
+    return {
+      name: this.config.name,
+      isAvailable,
+      isConfigured,
+      lastUsed: new Date(),
+      error: isAvailable ? undefined : "Ollama server not available",
+    };
+  }
+
+  /**
+   * Validate configuration
+   */
+  validateConfig(): boolean {
+    return !!(this.config.endpoint && this.config.model);
+  }
+
+  /**
+   * Get supported models
+   */
+  getSupportedModels(): string[] {
+    return [...this.supportedModels];
+  }
+
+  /**
+   * Get available models from Ollama server
+   */
   async getAvailableModels(): Promise<string[]> {
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-      
-      try {
-        const response = await fetch(`${this.config.endpoint}/api/tags`, {
-          method: 'GET',
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
+      const response = await fetch(`${this.config.endpoint}/api/tags`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-        const data: { models: OllamaModel[] } = await response.json();
-        return data.models.map(model => model.name);
-      } catch (error) {
-        clearTimeout(timeoutId);
-        if (error instanceof Error && error.name === 'AbortError') {
-          throw new Error('Request timeout');
-        }
-        throw error;
+      if (!response.ok) {
+        throw new Error("Failed to fetch available models");
       }
+
+      const data = await response.json();
+      return data.models?.map((model: any) => model.name) || [];
     } catch (error) {
-      this.logger.error('Failed to get available models:', error);
+      this.logger.error("Failed to get available models:", error as Error);
       return [];
     }
   }
 
   /**
-   * ดึงข้อมูล model ที่ระบุ
+   * Build prompt for Ollama
    */
-  async getModelInfo(modelName: string): Promise<OllamaModel | null> {
+  private buildPrompt(request: AIRequest): string {
+    let prompt = request.prompt;
+
+    // Add context if provided
+    if (request.context) {
+      prompt = `Context: ${request.context}\n\n${prompt}`;
+    }
+
+    // Add attachments if provided
+    if (request.attachments && request.attachments.length > 0) {
+      const attachmentsText = request.attachments.join("\n\n");
+      prompt = `Attachments:\n${attachmentsText}\n\n${prompt}`;
+    }
+
+    return prompt;
+  }
+
+  /**
+   * Make HTTP request to Ollama API
+   */
+  private async makeRequest(request: OllamaRequest): Promise<OllamaResponse> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+
     try {
-      const models = await this.getAvailableModels();
-      if (!models.includes(modelName)) {
-        return null;
-      }
+      const response = await fetch(`${this.config.endpoint}/api/generate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(request),
+        signal: controller.signal,
+      });
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-      
-      try {
-        const response = await fetch(`${this.config.endpoint}/api/show`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ name: modelName }),
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        return await response.json();
-      } catch (error) {
-        clearTimeout(timeoutId);
-        if (error instanceof Error && error.name === 'AbortError') {
-          throw new Error('Request timeout');
-        }
-        throw error;
-      }
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(
+          `Ollama API error: ${response.status} ${response.statusText} - ${errorText}`
+        );
       }
 
       return await response.json();
     } catch (error) {
-      this.logger.error(`Failed to get model info for ${modelName}:`, error);
-      return null;
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new Error(
+          `Ollama API request timeout after ${this.config.timeout}ms`
+        );
+      }
+      throw error;
     }
   }
 
   /**
-   * ตรวจสอบว่า model พร้อมใช้งานหรือไม่
+   * Parse Ollama response
    */
-  async isModelReady(modelName: string): Promise<boolean> {
+  private parseResponse(response: OllamaResponse): AIResponse {
+    if (!response.response) {
+      throw new Error("No response from Ollama API");
+    }
+
+    return {
+      content: response.response,
+      model: response.model,
+      usage: {
+        promptTokens: response.prompt_eval_count || 0,
+        completionTokens: response.eval_count || 0,
+        totalTokens:
+          (response.prompt_eval_count || 0) + (response.eval_count || 0),
+      },
+      metadata: {
+        done: response.done,
+        totalDuration: response.total_duration,
+        loadDuration: response.load_duration,
+        promptEvalDuration: response.prompt_eval_duration,
+        evalDuration: response.eval_duration,
+        context: response.context,
+      },
+    };
+  }
+
+  /**
+   * Get model info
+   */
+  getModelInfo(model: string): {
+    name: string;
+    maxTokens: number;
+    costPer1kTokens: number;
+  } {
+    const modelInfo: Record<
+      string,
+      { name: string; maxTokens: number; costPer1kTokens: number }
+    > = {
+      llama2: { name: "Llama 2", maxTokens: 4096, costPer1kTokens: 0 },
+      "llama2:7b": { name: "Llama 2 7B", maxTokens: 4096, costPer1kTokens: 0 },
+      "llama2:13b": {
+        name: "Llama 2 13B",
+        maxTokens: 4096,
+        costPer1kTokens: 0,
+      },
+      "llama2:70b": {
+        name: "Llama 2 70B",
+        maxTokens: 4096,
+        costPer1kTokens: 0,
+      },
+      mistral: { name: "Mistral", maxTokens: 8192, costPer1kTokens: 0 },
+      "mistral:7b": { name: "Mistral 7B", maxTokens: 8192, costPer1kTokens: 0 },
+      codellama: { name: "Code Llama", maxTokens: 16384, costPer1kTokens: 0 },
+      "codellama:7b": {
+        name: "Code Llama 7B",
+        maxTokens: 16384,
+        costPer1kTokens: 0,
+      },
+      "codellama:13b": {
+        name: "Code Llama 13B",
+        maxTokens: 16384,
+        costPer1kTokens: 0,
+      },
+      "codellama:34b": {
+        name: "Code Llama 34B",
+        maxTokens: 16384,
+        costPer1kTokens: 0,
+      },
+      "neural-chat": {
+        name: "Neural Chat",
+        maxTokens: 4096,
+        costPer1kTokens: 0,
+      },
+      "orca-mini": { name: "Orca Mini", maxTokens: 2048, costPer1kTokens: 0 },
+      vicuna: { name: "Vicuna", maxTokens: 4096, costPer1kTokens: 0 },
+      "wizard-vicuna-uncensored": {
+        name: "Wizard Vicuna Uncensored",
+        maxTokens: 4096,
+        costPer1kTokens: 0,
+      },
+      "nous-hermes": {
+        name: "Nous Hermes",
+        maxTokens: 4096,
+        costPer1kTokens: 0,
+      },
+      "wizard-math": {
+        name: "Wizard Math",
+        maxTokens: 4096,
+        costPer1kTokens: 0,
+      },
+      "wizard-coder": {
+        name: "Wizard Coder",
+        maxTokens: 8192,
+        costPer1kTokens: 0,
+      },
+      "dolphin-phi": {
+        name: "Dolphin Phi",
+        maxTokens: 2048,
+        costPer1kTokens: 0,
+      },
+      phi: { name: "Phi", maxTokens: 2048, costPer1kTokens: 0 },
+      "phi:2.7b": { name: "Phi 2.7B", maxTokens: 2048, costPer1kTokens: 0 },
+      "phi:3.5b": { name: "Phi 3.5B", maxTokens: 2048, costPer1kTokens: 0 },
+      "phi:3.8b": { name: "Phi 3.8B", maxTokens: 2048, costPer1kTokens: 0 },
+    };
+
+    return (
+      modelInfo[model] || {
+        name: model,
+        maxTokens: 4096,
+        costPer1kTokens: 0,
+      }
+    );
+  }
+
+  /**
+   * Calculate estimated cost (always 0 for local models)
+   */
+  calculateCost(
+    usage: {
+      promptTokens: number;
+      completionTokens: number;
+      totalTokens: number;
+    },
+    model: string
+  ): number {
+    return 0; // Local models are free
+  }
+
+  /**
+   * Get model capabilities
+   */
+  getModelCapabilities(model: string): string[] {
+    const capabilities: Record<string, string[]> = {
+      llama2: ["text-generation", "general-purpose", "conversation"],
+      "llama2:7b": ["text-generation", "general-purpose", "conversation"],
+      "llama2:13b": ["text-generation", "general-purpose", "conversation"],
+      "llama2:70b": [
+        "text-generation",
+        "general-purpose",
+        "conversation",
+        "advanced-reasoning",
+      ],
+      mistral: ["text-generation", "general-purpose", "efficient"],
+      "mistral:7b": ["text-generation", "general-purpose", "efficient"],
+      codellama: ["text-generation", "code-generation", "programming"],
+      "codellama:7b": ["text-generation", "code-generation", "programming"],
+      "codellama:13b": ["text-generation", "code-generation", "programming"],
+      "codellama:34b": [
+        "text-generation",
+        "code-generation",
+        "programming",
+        "advanced",
+      ],
+      "neural-chat": ["text-generation", "conversation", "chat"],
+      "orca-mini": ["text-generation", "conversation", "lightweight"],
+      vicuna: ["text-generation", "conversation", "general-purpose"],
+      "wizard-vicuna-uncensored": [
+        "text-generation",
+        "conversation",
+        "uncensored",
+      ],
+      "nous-hermes": [
+        "text-generation",
+        "conversation",
+        "instruction-following",
+      ],
+      "wizard-math": ["text-generation", "mathematics", "reasoning"],
+      "wizard-coder": ["text-generation", "code-generation", "programming"],
+      "dolphin-phi": ["text-generation", "conversation", "lightweight"],
+      phi: ["text-generation", "general-purpose", "lightweight"],
+      "phi:2.7b": ["text-generation", "general-purpose", "lightweight"],
+      "phi:3.5b": ["text-generation", "general-purpose", "lightweight"],
+      "phi:3.8b": ["text-generation", "general-purpose", "lightweight"],
+    };
+
+    return capabilities[model] || ["text-generation", "general-purpose"];
+  }
+
+  /**
+   * Pull model from Ollama hub
+   */
+  async pullModel(model: string): Promise<boolean> {
     try {
-      const modelInfo = await this.getModelInfo(modelName);
-      return modelInfo !== null;
+      const response = await fetch(`${this.config.endpoint}/api/pull`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name: model }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to pull model ${model}`);
+      }
+
+      this.logger.info(`Successfully pulled model: ${model}`);
+      return true;
     } catch (error) {
+      this.logger.error(`Failed to pull model ${model}:`, error as Error);
       return false;
     }
   }
 
   /**
-   * ดึงข้อมูลการใช้งานของ Ollama
+   * Delete model from Ollama
    */
-  async getSystemInfo(): Promise<{
-    version: string;
-    models: number;
-    totalSize: number;
-  } | null> {
+  async deleteModel(model: string): Promise<boolean> {
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-      
-      try {
-        const response = await fetch(`${this.config.endpoint}/api/tags`, {
-          method: 'GET',
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const data: { models: OllamaModel[] } = await response.json();
-        const totalSize = data.models.reduce((sum, model) => sum + model.size, 0);
-
-        return {
-          version: 'Ollama API', // Ollama doesn't expose version in tags endpoint
-          models: data.models.length,
-          totalSize
-        };
-      } catch (error) {
-        clearTimeout(timeoutId);
-        if (error instanceof Error && error.name === 'AbortError') {
-          throw new Error('Request timeout');
-        }
-        throw error;
-      }
+      const response = await fetch(`${this.config.endpoint}/api/delete`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name: model }),
+      });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(`Failed to delete model ${model}`);
       }
 
-      const data: { models: OllamaModel[] } = await response.json();
-      const totalSize = data.models.reduce((sum, model) => sum + model.size, 0);
-
-      return {
-        version: 'Ollama API', // Ollama doesn't expose version in tags endpoint
-        models: data.models.length,
-        totalSize
-      };
+      this.logger.info(`Successfully deleted model: ${model}`);
+      return true;
     } catch (error) {
-      this.logger.error('Failed to get system info:', error);
-      return null;
+      this.logger.error(`Failed to delete model ${model}:`, error as Error);
+      return false;
     }
   }
 }

@@ -1,0 +1,106 @@
+# TypeScript Standards
+
+## 🔥 Strict TypeScript Rules
+
+### Type Safety
+- ห้ามใช้ `any` type - ใช้ proper types เสมอ
+- ใช้ `unknown` แทน `any` เมื่อไม่รู้ type
+- ต้องมี type annotations สำหรับ function parameters และ return types
+- ใช้ interface แทน type alias เมื่อเป็น object types
+
+### Code Style
+- ใช้ single quotes เท่านั้น: `'string'` ไม่ใช่ `"string"`
+- ต้องมี semicolons เสมอ: `const x = 1;`
+- ใช้ camelCase สำหรับ variables และ functions
+- ใช้ PascalCase สำหรับ classes และ interfaces
+
+### File Organization
+- หนึ่งไฟล์ = หนึ่ง class/interface/function
+- ใช้ meaningful file names
+- Export/import ต้องชัดเจน
+- ใช้ barrel exports (index.ts) สำหรับ modules
+
+### Error Handling
+- ใช้ try-catch blocks สำหรับ async operations
+- ใช้ proper error types
+- Log errors อย่างเหมาะสม
+- Return meaningful error messages
+
+## 📁 File Structure
+
+### Entry Points
+- [main.ts](mdc:main.ts) - Plugin entry point
+- [src/UltimaOrbPlugin.ts](mdc:src/UltimaOrbPlugin.ts) - Main plugin class
+
+### Type Definitions
+- [src/types/](mdc:src/types/) - Custom type definitions
+- [src/types/obsidian.d.ts](mdc:src/types/obsidian.d.ts) - Obsidian API types
+
+### Services
+- [src/services/](mdc:src/services/) - Core services
+- [src/services/Logger.ts](mdc:src/services/Logger.ts) - Logging service
+
+## 🛠️ Development Commands
+
+### Type Checking
+```bash
+npm run type-check    # Check TypeScript compilation
+npm run lint          # ESLint with TypeScript rules
+npm run lint:fix      # Auto-fix linting issues
+```
+
+### Build Process
+```bash
+npm run build         # Production build with type checking
+npm run dev           # Development with watch mode
+```
+
+## 🚨 Critical TypeScript Rules
+
+### Never Use
+```typescript
+// ❌ Bad
+const data: any = getData();
+function process(input: any): any { }
+
+// ✅ Good
+const data: unknown = getData();
+function process(input: string): string { }
+```
+
+### Always Use
+```typescript
+// ✅ Proper typing
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
+async function getUser(id: string): Promise<User> {
+  try {
+    const response = await fetch(`/api/users/${id}`);
+    return await response.json();
+  } catch (error) {
+    throw new Error(`Failed to fetch user: ${error}`);
+  }
+}
+```
+
+### Error Handling
+```typescript
+// ✅ Proper error handling
+try {
+  const result = await riskyOperation();
+  return result;
+} catch (error) {
+  if (error instanceof Error) {
+    console.error('Operation failed:', error.message);
+  }
+  throw new Error('Unknown error occurred');
+}
+```
+description:
+globs:
+alwaysApply: false
+---

@@ -1,22 +1,22 @@
 import { Logger } from '../services/Logger';
 
 export interface BundleStats {
-  totalSize: number;
-  gzippedSize: number;
-  modules: number;
-  chunks: number;
-  dependencies: string[];
-  optimizationLevel: 'low' | 'medium' | 'high';
+    totalSize: number;
+    gzippedSize: number;
+    modules: number;
+    chunks: number;
+    dependencies: string[];
+    optimizationLevel: 'low' | 'medium' | 'high';
 }
 
 export interface OptimizationConfig {
-  enableTreeShaking: boolean;
-  enableCodeSplitting: boolean;
-  enableMinification: boolean;
-  enableCompression: boolean;
-  removeConsoleLogs: boolean;
-  optimizeImports: boolean;
-  targetSize: number; // Target bundle size in KB
+    enableTreeShaking: boolean;
+    enableCodeSplitting: boolean;
+    enableMinification: boolean;
+    enableCompression: boolean;
+    removeConsoleLogs: boolean;
+    optimizeImports: boolean;
+    targetSize: number; // Target bundle size in KB
 }
 
 export class BundleOptimizer {

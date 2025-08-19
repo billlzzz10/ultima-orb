@@ -1,0 +1,52 @@
+# AI Integration Guidelines
+
+## AI Provider Architecture
+- Use [src/ai/providers/BaseProvider.ts](mdc:src/ai/providers/BaseProvider.ts) as the base class
+- Implement specific providers: OpenAI, Claude, Gemini, Ollama
+- Support multiple providers simultaneously for load balancing
+- Handle API rate limits and fallbacks gracefully
+
+## AI Features Implementation
+- [src/ai/AIOrchestrator.ts](mdc:src/ai/AIOrchestrator.ts) - Central AI coordination
+- [src/ai/AIModes.ts](mdc:src/ai/AIModes.ts) - Different AI operation modes
+- [src/ai/CursorAdvancedFeatures.ts](mdc:src/ai/CursorAdvancedFeatures.ts) - Cursor-style features
+
+## Code Generation Patterns
+- Use context-aware prompts for better results
+- Implement streaming responses for real-time feedback
+- Cache common responses to reduce API calls
+- Validate generated code before applying
+
+## Error Handling
+- Handle API failures gracefully with fallback providers
+- Show user-friendly error messages
+- Log detailed errors for debugging
+- Implement retry logic with exponential backoff
+
+## Performance Optimization
+- Use async/await for all AI operations
+- Implement request queuing for rate limiting
+- Cache frequently requested responses
+- Use streaming for long responses
+
+## Security Considerations
+- Never log API keys or sensitive data
+- Validate all AI-generated content
+- Implement proper input sanitization
+- Use secure credential storage
+
+## Testing AI Features
+- Mock AI providers for unit tests
+- Test error scenarios and edge cases
+- Validate response quality and accuracy
+- Test performance under load
+
+## Integration with Obsidian
+- Use Obsidian's file system APIs
+- Integrate with Obsidian's editor
+- Follow Obsidian's UI patterns
+- Handle Obsidian's lifecycle events
+description:
+globs:
+alwaysApply: false
+---

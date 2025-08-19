@@ -1,0 +1,118 @@
+# Business Model: Free vs Max Mode
+
+## Free Mode Features (ครบถ้วนเหมือน Cursor/Continue)
+Free Mode provides comprehensive features comparable to Cursor and Continue:
+
+### AI Features
+- AI Chat with all providers (OpenAI, Claude, Gemini, Ollama)
+- Code completion, explanation, debugging, refactoring, generation, review
+- Documentation generation, testing, optimization
+
+### Cursor Advanced Features
+- Multi-Line Edits, Smart Rewrites, Cursor Prediction
+- Use Images, Ask the Web, Use Documentation
+- Advanced Code Completion, Intelligent Refactoring
+- Smart Debugging, Context Code Generation
+- Advanced Code Review, Performance Optimization
+- Security Analysis, Code Metrics, Advanced Search
+- Git, Terminal, File System, Database, API Integration
+
+### Continue Advanced Features
+- Agentic Workflows, Quick Edit, Advanced Chat
+- Smart Commands, Advanced Autocomplete, Intelligent Actions
+- Context-Aware Suggestions, Multi-File Operations
+- Project-Wide Analysis, Intelligent Code Generation
+- Advanced Code Understanding, Smart File Navigation
+- Intelligent Search, Advanced Refactoring, Smart Testing
+- Intelligent Documentation, Advanced Debugging
+- Smart Code Review, Intelligent Optimization
+- Advanced Integration, Smart Collaboration
+
+### Hybrid Advanced Features
+- Ultimate AI Chat, Smart Code Completion
+- Intelligent Code Explanation, Advanced Code Debugging
+- Smart Code Refactoring, Intelligent Code Generation
+- Advanced Code Review, Smart Documentation
+- Intelligent Testing, Advanced Optimization
+- Smart Agent Mode, Intelligent Flow Mode, Advanced Build Mode
+- Smart Customization, Intelligent Templates, Advanced Marketplace
+- Smart Commands, Intelligent Palette, Advanced Shortcuts
+- Smart Integration, Intelligent Knowledge, Advanced Search
+- Smart Indexing, Intelligent Import/Export, Advanced Analytics
+- Smart UI/UX, Intelligent Views, Advanced Interface
+- Smart Dashboard, Intelligent Palette UI, Advanced Design
+- Smart Themes, Intelligent Customization, Advanced Visualization
+- Smart Rendering, Intelligent Diagrams, Advanced Tools
+- Smart Enhancement, Intelligent View, Advanced Display
+- Smart Charts, Intelligent Rendering, Advanced Productivity
+- Smart Management, Intelligent Tracking, Advanced Collaboration
+- Smart Sharing, Intelligent Control, Advanced Tracking
+- Smart Notifications, Intelligent Management, Advanced Logging
+- Smart Data, Intelligent Processing, Advanced Visualization
+- Smart Export, Intelligent Import, Advanced Analysis
+- Smart Mining, Intelligent Cleaning, Advanced Documents
+- Smart Processing, Intelligent Integration, Advanced Analysis
+- Smart Generation, Intelligent Conversion, Advanced Search
+- Smart Assistant, Intelligent Enhancement, Advanced Optimization
+- Smart Helper, Intelligent Learning, Advanced Debugging
+- Smart Testing, Intelligent Documentation, Advanced Development
+- Smart Analysis, Intelligent Monitoring, Advanced Tracking
+- Smart Tools, Intelligent Profiling, Advanced Analysis
+- Smart Security, Intelligent Metrics, Advanced Collaboration
+- Smart Sharing, Intelligent System, Advanced Control
+- Smart Tracking, Intelligent Resolution, Advanced Control
+- Smart Logging
+
+### Limitations
+- Collaborators: Limited to 5 people
+- Shared Projects: Limited to 10 projects
+
+## Max Mode Features (ฟีเจอร์ขั้นสูง)
+Advanced features for power users and teams:
+
+### Advanced AI Orchestration
+- Multi-model Load Balancing
+- Cost Optimization
+- Performance Tuning
+
+### Advanced Analytics
+- Usage Analytics
+- Performance Metrics
+- User Behavior Tracking
+- Predictive Analytics
+
+### Real-time Collaboration
+- Live Editing
+- User Presence
+- Conflict Resolution
+- Version Control
+
+### Enterprise Integrations
+- Custom API Integrations
+- Webhook Support
+- Advanced Authentication
+
+### Priority Support
+- Dedicated Support
+- Custom Training
+- Onboarding Assistance
+
+### Advanced Security
+- Audit Logs
+- Compliance Tools
+- Data Encryption
+
+### Unlimited Collaboration
+- No limits on collaborators
+- No limits on shared projects
+
+## Implementation Guidelines
+- All Free Mode features must be fully functional
+- Max Mode features should show upgrade prompts when accessed
+- Use [src/core/FeatureManager.ts](mdc:src/core/FeatureManager.ts) for feature management
+- Implement proper license checking and limits
+- Provide clear upgrade paths and value propositions
+description:
+globs:
+alwaysApply: false
+---

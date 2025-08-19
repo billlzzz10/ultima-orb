@@ -1,367 +1,216 @@
-import { CredentialManager } from '../services/CredentialManager';
-import { EventsBus } from '../services/EventsBus';
-import { Logger } from '../services/Logger';
-import { BaseProvider } from './providers/BaseProvider';
-import { OpenAIProvider } from './providers/OpenAIProvider';
-import { ClaudeProvider } from './providers/ClaudeProvider';
-import { GeminiProvider } from './providers/GeminiProvider';
-import { OllamaProvider } from './providers/OllamaProvider';
-import { AnythingLLMProvider } from './providers/AnythingLLMProvider';
-
-/**
- * 🤖 AI Orchestrator
- * จัดการ AI providers และการโต้ตอบกับ AI
- */
-
-export interface AIRequest {
-  provider: string;
-  prompt: string;
-  context?: string;
-  options?: {
-    temperature?: number;
-    maxTokens?: number;
-    model?: string;
-  };
-}
-
-export interface AIResponse {
-  success: boolean;
-  content?: string;
-  error?: string;
-  provider: string;
-  model?: string;
-  usage?: {
-    promptTokens: number;
-    completionTokens: number;
-    totalTokens: number;
-  };
-  metadata?: any;
-}
-
-export interface ConnectionTestResult {
-  success: boolean;
-  error?: string;
-  provider: string;
-  responseTime?: number;
-}
+import { App, Notice } from "obsidian";
+import { FeatureManager } from "../core/FeatureManager";
+import { UltimaOrbSettings } from "../../main";
+import { OpenAIProvider } from "./providers/OpenAIProvider";
+import { OllamaIntegration } from "./local/OllamaIntegration";
 
 export class AIOrchestrator {
-  private credentialManager: CredentialManager;
-  private eventsBus: EventsBus;
-  private logger: Logger;
-  private providers: Map<string, BaseProvider> = new Map();
-  private defaultProvider: string = 'openai';
+  private app: App;
+  private featureManager: FeatureManager;
+  private settings: UltimaOrbSettings;
+  private openAIProvider?: OpenAIProvider;
+  private ollamaIntegration?: OllamaIntegration;
+  private activeProvider: string = "openai";
 
   constructor(
-    credentialManager: CredentialManager,
-    eventsBus: EventsBus,
-    logger: Logger
+    app: App,
+    featureManager: FeatureManager,
+    settings: UltimaOrbSettings
   ) {
-    this.credentialManager = credentialManager;
-    this.eventsBus = eventsBus;
-    this.logger = logger;
+    this.app = app;
+    this.featureManager = featureManager;
+    this.settings = settings;
+    this.initializeProviders();
   }
 
-  /**
-   * Initialize AI providers
-   */
-  public async initialize(): Promise<void> {
+  private async initializeProviders() {
     try {
-      this.logger.info('Initializing AI Orchestrator...');
+      // Initialize OpenAI Provider
+      if (this.settings.openaiApiKey) {
+        this.openAIProvider = new OpenAIProvider(this.app, this.featureManager);
+        this.openAIProvider.setApiKey(this.settings.openaiApiKey);
+        this.openAIProvider.setDefaultModel(this.settings.defaultAIModel);
+      }
 
-      // Initialize all providers
-      await this.initializeProviders();
+      // Initialize Ollama Integration
+      if (this.settings.enableOllama) {
+        this.ollamaIntegration = new OllamaIntegration(
+          this.app,
+          this.featureManager
+        );
+        this.ollamaIntegration.setBaseUrl(this.settings.ollamaBaseUrl);
+      }
 
-      // Set up event listeners
-      this.setupEventListeners();
-
-      this.logger.info('AI Orchestrator initialized successfully');
+      console.log("✅ AI Providers initialized successfully");
     } catch (error) {
-      this.logger.error('Failed to initialize AI Orchestrator', error as Error);
+      console.error("❌ Failed to initialize AI providers:", error);
+      new Notice("Failed to initialize AI providers");
+    }
+  }
+
+  async chat(message: string): Promise<string> {
+    try {
+      if (this.activeProvider === "openai" && this.openAIProvider) {
+        const response = await this.openAIProvider.chatCompletion({
+          model: this.settings.defaultAIModel,
+          messages: [{ role: "user" as const, content: message }],
+        });
+        return response.choices[0]?.message?.content || "No response from AI";
+      } else if (this.activeProvider === "ollama" && this.ollamaIntegration) {
+        return await this.ollamaIntegration.chat(message);
+      } else {
+        throw new Error("No AI provider available");
+      }
+    } catch (error) {
+      console.error("Chat error:", error);
       throw error;
     }
   }
 
-  /**
-   * Initialize all AI providers
-   */
-  private async initializeProviders(): Promise<void> {
-    const providerConfigs = [
-      { name: 'openai', class: OpenAIProvider },
-      { name: 'claude', class: ClaudeProvider },
-      { name: 'gemini', class: GeminiProvider },
-      { name: 'ollama', class: OllamaProvider },
-      { name: 'anythingllm', class: AnythingLLMProvider }
-    ];
-
-    for (const config of providerConfigs) {
-      try {
-        const hasCredentials = await this.credentialManager.hasCredentials(config.name);
-        
-        if (hasCredentials) {
-          const provider = new config.class(this.credentialManager, this.logger);
-          await provider.initialize();
-          this.providers.set(config.name, provider);
-          this.logger.info(`Initialized ${config.name} provider`);
-        } else {
-          this.logger.info(`Skipping ${config.name} provider - no credentials`);
-        }
-      } catch (error) {
-        this.logger.error(`Failed to initialize ${config.name} provider`, error as Error);
-      }
-    }
-  }
-
-  /**
-   * Set up event listeners
-   */
-  private setupEventListeners(): void {
-    this.eventsBus.on('ai:request:start', (request: AIRequest) => {
-      this.logger.info(`AI request started for ${request.provider}`);
-    });
-
-    this.eventsBus.on('ai:request:complete', (response: AIResponse) => {
-      this.logger.info(`AI request completed for ${response.provider}`);
-    });
-
-    this.eventsBus.on('ai:request:error', (error: any) => {
-      this.logger.error('AI request failed', error);
-    });
-  }
-
-  /**
-   * Send request to AI provider
-   */
-  public async sendRequest(request: AIRequest): Promise<AIResponse> {
-    const startTime = Date.now();
-
+  async completeCode(
+    code: string,
+    language: string = "typescript"
+  ): Promise<string> {
     try {
-      this.eventsBus.emit('ai:request:start', request);
+      const prompt = `Complete the following ${language} code:\n\n${code}\n\nProvide only the completed code without explanations.`;
 
-      const provider = this.providers.get(request.provider);
-      if (!provider) {
-        throw new Error(`Provider ${request.provider} not found or not initialized`);
+      if (this.activeProvider === "openai" && this.openAIProvider) {
+        const response = await this.openAIProvider.chatCompletion({
+          model: this.settings.defaultAIModel,
+          messages: [{ role: "user", content: prompt }],
+        });
+        return response.choices[0]?.message?.content || "";
+      } else if (this.activeProvider === "ollama" && this.ollamaIntegration) {
+        return await this.ollamaIntegration.codeCompletion(code, language);
+      } else {
+        throw new Error("No AI provider available");
       }
-
-      const response = await provider.generateResponse(request.prompt, request.context, request.options);
-      
-      const aiResponse: AIResponse = {
-        success: true,
-        content: response.content,
-        provider: request.provider,
-        model: response.model,
-        usage: response.usage,
-        metadata: {
-          responseTime: Date.now() - startTime,
-          timestamp: new Date().toISOString()
-        }
-      };
-
-      this.eventsBus.emit('ai:request:complete', aiResponse);
-      return aiResponse;
-
     } catch (error) {
-      const aiResponse: AIResponse = {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        provider: request.provider,
-        metadata: {
-          responseTime: Date.now() - startTime,
-          timestamp: new Date().toISOString()
-        }
-      };
-
-      this.eventsBus.emit('ai:request:error', aiResponse);
-      this.logger.error(`AI request failed for ${request.provider}`, error as Error);
-      
-      return aiResponse;
+      console.error("Code completion error:", error);
+      throw error;
     }
   }
 
-  /**
-   * Test connection to AI provider
-   */
-  public async testConnection(provider: string): Promise<ConnectionTestResult> {
-    const startTime = Date.now();
-
+  async explainCode(
+    code: string,
+    language: string = "typescript"
+  ): Promise<string> {
     try {
-      const providerInstance = this.providers.get(provider);
-      if (!providerInstance) {
-        return {
-          success: false,
-          error: `Provider ${provider} not found or not initialized`,
-          provider
-        };
+      const prompt = `Explain the following ${language} code in detail:\n\n${code}`;
+
+      if (this.activeProvider === "openai" && this.openAIProvider) {
+        const response = await this.openAIProvider.chatCompletion({
+          model: this.settings.defaultAIModel,
+          messages: [{ role: "user", content: prompt }],
+        });
+        return response.choices[0]?.message?.content || "";
+      } else if (this.activeProvider === "ollama" && this.ollamaIntegration) {
+        return await this.ollamaIntegration.questionAnswering(
+          code,
+          "Explain this code"
+        );
+      } else {
+        throw new Error("No AI provider available");
       }
-
-      const testPrompt = 'Hello, this is a test message. Please respond with "Connection successful."';
-      const response = await providerInstance.generateResponse(testPrompt);
-
-      const result: ConnectionTestResult = {
-        success: response.content !== undefined,
-        provider,
-        responseTime: Date.now() - startTime
-      };
-
-      if (!result.success) {
-        result.error = 'No response received from provider';
-      }
-
-      return result;
-
     } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        provider,
-        responseTime: Date.now() - startTime
-      };
+      console.error("Code explanation error:", error);
+      throw error;
     }
   }
 
-  /**
-   * Get available providers
-   */
-  public getAvailableProviders(): string[] {
-    return Array.from(this.providers.keys());
-  }
-
-  /**
-   * Set default provider
-   */
-  public setDefaultProvider(provider: string): void {
-    if (this.providers.has(provider)) {
-      this.defaultProvider = provider;
-      this.logger.info(`Set default provider to ${provider}`);
-    } else {
-      this.logger.warn(`Provider ${provider} not available, cannot set as default`);
-    }
-  }
-
-  /**
-   * Get default provider
-   */
-  public getDefaultProvider(): string {
-    return this.defaultProvider;
-  }
-
-  /**
-   * Get provider status
-   */
-  public async getProviderStatus(provider: string): Promise<{
-    available: boolean;
-    hasCredentials: boolean;
-    lastTest?: ConnectionTestResult;
-  }> {
-    const hasCredentials = await this.credentialManager.hasCredentials(provider);
-    const available = this.providers.has(provider);
-
-    return {
-      available,
-      hasCredentials
-    };
-  }
-
-  /**
-   * Get all providers status
-   */
-  public async getAllProvidersStatus(): Promise<Record<string, any>> {
-    const status: Record<string, any> = {};
-
-    for (const provider of this.providers.keys()) {
-      status[provider] = await this.getProviderStatus(provider);
-    }
-
-    return status;
-  }
-
-  /**
-   * Reinitialize provider
-   */
-  public async reinitializeProvider(provider: string): Promise<boolean> {
+  async refactorCode(
+    code: string,
+    language: string = "typescript"
+  ): Promise<string> {
     try {
-      // Remove existing provider
-      this.providers.delete(provider);
+      const prompt = `Refactor the following ${language} code to make it cleaner, more efficient, and follow best practices:\n\n${code}\n\nProvide only the refactored code.`;
 
-      // Reinitialize
-      const hasCredentials = await this.credentialManager.hasCredentials(provider);
-      if (!hasCredentials) {
-        this.logger.warn(`No credentials for ${provider}, skipping reinitialization`);
+      if (this.activeProvider === "openai" && this.openAIProvider) {
+        const response = await this.openAIProvider.chatCompletion({
+          model: this.settings.defaultAIModel,
+          messages: [{ role: "user", content: prompt }],
+        });
+        return response.choices[0]?.message?.content || "";
+      } else if (this.activeProvider === "ollama" && this.ollamaIntegration) {
+        return await this.ollamaIntegration.codeCompletion(code, language);
+      } else {
+        throw new Error("No AI provider available");
+      }
+    } catch (error) {
+      console.error("Code refactoring error:", error);
+      throw error;
+    }
+  }
+
+  async generateEmbeddings(text: string): Promise<number[]> {
+    try {
+      if (this.openAIProvider) {
+        return await this.openAIProvider.generateEmbeddings(text);
+      } else if (this.ollamaIntegration) {
+        return await this.ollamaIntegration.generateEmbeddings(text);
+      } else {
+        throw new Error("No AI provider available for embeddings");
+      }
+    } catch (error) {
+      console.error("Embeddings generation error:", error);
+      throw error;
+    }
+  }
+
+  async generateImage(prompt: string): Promise<string[]> {
+    try {
+      if (this.openAIProvider) {
+        return await this.openAIProvider.generateImage(prompt);
+      } else {
+        throw new Error("Image generation not available with current provider");
+      }
+    } catch (error) {
+      console.error("Image generation error:", error);
+      throw error;
+    }
+  }
+
+  async transcribeAudio(audioFile: File): Promise<string> {
+    try {
+      if (this.openAIProvider) {
+        return await this.openAIProvider.transcribeAudio(audioFile);
+      } else {
+        throw new Error(
+          "Audio transcription not available with current provider"
+        );
+      }
+    } catch (error) {
+      console.error("Audio transcription error:", error);
+      throw error;
+    }
+  }
+
+  setActiveProvider(provider: string) {
+    this.activeProvider = provider;
+    new Notice(`Switched to ${provider} provider`);
+  }
+
+  getActiveProvider(): string {
+    return this.activeProvider;
+  }
+
+  async testConnection(): Promise<boolean> {
+    try {
+      if (this.activeProvider === "openai" && this.openAIProvider) {
+        return await this.openAIProvider.testConnection();
+      } else if (this.activeProvider === "ollama" && this.ollamaIntegration) {
+        return await this.ollamaIntegration.testConnection();
+      } else {
         return false;
       }
-
-      let providerInstance: BaseProvider;
-
-      switch (provider) {
-        case 'openai':
-          providerInstance = new OpenAIProvider(this.credentialManager, this.logger);
-          break;
-        case 'claude':
-          providerInstance = new ClaudeProvider(this.credentialManager, this.logger);
-          break;
-        case 'gemini':
-          providerInstance = new GeminiProvider(this.credentialManager, this.logger);
-          break;
-        case 'ollama':
-          providerInstance = new OllamaProvider(this.credentialManager, this.logger);
-          break;
-        case 'anythingllm':
-          providerInstance = new AnythingLLMProvider(this.credentialManager, this.logger);
-          break;
-        default:
-          throw new Error(`Unknown provider: ${provider}`);
-      }
-
-      await providerInstance.initialize();
-      this.providers.set(provider, providerInstance);
-
-      this.logger.info(`Reinitialized ${provider} provider`);
-      return true;
-
     } catch (error) {
-      this.logger.error(`Failed to reinitialize ${provider} provider`, error as Error);
+      console.error("Connection test error:", error);
       return false;
     }
   }
 
-  /**
-   * Get provider instance
-   */
-  public getProvider(provider: string): BaseProvider | undefined {
-    return this.providers.get(provider);
-  }
-
-  /**
-   * Check if provider is available
-   */
-  public isProviderAvailable(provider: string): boolean {
-    return this.providers.has(provider);
-  }
-
-  /**
-   * Get orchestrator statistics
-   */
-  public getStatistics(): {
-    totalProviders: number;
-    availableProviders: string[];
-    defaultProvider: string;
-  } {
-    return {
-      totalProviders: this.providers.size,
-      availableProviders: Array.from(this.providers.keys()),
-      defaultProvider: this.defaultProvider
-    };
-  }
-
-  /**
-   * Dispose resources
-   */
-  public dispose(): void {
-    this.logger.info('Disposing AI Orchestrator...');
-    
-    // Clear providers
-    this.providers.clear();
-    
-    this.logger.info('AI Orchestrator disposed');
+  async cleanup() {
+    // Cleanup resources
+    console.log("Cleaning up AI Orchestrator...");
   }
 }

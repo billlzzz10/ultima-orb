@@ -1,0 +1,48 @@
+# Ultima-Orb Project Structure
+
+## Main Entry Points
+- [main.ts](mdc:main.ts) - Plugin entry point
+- [src/UltimaOrbPlugin.ts](mdc:src/UltimaOrbPlugin.ts) - Main plugin class
+- [manifest.json](mdc:manifest.json) - Plugin manifest
+
+## Core Architecture
+- [src/core/PluginStateManager.ts](mdc:src/core/PluginStateManager.ts) - Plugin state management
+- [src/core/FeatureManager.ts](mdc:src/core/FeatureManager.ts) - Free vs Max Mode feature management
+- [src/core/ToolDatabaseManager.ts](mdc:src/core/ToolDatabaseManager.ts) - Tool database and Notion sync
+- [src/core/ContextManager.ts](mdc:src/core/ContextManager.ts) - Context management
+- [src/core/IntegrationManager.ts](mdc:src/core/IntegrationManager.ts) - Integration management
+- [src/core/KnowledgeManager.ts](mdc:src/core/KnowledgeManager.ts) - Knowledge management
+- [src/core/TemplateManager.ts](mdc:src/core/TemplateManager.ts) - Template system
+- [src/core/ToolManager.ts](mdc:src/core/ToolManager.ts) - Tool management
+
+## AI Features
+- [src/ai/AIOrchestrator.ts](mdc:src/ai/AIOrchestrator.ts) - AI orchestration
+- [src/ai/AIModes.ts](mdc:src/ai/AIModes.ts) - AI modes
+- [src/ai/providers/](mdc:src/ai/providers/) - AI providers (OpenAI, Claude, Gemini, Ollama)
+- [src/ai/CursorAdvancedFeatures.ts](mdc:src/ai/CursorAdvancedFeatures.ts) - Cursor-style advanced features
+
+## UI Components
+- [src/ui/views/ChatView.ts](mdc:src/ui/views/ChatView.ts) - Chat interface
+- [src/ui/views/KnowledgeView.ts](mdc:src/ui/views/KnowledgeView.ts) - Knowledge interface
+- [src/ui/SettingsTab.ts](mdc:src/ui/SettingsTab.ts) - Settings panel
+- [src/ui/OnboardingFlow.ts](mdc:src/ui/OnboardingFlow.ts) - Onboarding flow
+
+## Integrations
+- [src/integrations/NotionMCPClient.ts](mdc:src/integrations/NotionMCPClient.ts) - Notion integration
+- [src/integrations/ClickUpClient.ts](mdc:src/integrations/ClickUpClient.ts) - ClickUp integration
+- [src/integrations/AirtableClient.ts](mdc:src/integrations/AirtableClient.ts) - Airtable integration
+
+## Services
+- [src/services/CredentialManager.ts](mdc:src/services/CredentialManager.ts) - Credential management
+- [src/services/StorageManager.ts](mdc:src/services/StorageManager.ts) - Storage management
+- [src/services/Logger.ts](mdc:src/services/Logger.ts) - Logging service
+
+## Configuration
+- [package.json](mdc:package.json) - Dependencies and scripts
+- [tsconfig.json](mdc:tsconfig.json) - TypeScript configuration
+- [esbuild.config.mjs](mdc:esbuild.config.mjs) - Build configuration
+- [vitest.config.mjs](mdc:vitest.config.mjs) - Test configuration
+description:
+globs:
+alwaysApply: false
+---

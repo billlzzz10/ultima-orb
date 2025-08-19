@@ -1,110 +1,368 @@
-import { BaseProvider, AIProviderConfig, AIResponse, AIRequest } from './BaseProvider';
+import {
+  BaseProvider,
+  ProviderConfig,
+  AIRequest,
+  AIResponse,
+  ProviderStatus,
+} from "./BaseProvider";
 
-export interface ClaudeConfig extends AIProviderConfig {
-  apiKey: string;
-  model?: string;
-  maxTokens?: number;
+/**
+ * 🤖 Claude Provider
+ * สำหรับ Claude 3 Sonnet, Claude 3 Haiku และ models อื่นๆ จาก Anthropic
+ */
+
+interface ClaudeRequest {
+  model: string;
+  max_tokens: number;
+  messages: Array<{
+    role: "user" | "assistant";
+    content:
+      | string
+      | Array<{
+          type: "text";
+          text: string;
+        }>;
+  }>;
+  system?: string;
   temperature?: number;
-  topP?: number;
-  topK?: number;
+  stream?: boolean;
+}
+
+interface ClaudeResponse {
+  id: string;
+  type: string;
+  role: string;
+  content: Array<{
+    type: "text";
+    text: string;
+  }>;
+  model: string;
+  stop_reason: string;
+  stop_sequence?: string;
+  usage: {
+    input_tokens: number;
+    output_tokens: number;
+  };
 }
 
 export class ClaudeProvider extends BaseProvider {
-  private config: ClaudeConfig;
-  private baseUrl = 'https://api.anthropic.com/v1/messages';
+  private readonly baseUrl = "https://api.anthropic.com/v1";
+  private readonly supportedModels = [
+    "claude-3-haiku-20240307",
+    "claude-3-sonnet-20240229",
+    "claude-3-opus-20240229",
+    "claude-2.1",
+    "claude-2.0",
+    "claude-instant-1.2",
+  ];
 
-  constructor(config: ClaudeConfig) {
-    super('Claude', config);
-    this.config = {
-      model: 'claude-3-sonnet-20240229',
-      maxTokens: 4096,
-      temperature: 0.7,
-      topP: 1,
-      topK: 1,
-      ...config
-    };
+  constructor(config: ProviderConfig) {
+    super({
+      ...config,
+      name: config.name || "Claude",
+      model: config.model || "claude-3-sonnet-20240229",
+    });
   }
 
-  async generateResponse(request: AIRequest): Promise<AIResponse> {
+  /**
+   * Initialize Claude provider
+   */
+  async initialize(): Promise<void> {
     try {
-      const response = await fetch(this.baseUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': this.config.apiKey,
-          'anthropic-version': '2023-06-01'
-        },
-        body: JSON.stringify({
-          model: this.config.model,
-          max_tokens: this.config.maxTokens,
-          temperature: this.config.temperature,
-          top_p: this.config.topP,
-          top_k: this.config.topK,
-          messages: [
-            {
-              role: 'user',
-              content: request.prompt
-            }
-          ]
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Claude API error: ${response.status} ${response.statusText}`);
+      if (!this.validateConfig()) {
+        throw new Error("Invalid Claude configuration");
       }
 
-      const data = await response.json();
-      
-      return {
-        content: data.content[0].text,
-        provider: this.name,
-        model: this.config.model!,
-        usage: {
-          promptTokens: data.usage?.input_tokens || 0,
-          completionTokens: data.usage?.output_tokens || 0,
-          totalTokens: data.usage?.input_tokens + data.usage?.output_tokens || 0
-        },
-        metadata: {
-          id: data.id,
-          type: data.type,
-          role: data.role
-        }
-      };
+      // Test connection
+      const isAvailable = await this.isAvailable();
+      if (!isAvailable) {
+        throw new Error("Claude API is not available");
+      }
+
+      this.isInitialized = true;
+      this.logger.info("Claude provider initialized successfully");
     } catch (error) {
-      throw new Error(`Claude provider error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error(
+        "Failed to initialize Claude provider:",
+        error as Error
+      );
+      throw error;
     }
   }
 
-  async testConnection(): Promise<boolean> {
+  /**
+   * Send request to Claude API
+   */
+  async sendRequest(request: AIRequest): Promise<AIResponse> {
+    if (!this.isInitialized) {
+      throw new Error("Claude provider not initialized");
+    }
+
+    if (!this.validateConfig()) {
+      throw new Error("Invalid Claude configuration");
+    }
+
+    const model =
+      request.model || this.config.model || "claude-3-sonnet-20240229";
+    const messages = this.buildMessages(request);
+    const systemPrompt = this.buildSystemPrompt(request);
+
+    const claudeRequest: ClaudeRequest = {
+      model,
+      max_tokens: request.maxTokens || this.config.maxTokens || 2048,
+      messages,
+      temperature: request.temperature || this.config.temperature,
+      system: systemPrompt,
+      stream: false,
+    };
+
     try {
-      const response = await this.generateResponse({
-        prompt: 'Hello, this is a test message.',
-        context: 'Test connection'
-      });
-      return !!response.content;
+      const response = await this.makeRequest(claudeRequest);
+      return this.parseResponse(response);
+    } catch (error) {
+      this.logger.error("Claude API request failed:", error as Error);
+      throw error;
+    }
+  }
+
+  /**
+   * Check if Claude provider is available
+   */
+  async isAvailable(): Promise<boolean> {
+    try {
+      return await this.testConnection();
     } catch (error) {
       return false;
     }
   }
 
-  getCapabilities(): string[] {
-    return [
-      'text-generation',
-      'conversation',
-      'code-generation',
-      'analysis',
-      'creative-writing'
-    ];
+  /**
+   * Get provider status
+   */
+  async getStatus(): Promise<ProviderStatus> {
+    const isAvailable = await this.isAvailable();
+    const isConfigured = this.validateConfig();
+
+    return {
+      name: this.config.name,
+      isAvailable,
+      isConfigured,
+      lastUsed: new Date(),
+      error: isAvailable ? undefined : "Claude API not available",
+    };
   }
 
+  /**
+   * Validate configuration
+   */
+  validateConfig(): boolean {
+    return !!(this.config.apiKey && this.config.apiKey.startsWith("sk-ant-"));
+  }
+
+  /**
+   * Get supported models
+   */
   getSupportedModels(): string[] {
-    return [
-      'claude-3-opus-20240229',
-      'claude-3-sonnet-20240229',
-      'claude-3-haiku-20240307',
-      'claude-2.1',
-      'claude-2.0',
-      'claude-instant-1.2'
-    ];
+    return [...this.supportedModels];
+  }
+
+  /**
+   * Build messages for Claude API
+   */
+  private buildMessages(
+    request: AIRequest
+  ): Array<{ role: "user" | "assistant"; content: string }> {
+    const messages: Array<{ role: "user" | "assistant"; content: string }> = [];
+
+    // Add context and attachments to user message
+    let userContent = request.prompt;
+
+    if (request.context) {
+      userContent = `Context: ${request.context}\n\n${userContent}`;
+    }
+
+    if (request.attachments && request.attachments.length > 0) {
+      const attachmentsText = request.attachments.join("\n\n");
+      userContent = `Attachments:\n${attachmentsText}\n\n${userContent}`;
+    }
+
+    messages.push({
+      role: "user",
+      content: userContent,
+    });
+
+    return messages;
+  }
+
+  /**
+   * Build system prompt
+   */
+  private buildSystemPrompt(request: AIRequest): string | undefined {
+    if (request.systemPrompt) {
+      return request.systemPrompt;
+    }
+    return undefined;
+  }
+
+  /**
+   * Make HTTP request to Claude API
+   */
+  private async makeRequest(request: ClaudeRequest): Promise<ClaudeResponse> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+
+    try {
+      const response = await fetch(`${this.baseUrl}/messages`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": this.config.apiKey!,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify(request),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `Claude API error: ${response.status} ${response.statusText} - ${errorText}`
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new Error(
+          `Claude API request timeout after ${this.config.timeout}ms`
+        );
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Parse Claude response
+   */
+  private parseResponse(response: ClaudeResponse): AIResponse {
+    if (!response.content || response.content.length === 0) {
+      throw new Error("No response from Claude API");
+    }
+
+    // Extract text content from response
+    const textContent = response.content
+      .filter((item) => item.type === "text")
+      .map((item) => item.text)
+      .join("");
+
+    if (!textContent) {
+      throw new Error("Empty response from Claude API");
+    }
+
+    return {
+      content: textContent,
+      model: response.model,
+      usage: response.usage
+        ? {
+            promptTokens: response.usage.input_tokens,
+            completionTokens: response.usage.output_tokens,
+            totalTokens:
+              response.usage.input_tokens + response.usage.output_tokens,
+          }
+        : undefined,
+      metadata: {
+        id: response.id,
+        stopReason: response.stop_reason,
+        stopSequence: response.stop_sequence,
+      },
+    };
+  }
+
+  /**
+   * Get model info
+   */
+  getModelInfo(model: string): {
+    name: string;
+    maxTokens: number;
+    costPer1kTokens: number;
+  } {
+    const modelInfo: Record<
+      string,
+      { name: string; maxTokens: number; costPer1kTokens: number }
+    > = {
+      "claude-3-haiku-20240307": {
+        name: "Claude 3 Haiku",
+        maxTokens: 200000,
+        costPer1kTokens: 0.00025,
+      },
+      "claude-3-sonnet-20240229": {
+        name: "Claude 3 Sonnet",
+        maxTokens: 200000,
+        costPer1kTokens: 0.003,
+      },
+      "claude-3-opus-20240229": {
+        name: "Claude 3 Opus",
+        maxTokens: 200000,
+        costPer1kTokens: 0.015,
+      },
+      "claude-2.1": {
+        name: "Claude 2.1",
+        maxTokens: 100000,
+        costPer1kTokens: 0.008,
+      },
+      "claude-2.0": {
+        name: "Claude 2.0",
+        maxTokens: 100000,
+        costPer1kTokens: 0.008,
+      },
+      "claude-instant-1.2": {
+        name: "Claude Instant 1.2",
+        maxTokens: 100000,
+        costPer1kTokens: 0.00163,
+      },
+    };
+
+    return (
+      modelInfo[model] || {
+        name: model,
+        maxTokens: 100000,
+        costPer1kTokens: 0.003,
+      }
+    );
+  }
+
+  /**
+   * Calculate estimated cost
+   */
+  calculateCost(
+    usage: {
+      promptTokens: number;
+      completionTokens: number;
+      totalTokens: number;
+    },
+    model: string
+  ): number {
+    const modelInfo = this.getModelInfo(model);
+    const totalCost = (usage.totalTokens / 1000) * modelInfo.costPer1kTokens;
+    return Math.round(totalCost * 100) / 100; // Round to 2 decimal places
+  }
+
+  /**
+   * Get model capabilities
+   */
+  getModelCapabilities(model: string): string[] {
+    const capabilities: Record<string, string[]> = {
+      "claude-3-haiku-20240307": ["fast", "efficient", "general-purpose"],
+      "claude-3-sonnet-20240229": ["balanced", "reliable", "general-purpose"],
+      "claude-3-opus-20240229": ["most-capable", "complex-tasks", "research"],
+      "claude-2.1": ["reliable", "general-purpose"],
+      "claude-2.0": ["reliable", "general-purpose"],
+      "claude-instant-1.2": ["fast", "efficient", "simple-tasks"],
+    };
+
+    return capabilities[model] || ["general-purpose"];
   }
 }

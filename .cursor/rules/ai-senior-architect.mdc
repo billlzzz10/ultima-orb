@@ -1,0 +1,125 @@
+# AI Senior Architect v2.2
+
+## 🎯 Core Philosophy
+
+### **Order over Chaos**
+- ทุกโปรเจกต์ต้องมีโครงสร้างและระเบียบที่ชัดเจนตั้งแต่เริ่มต้น
+- ใช้ [package.json](mdc:package.json) และ [tsconfig.json](mdc:tsconfig.json) เป็นพื้นฐาน
+- ตรวจสอบ [.eslintrc.js](mdc:.eslintrc.js) เพื่อความสม่ำเสมอของโค้ด
+
+### **Intentional Creation**
+- ทุกโค้ดที่เขียนต้องมีจุดประสงค์ที่ชัดเจนและเป็นส่วนหนึ่งของสถาปัตยกรรมหลัก
+- ใช้ [main.ts](mdc:main.ts) เป็น entry point หลัก
+- โครงสร้างไฟล์ใน [src/](mdc:src/) ต้องเป็นระเบียบ
+
+### **Adaptability & Practicality**
+- การตัดสินใจทั้งหมดอยู่บนพื้นฐานของประสิทธิภาพและประโยชน์สูงสุดสำหรับโปรเจกต์
+- ไม่ยึดติดกับกฎตายตัว แต่ยืดหยุ่นตามความเหมาะสม
+
+## 📋 Best-Practice Guidelines
+
+### 1. การวิเคราะห์ก่อนลงมือทำ
+- ตรวจสอบโครงสร้างไฟล์และไฟล์คอนฟิกเสมอ
+- อ่าน [package.json](mdc:package.json) เพื่อเข้าใจ dependencies
+- ตรวจสอบ [tsconfig.json](mdc:tsconfig.json) สำหรับ TypeScript config
+- ดู [.eslintrc.js](mdc:.eslintrc.js) สำหรับ coding standards
+
+### 2. การวางแผนแบบปรับเปลี่ยนได้
+- งานใหญ่: นำเสนอแผนงานที่ชัดเจน
+- งานเล็ก: ดำเนินการได้ทันที
+- ใช้ [esbuild.config.mjs](mdc:esbuild.config.mjs) สำหรับ build process
+
+### 3. การเขียนโค้ดที่พร้อมใช้งาน (Production-Ready)
+- โค้ดต้องทำงานได้ตั้งแต่แรก
+- คำนึงถึงประสิทธิภาพและความสามารถในการบำรุงรักษา
+- ใช้ TypeScript strict mode จาก [tsconfig.json](mdc:tsconfig.json)
+- ปฏิบัติตาม ESLint rules จาก [.eslintrc.js](mdc:.eslintrc.js)
+
+### 4. การจัดการข้อมูลที่ปลอดภัย
+- สร้างโครงสร้างโค้ดที่รองรับการจัดการ API Key
+- ออกแบบให้ผู้ใช้สามารถกรอก Key ของตัวเองได้
+- ใช้ environment variables หรือ secure storage
+
+### 5. การตรวจสอบคุณภาพในตัว (Self-Verification)
+- ตรวจสอบโค้ดตามมาตรฐานที่กำหนด
+- รัน `npm run type-check` ก่อน commit
+- รัน `npm run lint` เพื่อตรวจสอบ code quality
+- ทดสอบ build ด้วย `npm run build`
+
+## 🏗️ Project Structure Guidelines
+
+### Entry Points
+- [main.ts](mdc:main.ts) - Main plugin entry point
+- [src/UltimaOrbPlugin.ts](mdc:src/UltimaOrbPlugin.ts) - Core plugin class
+
+### Configuration Files
+- [package.json](mdc:package.json) - Dependencies and scripts
+- [tsconfig.json](mdc:tsconfig.json) - TypeScript configuration
+- [.eslintrc.js](mdc:.eslintrc.js) - Code quality rules
+- [esbuild.config.mjs](mdc:esbuild.config.mjs) - Build configuration
+
+### Source Structure
+- [src/](mdc:src/) - Main source code
+- [src/types/](mdc:src/types/) - TypeScript type definitions
+- [src/services/](mdc:src/services/) - Core services
+- [src/ui/](mdc:src/ui/) - User interface components
+
+## 🔧 Development Commands
+
+### Quality Assurance
+```bash
+npm run type-check    # TypeScript compilation check
+npm run lint          # ESLint code quality check
+npm run lint:fix      # Auto-fix ESLint issues
+```
+
+### Build Process
+```bash
+npm run build         # Production build
+npm run dev           # Development with watch
+npm run clean         # Clean build artifacts
+```
+
+### Testing
+```bash
+npm run test          # Run tests
+npm run test:watch    # Watch mode tests
+npm run test:coverage # Coverage report
+```
+
+## 🚨 Critical Rules
+
+### Code Quality
+- ใช้ single quotes เท่านั้น (ตาม [.eslintrc.js](mdc:.eslintrc.js))
+- ต้องมี semicolons เสมอ
+- ห้ามใช้ `any` type (TypeScript strict mode)
+- ต้องมี proper error handling
+
+### File Organization
+- ไฟล์ใหม่ต้องอยู่ใน [src/](mdc:src/) directory
+- ใช้ meaningful file names
+- หนึ่งไฟล์ = หนึ่ง responsibility
+
+### Build Process
+- ต้องผ่าน TypeScript compilation ก่อน
+- ต้องผ่าน ESLint ก่อน commit
+- ต้อง build สำเร็จก่อน deploy
+
+## 🎯 Success Criteria
+
+### ✅ Production-Ready Code
+- TypeScript compilation ผ่าน
+- ESLint ผ่าน
+- Build สำเร็จ
+- Error handling ครบถ้วน
+- Documentation ชัดเจน
+
+### ✅ Maintainable Architecture
+- โครงสร้างไฟล์เป็นระเบียบ
+- Separation of concerns ชัดเจน
+- Type definitions ครบถ้วน
+- Code reusability สูง
+description:
+globs:
+alwaysApply: false
+---

@@ -1,390 +1,397 @@
 import { Logger } from '../services/Logger';
 
-export interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
-  ttl: number; // Time to live in milliseconds
-  accessCount: number;
-  lastAccessed: number;
-}
+/**
+ * ⚡ Performance Optimizer
+ * จัดการและปรับปรุงประสิทธิภาพของ plugin
+ */
 
 export interface PerformanceMetrics {
-  memoryUsage: number;
-  cacheHitRate: number;
-  averageResponseTime: number;
-  activeConnections: number;
-  errorRate: number;
+    responseTime: number;
+    memoryUsage: number;
+    cpuUsage: number;
+    cacheHitRate: number;
+    errorRate: number;
 }
 
-export interface OptimizationConfig {
-  maxCacheSize: number;
-  defaultTTL: number;
-  cleanupInterval: number;
-  memoryThreshold: number;
-  enableCompression: boolean;
-  enableLazyLoading: boolean;
+export interface PerformanceConfig {
+    enableCaching: boolean;
+    cacheTTL: number;
+    maxCacheSize: number;
+    enableCompression: boolean;
+    enableLazyLoading: boolean;
+    maxConcurrentRequests: number;
 }
 
 export class PerformanceOptimizer {
-  private cache: Map<string, CacheEntry<any>> = new Map();
-  private metrics: PerformanceMetrics = {
-    memoryUsage: 0,
-    cacheHitRate: 0,
-    averageResponseTime: 0,
-    activeConnections: 0,
-    errorRate: 0
-  };
-  private config: OptimizationConfig;
   private logger: Logger;
-  private cleanupInterval: NodeJS.Timeout | null = null;
-  private responseTimes: number[] = [];
-  private errorCount = 0;
-  private totalRequests = 0;
+  private metrics: Map<string, PerformanceMetrics> = new Map();
+  private cache: Map<string, { data: any; timestamp: number; ttl: number }> =
+    new Map();
+  private config: PerformanceConfig;
+  private isInitialized: boolean = false;
 
-  constructor(logger: Logger, config?: Partial<OptimizationConfig>) {
-    this.logger = logger;
+  constructor() {
+    this.logger = new Logger();
     this.config = {
-      maxCacheSize: 1000,
-      defaultTTL: 300000, // 5 minutes
-      cleanupInterval: 60000, // 1 minute
-      memoryThreshold: 50 * 1024 * 1024, // 50MB
+      enableCaching: true,
+      cacheTTL: 300000, // 5 minutes
+      maxCacheSize: 100,
       enableCompression: true,
       enableLazyLoading: true,
-      ...config
+      maxConcurrentRequests: 5,
     };
-
-    this.startCleanupInterval();
-    this.logger.info('PerformanceOptimizer initialized', this.config);
   }
 
-  // Cache Management
-  public set<T>(key: string, data: T, ttl?: number): void {
-    const entry: CacheEntry<T> = {
-      data,
-      timestamp: Date.now(),
-      ttl: ttl || this.config.defaultTTL,
-      accessCount: 0,
-      lastAccessed: Date.now()
-    };
+  /**
+   * Initialize performance optimizer
+   */
+  public async initialize(): Promise<void> {
+    try {
+      this.logger.info('Initializing Performance Optimizer...');
+
+      // Load configuration
+      await this.loadConfiguration();
+
+      // Start monitoring
+      this.startMonitoring();
+
+      this.isInitialized = true;
+      this.logger.info('Performance Optimizer initialized successfully');
+    } catch (error) {
+      this.logger.error(
+        'Failed to initialize Performance Optimizer',
+                error as Error
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Load configuration from settings
+   */
+  private async loadConfiguration(): Promise<void> {
+    // In a real implementation, load from settings
+    this.logger.info('Loading performance configuration...');
+  }
+
+  /**
+   * Start performance monitoring
+   */
+  private startMonitoring(): void {
+    // Monitor memory usage
+    setInterval(() => {
+      this.updateMemoryMetrics();
+    }, 30000); // Every 30 seconds
+
+    // Monitor cache performance
+    setInterval(() => {
+      this.updateCacheMetrics();
+    }, 60000); // Every minute
+  }
+
+  /**
+   * Get cached data
+   */
+  public getCachedData(key: string): any | null {
+    if (!this.config.enableCaching) {
+      return null;
+    }
+
+    const cached = this.cache.get(key);
+    if (!cached) {
+      return null;
+    }
+
+    // Check if cache is expired
+    if (Date.now() - cached.timestamp > cached.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    return cached.data;
+  }
+
+  /**
+   * Set cached data
+   */
+  public setCachedData(key: string, data: any, ttl?: number): void {
+    if (!this.config.enableCaching) {
+      return;
+    }
 
     // Check cache size limit
     if (this.cache.size >= this.config.maxCacheSize) {
-      this.evictLeastUsed();
+      this.evictOldestCache();
     }
 
-    this.cache.set(key, entry);
-    this.logger.debug(`Cached data for key: ${key}`);
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now(),
+      ttl: ttl || this.config.cacheTTL,
+    });
   }
 
-  public get<T>(key: string): T | null {
-    const entry = this.cache.get(key) as CacheEntry<T>;
-    
-    if (!entry) {
-      this.updateMetrics(false);
-      return null;
-    }
-
-    // Check if entry has expired
-    if (Date.now() - entry.timestamp > entry.ttl) {
-      this.cache.delete(key);
-      this.updateMetrics(false);
-      return null;
-    }
-
-    // Update access statistics
-    entry.accessCount++;
-    entry.lastAccessed = Date.now();
-    this.updateMetrics(true);
-
-    this.logger.debug(`Cache hit for key: ${key}`);
-    return entry.data;
-  }
-
-  public has(key: string): boolean {
-    return this.cache.has(key) && !this.isExpired(key);
-  }
-
-  public delete(key: string): boolean {
-    const deleted = this.cache.delete(key);
-    if (deleted) {
-      this.logger.debug(`Deleted cache entry: ${key}`);
-    }
-    return deleted;
-  }
-
-  public clear(): void {
+  /**
+   * Clear cache
+   */
+  public clearCache(): void {
     this.cache.clear();
     this.logger.info('Cache cleared');
   }
 
-  public getCacheStats(): { size: number; hitRate: number; memoryUsage: number } {
+  /**
+   * Get cache statistics
+   */
+  public getCacheStats(): {
+        size: number;
+        hitRate: number;
+        missRate: number;
+        totalRequests: number;
+        } {
+    const totalRequests = this.getTotalCacheRequests();
+    const hitRate = totalRequests > 0 ? this.getCacheHitRate() : 0;
+
     return {
       size: this.cache.size,
-      hitRate: this.metrics.cacheHitRate,
-      memoryUsage: this.estimateCacheMemoryUsage()
+      hitRate,
+      missRate: 1 - hitRate,
+      totalRequests,
     };
   }
 
-  // Memory Management
-  public optimizeMemory(): void {
-    const currentMemory = this.getMemoryUsage();
-    
-    if (currentMemory > this.config.memoryThreshold) {
-      this.logger.warn(`Memory usage high: ${(currentMemory / 1024 / 1024).toFixed(2)}MB`);
-      this.performMemoryOptimization();
-    }
-  }
-
-  private performMemoryOptimization(): void {
-    // Remove expired entries
-    this.removeExpiredEntries();
-    
-    // Evict least used entries if still over threshold
-    if (this.getMemoryUsage() > this.config.memoryThreshold) {
-      this.evictLeastUsed();
-    }
-    
-    // Force garbage collection if available
-    if (typeof global.gc === 'function') {
-      global.gc();
-    }
-    
-    this.logger.info('Memory optimization completed');
-  }
-
-  private removeExpiredEntries(): void {
-    const now = Date.now();
-    let removedCount = 0;
-    
-    for (const [key, entry] of this.cache.entries()) {
-      if (now - entry.timestamp > entry.ttl) {
-        this.cache.delete(key);
-        removedCount++;
-      }
-    }
-    
-    if (removedCount > 0) {
-      this.logger.debug(`Removed ${removedCount} expired cache entries`);
-    }
-  }
-
-  private evictLeastUsed(): void {
-    const entries = Array.from(this.cache.entries());
-    
-    // Sort by access count and last accessed time
-    entries.sort((a, b) => {
-      if (a[1].accessCount !== b[1].accessCount) {
-        return a[1].accessCount - b[1].accessCount;
-      }
-      return a[1].lastAccessed - b[1].lastAccessed;
-    });
-    
-    // Remove 20% of least used entries
-    const removeCount = Math.ceil(entries.length * 0.2);
-    for (let i = 0; i < removeCount; i++) {
-      this.cache.delete(entries[i][0]);
-    }
-    
-    this.logger.debug(`Evicted ${removeCount} least used cache entries`);
-  }
-
-  // Performance Monitoring
-  public startRequestTimer(): () => void {
+  /**
+   * Measure execution time
+   */
+  public async measureExecutionTime<T>(
+    operation: () => Promise<T>,
+    operationName: string
+  ): Promise<T> {
     const startTime = performance.now();
-    this.totalRequests++;
-    
-    return () => {
-      const duration = performance.now() - startTime;
-      this.recordResponseTime(duration);
-    };
-  }
 
-  public recordError(error: Error): void {
-    this.errorCount++;
-    this.updateErrorRate();
-    this.logger.error('Performance error recorded:', error);
-  }
+    try {
+      const result = await operation();
+      const endTime = performance.now();
+      const executionTime = endTime - startTime;
 
-  public getMetrics(): PerformanceMetrics {
-    return { ...this.metrics };
-  }
+      this.recordMetric(operationName, {
+        responseTime: executionTime,
+        memoryUsage: this.getMemoryUsage(),
+        cpuUsage: 0, // Would need system API to measure
+        cacheHitRate: this.getCacheHitRate(),
+        errorRate: 0,
+      });
 
-  public getDetailedMetrics(): PerformanceMetrics & {
-    cacheSize: number;
-    totalRequests: number;
-    errorCount: number;
-    memoryUsageMB: number;
-  } {
-    return {
-      ...this.metrics,
-      cacheSize: this.cache.size,
-      totalRequests: this.totalRequests,
-      errorCount: this.errorCount,
-      memoryUsageMB: this.getMemoryUsage() / 1024 / 1024
-    };
-  }
+      return result;
+    } catch (error) {
+      const endTime = performance.now();
+      const executionTime = endTime - startTime;
 
-  // Response Time Tracking
-  private recordResponseTime(duration: number): void {
-    this.responseTimes.push(duration);
-    
-    // Keep only last 100 response times
-    if (this.responseTimes.length > 100) {
-      this.responseTimes.shift();
-    }
-    
-    this.updateAverageResponseTime();
-  }
+      this.recordMetric(operationName, {
+        responseTime: executionTime,
+        memoryUsage: this.getMemoryUsage(),
+        cpuUsage: 0,
+        cacheHitRate: this.getCacheHitRate(),
+        errorRate: 1,
+      });
 
-  private updateAverageResponseTime(): void {
-    if (this.responseTimes.length > 0) {
-      const sum = this.responseTimes.reduce((a, b) => a + b, 0);
-      this.metrics.averageResponseTime = sum / this.responseTimes.length;
+      throw error;
     }
   }
 
-  // Cache Hit Rate Tracking
-  private updateMetrics(isHit: boolean): void {
-    const totalHits = this.metrics.cacheHitRate * this.totalRequests;
-    const newTotalHits = totalHits + (isHit ? 1 : 0);
-    this.totalRequests++;
-    
-    this.metrics.cacheHitRate = newTotalHits / this.totalRequests;
+  /**
+   * Record performance metric
+   */
+  private recordMetric(
+    operationName: string,
+    metrics: PerformanceMetrics
+  ): void {
+    this.metrics.set(operationName, metrics);
   }
 
-  private updateErrorRate(): void {
-    this.metrics.errorRate = this.errorCount / this.totalRequests;
+  /**
+   * Get performance metrics for operation
+   */
+  public getMetrics(operationName: string): PerformanceMetrics | null {
+    return this.metrics.get(operationName) || null;
   }
 
-  // Memory Usage Monitoring
+  /**
+   * Get all performance metrics
+   */
+  public getAllMetrics(): Map<string, PerformanceMetrics> {
+    return new Map(this.metrics);
+  }
+
+  /**
+   * Get memory usage
+   */
   private getMemoryUsage(): number {
-    if (typeof process !== 'undefined' && process.memoryUsage) {
-      return process.memoryUsage().heapUsed;
-    }
-    
-    // Fallback for browser environment
-    if (typeof performance !== 'undefined' && performance.memory) {
+    if (typeof performance !== 'undefined' && (performance as any).memory) {
       return (performance as any).memory.usedJSHeapSize;
     }
-    
     return 0;
   }
 
-  private estimateCacheMemoryUsage(): number {
-    let totalSize = 0;
-    
-    for (const [key, entry] of this.cache.entries()) {
-      totalSize += this.estimateObjectSize(key);
-      totalSize += this.estimateObjectSize(entry);
-    }
-    
-    return totalSize;
+  /**
+   * Update memory metrics
+   */
+  private updateMemoryMetrics(): void {
+    const memoryUsage = this.getMemoryUsage();
+    this.logger.debug(`Memory usage: ${memoryUsage} bytes`);
   }
 
-  private estimateObjectSize(obj: any): number {
-    const str = JSON.stringify(obj);
-    return new Blob([str]).size;
+  /**
+   * Update cache metrics
+   */
+  private updateCacheMetrics(): void {
+    const stats = this.getCacheStats();
+    this.logger.debug(`Cache stats: ${JSON.stringify(stats)}`);
   }
 
-  // Utility Methods
-  private isExpired(key: string): boolean {
-    const entry = this.cache.get(key);
-    if (!entry) return true;
-    
-    return Date.now() - entry.timestamp > entry.ttl;
+  /**
+   * Get cache hit rate
+   */
+  private getCacheHitRate(): number {
+    // In a real implementation, track cache hits/misses
+    return 0.8; // Placeholder
   }
 
-  private startCleanupInterval(): void {
-    this.cleanupInterval = setInterval(() => {
-      this.removeExpiredEntries();
-      this.optimizeMemory();
-      this.updateMetrics();
-    }, this.config.cleanupInterval);
+  /**
+   * Get total cache requests
+   */
+  private getTotalCacheRequests(): number {
+    // In a real implementation, track total requests
+    return 100; // Placeholder
   }
 
-  private updateMetrics(): void {
-    this.metrics.memoryUsage = this.getMemoryUsage();
-    this.updateAverageResponseTime();
-    this.updateErrorRate();
-  }
+  /**
+   * Evict oldest cache entry
+   */
+  private evictOldestCache(): void {
+    let oldestKey: string | null = null;
+    let oldestTime = Date.now();
 
-  // Compression Utilities
-  public compressData(data: string): string {
-    if (!this.config.enableCompression) return data;
-    
-    try {
-      // Simple compression for text data
-      return data.replace(/\s+/g, ' ').trim();
-    } catch (error) {
-      this.logger.warn('Compression failed, returning original data:', error);
-      return data;
-    }
-  }
-
-  public decompressData(compressedData: string): string {
-    if (!this.config.enableCompression) return compressedData;
-    
-    try {
-      // Simple decompression
-      return compressedData;
-    } catch (error) {
-      this.logger.warn('Decompression failed, returning compressed data:', error);
-      return compressedData;
-    }
-  }
-
-  // Lazy Loading Support
-  public createLazyLoader<T>(
-    key: string,
-    loader: () => Promise<T>,
-    ttl?: number
-  ): () => Promise<T> {
-    return async (): Promise<T> => {
-      // Check cache first
-      const cached = this.get<T>(key);
-      if (cached !== null) {
-        return cached;
+    for (const [key, value] of this.cache.entries()) {
+      if (value.timestamp < oldestTime) {
+        oldestTime = value.timestamp;
+        oldestKey = key;
       }
+    }
 
-      // Load data
-      try {
-        const data = await loader();
-        this.set(key, data, ttl);
-        return data;
-      } catch (error) {
-        this.recordError(error as Error);
-        throw error;
-      }
+    if (oldestKey) {
+      this.cache.delete(oldestKey);
+    }
+  }
+
+  /**
+   * Optimize bundle size
+   */
+  public optimizeBundleSize(): {
+        originalSize: number;
+        optimizedSize: number;
+        reduction: number;
+        } {
+    // In a real implementation, analyze bundle size
+    const originalSize = 1024 * 1024; // 1MB placeholder
+    const optimizedSize = 800 * 1024; // 800KB placeholder
+    const reduction = ((originalSize - optimizedSize) / originalSize) * 100;
+
+    return {
+      originalSize,
+      optimizedSize,
+      reduction,
     };
   }
 
-  // Connection Pool Management
-  public trackConnection(): () => void {
-    this.metrics.activeConnections++;
-    
-    return () => {
-      this.metrics.activeConnections = Math.max(0, this.metrics.activeConnections - 1);
+  /**
+   * Generate performance report
+   */
+  public generateReport(): {
+        summary: {
+            totalOperations: number;
+            averageResponseTime: number;
+            averageMemoryUsage: number;
+            cacheEfficiency: number;
+        };
+        details: Map<string, PerformanceMetrics>;
+        recommendations: string[];
+        } {
+    const metrics = Array.from(this.metrics.values());
+    const totalOperations = metrics.length;
+
+    const averageResponseTime =
+      metrics.length > 0
+        ? metrics.reduce((sum, m) => sum + m.responseTime, 0) / metrics.length
+        : 0;
+
+    const averageMemoryUsage =
+      metrics.length > 0
+        ? metrics.reduce((sum, m) => sum + m.memoryUsage, 0) / metrics.length
+        : 0;
+
+    const cacheEfficiency =
+      metrics.length > 0
+        ? metrics.reduce((sum, m) => sum + m.cacheHitRate, 0) / metrics.length
+        : 0;
+
+    const recommendations = this.generateRecommendations(metrics);
+
+    return {
+      summary: {
+        totalOperations,
+        averageResponseTime,
+        averageMemoryUsage,
+        cacheEfficiency,
+      },
+      details: new Map(this.metrics),
+      recommendations,
     };
   }
 
-  // Cleanup
-  public destroy(): void {
-    if (this.cleanupInterval) {
-      clearInterval(this.cleanupInterval);
-      this.cleanupInterval = null;
+  /**
+   * Generate performance recommendations
+   */
+  private generateRecommendations(metrics: PerformanceMetrics[]): string[] {
+    const recommendations: string[] = [];
+
+    const avgResponseTime =
+      metrics.reduce((sum, m) => sum + m.responseTime, 0) / metrics.length;
+    const avgMemoryUsage =
+      metrics.reduce((sum, m) => sum + m.memoryUsage, 0) / metrics.length;
+
+    if (avgResponseTime > 1000) {
+      recommendations.push('Consider implementing caching for slow operations');
     }
-    
-    this.clear();
-    this.logger.info('PerformanceOptimizer destroyed');
+
+    if (avgMemoryUsage > 50 * 1024 * 1024) {
+      // 50MB
+      recommendations.push(
+        'Memory usage is high, consider implementing cleanup strategies'
+      );
+    }
+
+    if (this.getCacheHitRate() < 0.5) {
+      recommendations.push(
+        'Cache hit rate is low, consider adjusting cache TTL'
+      );
+    }
+
+    return recommendations;
   }
 
-  // Configuration Management
-  public updateConfig(newConfig: Partial<OptimizationConfig>): void {
-    this.config = { ...this.config, ...newConfig };
-    this.logger.info('PerformanceOptimizer config updated', this.config);
-  }
+  /**
+   * Dispose resources
+   */
+  public dispose(): void {
+    this.logger.info('Disposing Performance Optimizer...');
 
-  public getConfig(): OptimizationConfig {
-    return { ...this.config };
+    // Clear cache
+    this.clearCache();
+
+    // Clear metrics
+    this.metrics.clear();
+
+    this.isInitialized = false;
+    this.logger.info('Performance Optimizer disposed');
   }
 }

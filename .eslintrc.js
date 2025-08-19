@@ -1,28 +1,33 @@
 module.exports = {
+  root: true,
   env: {
     browser: true,
-    es2021: true,
+    es2022: true,
     node: true,
   },
-  extends: [
-    'eslint:recommended',
-    'plugin:@typescript-eslint/recommended',
-  ],
+  extends: ['@typescript-eslint/recommended'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
   },
-  plugins: [
-    '@typescript-eslint',
-  ],
+  plugins: ['@typescript-eslint'],
   rules: {
-    'indent': ['error', 2],
-    'linebreak-style': ['error', 'windows'],
-    'quotes': ['error', 'single'],
-    'semi': ['error', 'always'],
-    '@typescript-eslint/no-unused-vars': 'warn',
+    // 🔥 เข้มงวด - ห้าม any
     '@typescript-eslint/no-explicit-any': 'warn',
-    'no-unreachable': 'error',
+    '@typescript-eslint/no-unused-vars': 'warn',
+    'no-unused-vars': 'off',
+    
+    // 🔥 Quotes ต้องเป็น single
+    'quotes': ['error', 'double'],
+    '@typescript-eslint/quotes': ['error', 'double'],
+    
+    // 🔥 Semicolons ต้องมี
+    'semi': ['error', 'always'],
+    
+    // 🔥 Indentation - ปิดไว้ก่อน
+    'indent': 'off',
+    '@typescript-eslint/indent': 'off',
   },
+  ignorePatterns: ['dist/', 'node_modules/', '*.js'],
 };

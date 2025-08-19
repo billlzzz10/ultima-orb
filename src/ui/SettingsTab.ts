@@ -1,403 +1,545 @@
-import { App, PluginSettingTab, Setting } from 'obsidian';
-import { UltimaOrbPlugin } from '../UltimaOrbPlugin';
+import { App, PluginSettingTab, Setting } from "obsidian";
+import UltimaOrbPlugin from "../UltimaOrbPlugin";
+import { Logger } from "../services/Logger";
 
 /**
- * ⚙️ Settings Tab
- * หน้าตั้งค่าของ Ultima-Orb plugin
+ * 🎨 Settings Tab
+ * UI การตั้งค่าหลัก แบบ Tabs
+ * Version: v1.1.0
+ * Priority: High
  */
 
-export class SettingsTab extends PluginSettingTab {
+export class UltimaOrbSettingTab extends PluginSettingTab {
   private plugin: UltimaOrbPlugin;
+  private logger: Logger;
 
   constructor(app: App, plugin: UltimaOrbPlugin) {
     super(app, plugin);
     this.plugin = plugin;
+    this.logger = new Logger();
   }
 
   display(): void {
+    this.logger.info("Displaying Ultima-Orb Settings Tab");
+
     const { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl('h2', { text: 'Ultima-Orb Settings' });
+    // Header
+    containerEl.createEl("h2", { text: "Ultima-Orb Settings" });
+    containerEl.createEl("p", {
+      text: "Configure your Ultima-Orb AI assistant and integrations",
+      cls: "setting-item-description",
+    });
 
-    // General Settings
-    this.createGeneralSettings(containerEl);
+    // Create tab navigation
+    this.createTabNavigation(containerEl);
 
-    // AI Providers Settings
-    this.createAIProviderSettings(containerEl);
-
-    // Integrations Settings
-    this.createIntegrationSettings(containerEl);
-
-    // Performance Settings
-    this.createPerformanceSettings(containerEl);
-
-    // Security Settings
-    this.createSecuritySettings(containerEl);
-
-    // Advanced Settings
-    this.createAdvancedSettings(containerEl);
+    // Create tab content
+    this.createTabContent(containerEl);
   }
 
-  private createGeneralSettings(containerEl: HTMLElement): void {
-    containerEl.createEl('h3', { text: 'General Settings' });
+  /**
+   * Create tab navigation
+   */
+  private createTabNavigation(containerEl: HTMLElement): void {
+    const tabContainer = containerEl.createEl("div", {
+      cls: "ultima-orb-tabs",
+    });
 
-    new Setting(containerEl)
-      .setName('Default AI Provider')
-      .setDesc('เลือก AI provider ที่จะใช้เป็นค่าเริ่มต้น')
-      .addDropdown(dropdown => {
-        dropdown
-          .addOption('openai', 'OpenAI GPT')
-          .addOption('claude', 'Anthropic Claude')
-          .addOption('gemini', 'Google Gemini')
-          .addOption('ollama', 'Ollama')
-          .addOption('anythingllm', 'AnythingLLM')
-          .setValue(this.plugin.settings.getSync('defaultAIProvider') || 'openai')
-          .onChange(async (value) => {
-            await this.plugin.settings.set('defaultAIProvider', value);
-            this.plugin.aiOrchestrator.setDefaultProvider(value);
-          });
+    const tabs = [
+      { id: "ai", name: "🤖 AI Providers", icon: "brain" },
+      { id: "model", name: "⚙️ Model Settings", icon: "settings" },
+      { id: "integrations", name: "🔗 Integrations", icon: "link" },
+      { id: "ui", name: "🎨 UI Settings", icon: "layout" },
+      { id: "advanced", name: "🔧 Advanced", icon: "tool" },
+    ];
+
+    const tabNav = tabContainer.createEl("div", { cls: "ultima-orb-tab-nav" });
+
+    tabs.forEach((tab, index) => {
+      const tabButton = tabNav.createEl("button", {
+        cls: `ultima-orb-tab-button ${index === 0 ? "active" : ""}`,
+        attr: { "data-tab": tab.id },
       });
 
-    new Setting(containerEl)
-      .setName('Language')
-      .setDesc('เลือกภาษาสำหรับการแสดงผล')
-      .addDropdown(dropdown => {
-        dropdown
-          .addOption('th', 'ไทย')
-          .addOption('en', 'English')
-          .setValue(this.plugin.settings.getSync('language') || 'th')
-          .onChange(async (value) => {
-            await this.plugin.settings.set('language', value);
-          });
-      });
+      tabButton.createEl("span", { text: tab.name });
 
-    new Setting(containerEl)
-      .setName('Theme')
-      .setDesc('เลือกธีมสำหรับ UI')
-      .addDropdown(dropdown => {
-        dropdown
-          .addOption('auto', 'Auto (ตามระบบ)')
-          .addOption('light', 'Light')
-          .addOption('dark', 'Dark')
-          .setValue(this.plugin.settings.getSync('theme') || 'auto')
-          .onChange(async (value) => {
-            await this.plugin.settings.set('theme', value);
-          });
+      tabButton.addEventListener("click", () => {
+        this.switchTab(tab.id);
       });
+    });
   }
 
-  private createAIProviderSettings(containerEl: HTMLElement): void {
-    containerEl.createEl('h3', { text: 'AI Provider Settings' });
+  /**
+   * Create tab content
+   */
+  private createTabContent(containerEl: HTMLElement): void {
+    const contentContainer = containerEl.createEl("div", {
+      cls: "ultima-orb-tab-content",
+    });
+
+    // AI Providers Tab
+    this.createAITab(contentContainer);
+
+    // Model Settings Tab
+    this.createModelTab(contentContainer);
+
+    // Integrations Tab
+    this.createIntegrationsTab(contentContainer);
+
+    // UI Settings Tab
+    this.createUITab(contentContainer);
+
+    // Advanced Tab
+    this.createAdvancedTab(contentContainer);
+
+    // Show first tab by default
+    this.showTab("ai");
+  }
+
+  /**
+   * Switch tab
+   */
+  private switchTab(tabId: string): void {
+    // Update tab buttons
+    const tabButtons = document.querySelectorAll(".ultima-orb-tab-button");
+    tabButtons.forEach((button) => {
+      button.classList.remove("active");
+      if (button.getAttribute("data-tab") === tabId) {
+        button.classList.add("active");
+      }
+    });
+
+    // Show tab content
+    this.showTab(tabId);
+  }
+
+  /**
+   * Show tab content
+   */
+  private showTab(tabId: string): void {
+    const tabContents = document.querySelectorAll(".ultima-orb-tab-panel");
+    tabContents.forEach((content) => {
+      content.classList.remove("active");
+      if (content.getAttribute("data-tab") === tabId) {
+        content.classList.add("active");
+      }
+    });
+  }
+
+  /**
+   * Create AI Providers Tab
+   */
+  private createAITab(container: HTMLElement): void {
+    const tabPanel = container.createEl("div", {
+      cls: "ultima-orb-tab-panel",
+      attr: { "data-tab": "ai" },
+    });
+
+    tabPanel.createEl("h3", { text: "🤖 AI Provider Settings" });
+    tabPanel.createEl("p", {
+      text: "Configure your AI service providers and API keys",
+      cls: "setting-item-description",
+    });
 
     // OpenAI Settings
-    new Setting(containerEl)
-      .setName('OpenAI API Key')
-      .setDesc('API key สำหรับ OpenAI (sk-...)')
-      .addText(text => {
+    new Setting(tabPanel)
+      .setName("OpenAI API Key")
+      .setDesc("Enter your OpenAI API key for GPT models")
+      .addText((text) => {
         text
-          .setPlaceholder('sk-...')
-          .setValue('')
+          .setPlaceholder("sk-...")
+          .setValue(this.plugin.getSettingsManager().getSetting("openaiApiKey"))
           .onChange(async (value) => {
-            if (value.trim()) {
-              await this.plugin.credentialManager.storeCredentials('openai', value);
-            }
+            this.plugin.getSettingsManager().setSetting("openaiApiKey", value);
+            await this.plugin.saveData(
+              this.plugin.getSettingsManager().getSettings()
+            );
           });
       });
 
     // Claude Settings
-    new Setting(containerEl)
-      .setName('Claude API Key')
-      .setDesc('API key สำหรับ Anthropic Claude (sk-ant-...)')
-      .addText(text => {
+    new Setting(tabPanel)
+      .setName("Claude API Key")
+      .setDesc("Enter your Anthropic Claude API key")
+      .addText((text) => {
         text
-          .setPlaceholder('sk-ant-...')
-          .setValue('')
+          .setPlaceholder("sk-ant-...")
+          .setValue(this.plugin.getSettingsManager().getSetting("claudeApiKey"))
           .onChange(async (value) => {
-            if (value.trim()) {
-              await this.plugin.credentialManager.storeCredentials('claude', value);
-            }
+            this.plugin.getSettingsManager().setSetting("claudeApiKey", value);
+            await this.plugin.saveData(
+              this.plugin.getSettingsManager().getSettings()
+            );
           });
       });
 
     // Gemini Settings
-    new Setting(containerEl)
-      .setName('Gemini API Key')
-      .setDesc('API key สำหรับ Google Gemini (AIza...)')
-      .addText(text => {
+    new Setting(tabPanel)
+      .setName("Gemini API Key")
+      .setDesc("Enter your Google Gemini API key")
+      .addText((text) => {
         text
-          .setPlaceholder('AIza...')
-          .setValue('')
+          .setPlaceholder("AIza...")
+          .setValue(this.plugin.getSettingsManager().getSetting("geminiApiKey"))
           .onChange(async (value) => {
-            if (value.trim()) {
-              await this.plugin.credentialManager.storeCredentials('gemini', value);
-            }
+            this.plugin.getSettingsManager().setSetting("geminiApiKey", value);
+            await this.plugin.saveData(
+              this.plugin.getSettingsManager().getSettings()
+            );
           });
       });
 
     // Ollama Settings
-    new Setting(containerEl)
-      .setName('Ollama Endpoint')
-      .setDesc('URL ของ Ollama server (http://localhost:11434)')
-      .addText(text => {
+    new Setting(tabPanel)
+      .setName("Ollama Endpoint")
+      .setDesc("Local Ollama server endpoint")
+      .addText((text) => {
         text
-          .setPlaceholder('http://localhost:11434')
-          .setValue('http://localhost:11434')
+          .setPlaceholder("http://localhost:11434")
+          .setValue(
+            this.plugin.getSettingsManager().getSetting("ollamaEndpoint")
+          )
           .onChange(async (value) => {
-            await this.plugin.settings.set('ollamaEndpoint', value);
+            this.plugin
+              .getSettingsManager()
+              .setSetting("ollamaEndpoint", value);
+            await this.plugin.saveData(
+              this.plugin.getSettingsManager().getSettings()
+            );
           });
       });
 
     // AnythingLLM Settings
-    new Setting(containerEl)
-      .setName('AnythingLLM URL')
-      .setDesc('URL ของ AnythingLLM server')
-      .addText(text => {
+    new Setting(tabPanel)
+      .setName("AnythingLLM Endpoint")
+      .setDesc("AnythingLLM server endpoint")
+      .addText((text) => {
         text
-          .setPlaceholder('http://localhost:3001')
-          .setValue('')
+          .setPlaceholder("http://localhost:3001")
+          .setValue(
+            this.plugin.getSettingsManager().getSetting("anythingLLMEndpoint")
+          )
           .onChange(async (value) => {
-            if (value.trim()) {
-              await this.plugin.credentialManager.storeCredentials('anythingllm_url', value);
-            }
-          });
-      });
-
-    new Setting(containerEl)
-      .setName('AnythingLLM API Key')
-      .setDesc('API key สำหรับ AnythingLLM')
-      .addText(text => {
-        text
-          .setPlaceholder('API Key')
-          .setValue('')
-          .onChange(async (value) => {
-            if (value.trim()) {
-              await this.plugin.credentialManager.storeCredentials('anythingllm_key', value);
-            }
+            this.plugin
+              .getSettingsManager()
+              .setSetting("anythingLLMEndpoint", value);
+            await this.plugin.saveData(
+              this.plugin.getSettingsManager().getSettings()
+            );
           });
       });
   }
 
-  private createIntegrationSettings(containerEl: HTMLElement): void {
-    containerEl.createEl('h3', { text: 'Integration Settings' });
+  /**
+   * Create Model Settings Tab
+   */
+  private createModelTab(container: HTMLElement): void {
+    const tabPanel = container.createEl("div", {
+      cls: "ultima-orb-tab-panel",
+      attr: { "data-tab": "model" },
+    });
 
-    // Notion Settings
-    new Setting(containerEl)
-      .setName('Notion Integration Token')
-      .setDesc('Token สำหรับ Notion integration')
-      .addText(text => {
-        text
-          .setPlaceholder('secret_...')
-          .setValue('')
+    tabPanel.createEl("h3", { text: "⚙️ Model Settings" });
+    tabPanel.createEl("p", {
+      text: "Configure AI model parameters and behavior",
+      cls: "setting-item-description",
+    });
+
+    // Default Model
+    new Setting(tabPanel)
+      .setName("Default Model")
+      .setDesc("Select your preferred AI model")
+      .addDropdown((dropdown) => {
+        dropdown
+          .addOption("gpt-3.5-turbo", "GPT-3.5 Turbo")
+          .addOption("gpt-4", "GPT-4")
+          .addOption("claude-3-sonnet", "Claude 3 Sonnet")
+          .addOption("claude-3-haiku", "Claude 3 Haiku")
+          .addOption("gemini-pro", "Gemini Pro")
+          .addOption("llama2", "Llama 2 (Ollama)")
+          .addOption("anythingllm", "AnythingLLM")
+          .setValue(this.plugin.getSettingsManager().getSetting("defaultModel"))
           .onChange(async (value) => {
-            if (value.trim()) {
-              await this.plugin.credentialManager.storeCredentials('notion', value);
-            }
+            this.plugin.getSettingsManager().setSetting("defaultModel", value);
+            await this.plugin.saveData(
+              this.plugin.getSettingsManager().getSettings()
+            );
           });
       });
 
-    // Airtable Settings
-    new Setting(containerEl)
-      .setName('Airtable API Key')
-      .setDesc('API key สำหรับ Airtable')
-      .addText(text => {
-        text
-          .setPlaceholder('key...')
-          .setValue('')
+    // Temperature
+    new Setting(tabPanel)
+      .setName("Temperature")
+      .setDesc("Control randomness (0 = focused, 2 = creative)")
+      .addSlider((slider) => {
+        slider
+          .setLimits(0, 2, 0.1)
+          .setValue(this.plugin.getSettingsManager().getSetting("temperature"))
+          .setDynamicTooltip()
           .onChange(async (value) => {
-            if (value.trim()) {
-              await this.plugin.credentialManager.storeCredentials('airtable', value);
-            }
+            this.plugin.getSettingsManager().setSetting("temperature", value);
+            await this.plugin.saveData(
+              this.plugin.getSettingsManager().getSettings()
+            );
           });
       });
 
-    // ClickUp Settings
-    new Setting(containerEl)
-      .setName('ClickUp API Token')
-      .setDesc('API token สำหรับ ClickUp')
-      .addText(text => {
+    // Max Tokens
+    new Setting(tabPanel)
+      .setName("Max Tokens")
+      .setDesc("Maximum response length")
+      .addText((text) => {
         text
-          .setPlaceholder('pk_...')
-          .setValue('')
+          .setPlaceholder("2048")
+          .setValue(
+            this.plugin.getSettingsManager().getSetting("maxTokens").toString()
+          )
           .onChange(async (value) => {
-            if (value.trim()) {
-              await this.plugin.credentialManager.storeCredentials('clickup', value);
-            }
+            const numValue = parseInt(value) || 2048;
+            this.plugin.getSettingsManager().setSetting("maxTokens", numValue);
+            await this.plugin.saveData(
+              this.plugin.getSettingsManager().getSettings()
+            );
           });
       });
   }
 
-  private createPerformanceSettings(containerEl: HTMLElement): void {
-    containerEl.createEl('h3', { text: 'Performance Settings' });
+  /**
+   * Create Integrations Tab
+   */
+  private createIntegrationsTab(container: HTMLElement): void {
+    const tabPanel = container.createEl("div", {
+      cls: "ultima-orb-tab-panel",
+      attr: { "data-tab": "integrations" },
+    });
 
-    new Setting(containerEl)
-      .setName('Enable Caching')
-      .setDesc('เปิดใช้งาน caching เพื่อเพิ่มประสิทธิภาพ')
-      .addToggle(toggle => {
-        toggle
-          .setValue(this.plugin.settings.getSync('enableCaching') !== false)
+    tabPanel.createEl("h3", { text: "🔗 Integration Settings" });
+    tabPanel.createEl("p", {
+      text: "Connect with external services and platforms",
+      cls: "setting-item-description",
+    });
+
+    // Notion Integration
+    new Setting(tabPanel)
+      .setName("Notion Integration")
+      .setDesc("Connect to Notion workspace")
+      .addText((text) => {
+        text
+          .setPlaceholder("secret_...")
+          .setValue(this.plugin.getSettingsManager().getSetting("notionToken"))
           .onChange(async (value) => {
-            await this.plugin.settings.set('enableCaching', value);
+            this.plugin.getSettingsManager().setSetting("notionToken", value);
+            await this.plugin.saveData(
+              this.plugin.getSettingsManager().getSettings()
+            );
           });
       });
 
-    new Setting(containerEl)
-      .setName('Cache TTL (minutes)')
-      .setDesc('เวลาหมดอายุของ cache (นาที)')
-      .addSlider(slider => {
-        slider
-          .setLimits(1, 60, 1)
-          .setValue(this.plugin.settings.getSync('cacheTTL') / 60000 || 5)
-          .setDynamicTooltip()
+    // Airtable Integration
+    new Setting(tabPanel)
+      .setName("Airtable API Key")
+      .setDesc("Connect to Airtable databases")
+      .addText((text) => {
+        text
+          .setPlaceholder("key...")
+          .setValue(
+            this.plugin.getSettingsManager().getSetting("airtableApiKey")
+          )
           .onChange(async (value) => {
-            await this.plugin.settings.set('cacheTTL', value * 60000);
+            this.plugin
+              .getSettingsManager()
+              .setSetting("airtableApiKey", value);
+            await this.plugin.saveData(
+              this.plugin.getSettingsManager().getSettings()
+            );
           });
       });
 
-    new Setting(containerEl)
-      .setName('Max Chat History')
-      .setDesc('จำนวนข้อความสูงสุดในประวัติการสนทนา')
-      .addSlider(slider => {
-        slider
-          .setLimits(10, 1000, 10)
-          .setValue(this.plugin.settings.getSync('maxChatHistory') || 100)
-          .setDynamicTooltip()
+    // ClickUp Integration
+    new Setting(tabPanel)
+      .setName("ClickUp API Key")
+      .setDesc("Connect to ClickUp workspace")
+      .addText((text) => {
+        text
+          .setPlaceholder("pk_...")
+          .setValue(
+            this.plugin.getSettingsManager().getSetting("clickUpApiKey")
+          )
           .onChange(async (value) => {
-            await this.plugin.settings.set('maxChatHistory', value);
-          });
-      });
-
-    new Setting(containerEl)
-      .setName('Max File Size (MB)')
-      .setDesc('ขนาดไฟล์สูงสุดที่สามารถแนบได้ (MB)')
-      .addSlider(slider => {
-        slider
-          .setLimits(1, 100, 1)
-          .setValue((this.plugin.settings.getSync('maxFileSize') || 10485760) / 1048576)
-          .setDynamicTooltip()
-          .onChange(async (value) => {
-            await this.plugin.settings.set('maxFileSize', value * 1048576);
-          });
-      });
-  }
-
-  private createSecuritySettings(containerEl: HTMLElement): void {
-    containerEl.createEl('h3', { text: 'Security Settings' });
-
-    new Setting(containerEl)
-      .setName('Enable Encryption')
-      .setDesc('เข้ารหัสข้อมูลที่สำคัญ')
-      .addToggle(toggle => {
-        toggle
-          .setValue(this.plugin.settings.getSync('enableEncryption') !== false)
-          .onChange(async (value) => {
-            await this.plugin.settings.set('enableEncryption', value);
-          });
-      });
-
-    new Setting(containerEl)
-      .setName('Session Timeout (minutes)')
-      .setDesc('เวลาหมดอายุของ session (นาที)')
-      .addSlider(slider => {
-        slider
-          .setLimits(5, 480, 5)
-          .setValue((this.plugin.settings.getSync('sessionTimeout') || 3600000) / 60000)
-          .setDynamicTooltip()
-          .onChange(async (value) => {
-            await this.plugin.settings.set('sessionTimeout', value * 60000);
-          });
-      });
-
-    new Setting(containerEl)
-      .setName('Enable Error Reporting')
-      .setDesc('ส่งรายงานข้อผิดพลาดเพื่อปรับปรุงคุณภาพ')
-      .addToggle(toggle => {
-        toggle
-          .setValue(this.plugin.settings.getSync('enableErrorReporting') !== false)
-          .onChange(async (value) => {
-            await this.plugin.settings.set('enableErrorReporting', value);
+            this.plugin.getSettingsManager().setSetting("clickUpApiKey", value);
+            await this.plugin.saveData(
+              this.plugin.getSettingsManager().getSettings()
+            );
           });
       });
   }
 
-  private createAdvancedSettings(containerEl: HTMLElement): void {
-    containerEl.createEl('h3', { text: 'Advanced Settings' });
+  /**
+   * Create UI Settings Tab
+   */
+  private createUITab(container: HTMLElement): void {
+    const tabPanel = container.createEl("div", {
+      cls: "ultima-orb-tab-panel",
+      attr: { "data-tab": "ui" },
+    });
 
-    new Setting(containerEl)
-      .setName('Enable Analytics')
-      .setDesc('เก็บข้อมูลการใช้งานเพื่อปรับปรุงคุณภาพ')
-      .addToggle(toggle => {
+    tabPanel.createEl("h3", { text: "🎨 UI Settings" });
+    tabPanel.createEl("p", {
+      text: "Customize the user interface and features",
+      cls: "setting-item-description",
+    });
+
+    // Enable Chat View
+    new Setting(tabPanel)
+      .setName("Enable Chat View")
+      .setDesc("Enable the AI chat interface")
+      .addToggle((toggle) => {
         toggle
-          .setValue(this.plugin.settings.getSync('enableAnalytics') !== false)
+          .setValue(
+            this.plugin.getSettingsManager().getSetting("enableChatView")
+          )
           .onChange(async (value) => {
-            await this.plugin.settings.set('enableAnalytics', value);
+            this.plugin
+              .getSettingsManager()
+              .setSetting("enableChatView", value);
+            await this.plugin.saveData(
+              this.plugin.getSettingsManager().getSettings()
+            );
           });
       });
 
-    new Setting(containerEl)
-      .setName('Show Quick Start on Startup')
-      .setDesc('แสดง Quick Start Guide เมื่อเปิด Obsidian')
-      .addToggle(toggle => {
+    // Enable Tool Template View
+    new Setting(tabPanel)
+      .setName("Enable Tool Template View")
+      .setDesc("Enable tool template management")
+      .addToggle((toggle) => {
         toggle
-          .setValue(this.plugin.settings.getSync('showQuickStartOnStartup') !== false)
+          .setValue(
+            this.plugin
+              .getSettingsManager()
+              .getSetting("enableToolTemplateView")
+          )
           .onChange(async (value) => {
-            await this.plugin.settings.set('showQuickStartOnStartup', value);
+            this.plugin
+              .getSettingsManager()
+              .setSetting("enableToolTemplateView", value);
+            await this.plugin.saveData(
+              this.plugin.getSettingsManager().getSettings()
+            );
           });
       });
 
-    // Reset Settings Button
-    new Setting(containerEl)
-      .setName('Reset All Settings')
-      .setDesc('รีเซ็ตการตั้งค่าทั้งหมดเป็นค่าเริ่มต้น')
-      .addButton(button => {
+    // Enable Knowledge View
+    new Setting(tabPanel)
+      .setName("Enable Knowledge View")
+      .setDesc("Enable knowledge base management")
+      .addToggle((toggle) => {
+        toggle
+          .setValue(
+            this.plugin.getSettingsManager().getSetting("enableKnowledgeView")
+          )
+          .onChange(async (value) => {
+            this.plugin
+              .getSettingsManager()
+              .setSetting("enableKnowledgeView", value);
+            await this.plugin.saveData(
+              this.plugin.getSettingsManager().getSettings()
+            );
+          });
+      });
+  }
+
+  /**
+   * Create Advanced Settings Tab
+   */
+  private createAdvancedTab(container: HTMLElement): void {
+    const tabPanel = container.createEl("div", {
+      cls: "ultima-orb-tab-panel",
+      attr: { "data-tab": "advanced" },
+    });
+
+    tabPanel.createEl("h3", { text: "🔧 Advanced Settings" });
+    tabPanel.createEl("p", {
+      text: "Advanced configuration options for power users",
+      cls: "setting-item-description",
+    });
+
+    // Enable Logging
+    new Setting(tabPanel)
+      .setName("Enable Logging")
+      .setDesc("Enable detailed logging for debugging")
+      .addToggle((toggle) => {
+        toggle
+          .setValue(
+            this.plugin.getSettingsManager().getSetting("enableLogging")
+          )
+          .onChange(async (value) => {
+            this.plugin.getSettingsManager().setSetting("enableLogging", value);
+            await this.plugin.saveData(
+              this.plugin.getSettingsManager().getSettings()
+            );
+          });
+      });
+
+    // Performance Optimization
+    new Setting(tabPanel)
+      .setName("Performance Optimization")
+      .setDesc("Enable performance optimizations")
+      .addToggle((toggle) => {
+        toggle
+          .setValue(
+            this.plugin
+              .getSettingsManager()
+              .getSetting("enablePerformanceOptimization")
+          )
+          .onChange(async (value) => {
+            this.plugin
+              .getSettingsManager()
+              .setSetting("enablePerformanceOptimization", value);
+            await this.plugin.saveData(
+              this.plugin.getSettingsManager().getSettings()
+            );
+          });
+      });
+
+    // Bundle Optimization
+    new Setting(tabPanel)
+      .setName("Bundle Optimization")
+      .setDesc("Enable bundle size optimizations")
+      .addToggle((toggle) => {
+        toggle
+          .setValue(
+            this.plugin
+              .getSettingsManager()
+              .getSetting("enableBundleOptimization")
+          )
+          .onChange(async (value) => {
+            this.plugin
+              .getSettingsManager()
+              .setSetting("enableBundleOptimization", value);
+            await this.plugin.saveData(
+              this.plugin.getSettingsManager().getSettings()
+            );
+          });
+      });
+
+    // Reset to Defaults Button
+    new Setting(tabPanel)
+      .setName("Reset to Defaults")
+      .setDesc("Reset all settings to their default values")
+      .addButton((button) => {
         button
-          .setButtonText('Reset')
+          .setButtonText("Reset")
           .setWarning()
           .onClick(async () => {
-            if (confirm('คุณแน่ใจหรือไม่ที่จะรีเซ็ตการตั้งค่าทั้งหมด?')) {
-              await this.plugin.settings.clear();
-              this.display(); // Refresh the settings tab
-            }
+            this.plugin.getSettingsManager().resetToDefaults();
+            await this.plugin.saveData(
+              this.plugin.getSettingsManager().getSettings()
+            );
+            this.display(); // Refresh the settings display
           });
       });
-
-    // Export/Import Settings
-    const exportImportContainer = containerEl.createEl('div', { cls: 'setting-item-control' });
-    
-    const exportButton = exportImportContainer.createEl('button', { text: 'Export Settings' });
-    exportButton.addEventListener('click', async () => {
-      try {
-        const settings = await this.plugin.settings.exportData();
-        const blob = new Blob([settings], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'ultima-orb-settings.json';
-        a.click();
-        URL.revokeObjectURL(url);
-      } catch (error) {
-        console.error('Failed to export settings:', error);
-      }
-    });
-
-    const importButton = exportImportContainer.createEl('button', { text: 'Import Settings' });
-    importButton.addEventListener('click', () => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = '.json';
-      input.onchange = async (event) => {
-        const file = (event.target as HTMLInputElement).files?.[0];
-        if (file) {
-          try {
-            const text = await file.text();
-            await this.plugin.settings.importData(text);
-            this.display(); // Refresh the settings tab
-          } catch (error) {
-            console.error('Failed to import settings:', error);
-          }
-        }
-      };
-      input.click();
-    });
   }
 }

@@ -1,259 +1,222 @@
-import { Plugin, App, Notice } from 'obsidian';
-import { Logger } from './services/Logger';
-import { EventsBus } from './services/EventsBus';
-import { StorageManager } from './services/StorageManager';
-import { CredentialManager } from './services/CredentialManager';
-import { AIOrchestrator } from './ai/AIOrchestrator';
-import { ContextManager } from './core/ContextManager';
-import { IntegrationManager } from './core/IntegrationManager';
-import { ToolManager } from './core/ToolManager';
-import { TemplateManager } from './core/TemplateManager';
-import { KnowledgeManager } from './core/KnowledgeManager';
-import { SettingsTab } from './ui/SettingsTab';
-import { ChatView } from './ui/views/ChatView';
-import { AIGenerationButtons } from './ui/components/AIGenerationButtons';
-import { ToolTemplateView } from './ui/views/ToolTemplateView';
-import { KnowledgeView } from './ui/views/KnowledgeView';
-import { AnalyticsDashboard } from './ui/views/AnalyticsDashboard';
+import { App, Plugin, WorkspaceLeaf, Notice } from "obsidian";
+import { SettingsManager, UltimaOrbSettings } from "./settings";
+import { ContextManager } from "./core/ContextManager";
+import { Logger } from "./services/Logger";
+import { UltimaOrbSettingTab } from "./ui/SettingsTab";
+import { ChatView, CHAT_VIEW_TYPE } from "./ui/views/ChatView";
+import { KnowledgeView, KNOWLEDGE_VIEW_TYPE } from "./ui/views/KnowledgeView";
+import {
+  ToolTemplateView,
+  TOOL_TEMPLATE_VIEW_TYPE,
+} from "./ui/views/ToolTemplateView";
+import { openEnhancedCommandPalette } from "./ui/EnhancedCommandPalette";
+import { AIFeatures } from "./ai/AIFeatures";
+import { AIOrchestrator } from "./ai/AIOrchestrator";
+import { AgentMode } from "./ai/AgentMode";
+import { AtCommands } from "./ai/AtCommands";
+import { CursorFeatures } from "./ai/CursorFeatures";
+import { AdvancedChatInterface } from "./ui/AdvancedChatInterface";
+import { CursorCommandPalette } from "./ui/CursorCommandPalette";
 
 /**
- * 🔮 Ultima-Orb: Main Plugin Class
- * Core implementation of the Ultima-Orb plugin
+ * 🔮 Ultima-Orb Plugin
+ * The Ultimate Hybrid AI Command Center for Obsidian
  */
 
-export class UltimaOrbPlugin {
-  // Core plugin reference
-  public readonly app: App;
-  private plugin: Plugin;
+export default class UltimaOrbPlugin extends Plugin {
+  private settingsManager!: SettingsManager;
+  private contextManager!: ContextManager;
+  private logger!: Logger;
+  private aiOrchestrator!: AIOrchestrator;
+  private aiFeatures!: AIFeatures;
+  private agentMode!: AgentMode;
+  private atCommands!: AtCommands;
+  private cursorFeatures!: CursorFeatures;
 
-  // Core services
-  public readonly logger: Logger;
-  public readonly eventsBus: EventsBus;
-  public readonly storage: StorageManager;
-  public readonly credentialManager: CredentialManager;
-
-  // Core managers
-  public readonly contextManager: ContextManager;
-  public readonly integrationManager: IntegrationManager;
-  public readonly toolManager: ToolManager;
-  public readonly templateManager: TemplateManager;
-  public readonly knowledgeManager: KnowledgeManager;
-
-  // AI components
-  public readonly aiOrchestrator: AIOrchestrator;
-
-  // UI components
-  public readonly settingsTab: SettingsTab;
-  private chatView: ChatView | null = null;
-  private aiGenerationButtons: AIGenerationButtons | null = null;
-  private toolTemplateView: ToolTemplateView | null = null;
-  private knowledgeView: KnowledgeView | null = null;
-  private analyticsDashboard: AnalyticsDashboard | null = null;
-
-  // Settings
-  public readonly settings: StorageManager;
-
-  constructor(plugin: Plugin) {
-    this.plugin = plugin;
-    this.app = plugin.app;
-
-    // Initialize core services
+  async onload() {
     this.logger = new Logger();
-    this.eventsBus = new EventsBus();
-    this.storage = new StorageManager(this.app);
-    this.credentialManager = new CredentialManager(this.storage);
-    this.settings = this.storage;
+    this.logger.info("🚀 Loading Ultima-Orb plugin...");
 
-    // Initialize core managers
-    this.contextManager = new ContextManager(this.app);
-    this.integrationManager = new IntegrationManager(this.credentialManager, this.logger);
-    this.toolManager = new ToolManager(this.eventsBus, this.logger);
-    this.templateManager = new TemplateManager(this.app);
-    this.knowledgeManager = new KnowledgeManager(this.credentialManager, this.logger);
-
-    // Initialize AI orchestrator
-    this.aiOrchestrator = new AIOrchestrator(this.credentialManager, this.eventsBus, this.logger);
-
-    // Initialize settings tab
-    this.settingsTab = new SettingsTab(this.app, this);
-  }
-
-  public async initialize(): Promise<void> {
     try {
-      this.logger.info('Initializing Ultima-Orb plugin...');
+      // Initialize settings
+      const savedSettings = await this.loadData();
+      this.settingsManager = new SettingsManager(savedSettings);
 
-      // Initialize AI orchestrator
-      await this.aiOrchestrator.initialize();
+      // Initialize context manager
+      this.contextManager = new ContextManager(this.app);
+      await this.contextManager.initialize();
 
-      // Register settings tab
-      this.plugin.addSettingTab(this.settingsTab);
+      // Initialize AI components
+      this.aiOrchestrator = new AIOrchestrator();
+      this.aiFeatures = new AIFeatures(this.app, this.aiOrchestrator);
+      this.agentMode = new AgentMode(this.app, this.aiFeatures);
+      this.atCommands = new AtCommands(this.app, this.aiFeatures);
+      this.cursorFeatures = new CursorFeatures(this.app, this.aiFeatures);
 
-      // Initialize default settings
-      await this.initializeDefaultSettings();
+      // Register commands
+      this.registerCommands();
 
-      this.logger.info('Ultima-Orb plugin initialized successfully!');
+      // Add settings tab
+      this.addSettingTab(new UltimaOrbSettingTab(this.app, this));
+
+      this.logger.info("✅ Ultima-Orb plugin loaded successfully!");
     } catch (error) {
-      this.logger.error('Failed to initialize Ultima-Orb plugin:', error);
-      throw error;
+      this.logger.error("❌ Error loading Ultima-Orb plugin:", error as Error);
     }
   }
 
-  private async initializeDefaultSettings(): Promise<void> {
-    const defaultSettings = {
-      hasCompletedOnboarding: false,
-      showQuickStartOnStartup: true,
-      defaultAIProvider: 'openai',
-      enableAnalytics: true,
-      enableErrorReporting: true,
-      theme: 'auto',
-      language: 'th',
-      maxChatHistory: 100,
-      maxFileSize: 10 * 1024 * 1024, // 10MB
-      allowedFileTypes: ['pdf', 'jpg', 'png', 'txt', 'md', 'doc', 'docx'],
-      sessionTimeout: 3600000, // 1 hour
-      enableEncryption: true,
-      enableCaching: true,
-      cacheTTL: 300000, // 5 minutes
-    };
+  async onunload() {
+    this.logger.info("🔄 Unloading Ultima-Orb plugin...");
 
-    for (const [key, value] of Object.entries(defaultSettings)) {
-      const existingValue = await this.settings.get(key);
-      if (existingValue === undefined) {
-        await this.settings.set(key, value);
-      }
-    }
-  }
-
-  public async cleanup(): Promise<void> {
     try {
-      this.logger.info('Cleaning up Ultima-Orb plugin...');
-
-      // Emit cleanup event
-      this.eventsBus.emit('plugin:cleanup');
-
-      // Dispose UI components
-      this.chatView?.dispose();
-      this.aiGenerationButtons?.dispose();
-      this.toolTemplateView?.dispose();
-      this.knowledgeView?.dispose();
-      this.analyticsDashboard?.dispose();
-
-      // Dispose managers
-      this.aiOrchestrator?.dispose();
-      this.toolManager?.dispose();
-      this.knowledgeManager?.dispose();
-
-      this.logger.info('Ultima-Orb plugin cleaned up successfully!');
+      // Save settings
+      await this.saveData(this.settingsManager.getSettings());
+      this.logger.info("✅ Settings saved successfully");
     } catch (error) {
-      this.logger.error('Error during cleanup:', error);
+      this.logger.error("❌ Error saving settings:", error as Error);
     }
   }
 
-  // UI Methods
-  public openChatInterface(): void {
-    try {
-      if (!this.chatView) {
-        this.chatView = new ChatView(this);
-      }
-      this.chatView.open();
-    } catch (error) {
-      this.logger.error('Failed to open chat interface:', error);
-      new Notice('❌ Failed to open chat interface');
-    }
+  /**
+   * Register plugin commands
+   */
+  private registerCommands(): void {
+    // Open Chat View (Right Sidebar)
+    this.addCommand({
+      id: "ultima-orb-open-chat",
+      name: "Open Ultima-Orb Chat",
+      callback: () => this.openChatView(),
+    });
+
+    // Open Knowledge View (Left Sidebar)
+    this.addCommand({
+      id: "ultima-orb-open-knowledge",
+      name: "Open Knowledge Base",
+      callback: () => this.openKnowledgeView(),
+    });
+
+    // Open Tool Template View
+    this.addCommand({
+      id: "ultima-orb-open-tool-template",
+      name: "Open Tool Templates",
+      callback: () => this.openToolTemplateView(),
+    });
+
+    // Open Command Palette
+    this.addCommand({
+      id: "ultima-orb-command-palette",
+      name: "Open Command Palette",
+      hotkeys: [{ modifiers: ["Ctrl"], key: "K" }],
+      callback: () =>
+        openEnhancedCommandPalette(this.app, this, this.aiFeatures),
+    });
+
+    // Open Advanced Chat Interface
+    this.addCommand({
+      id: "ultima-orb-advanced-chat",
+      name: "Open Advanced Chat Interface",
+      hotkeys: [{ modifiers: ["Ctrl"], key: "L" }],
+      callback: () => this.openAdvancedChatInterface(),
+    });
+
+    // Open Cursor Command Palette
+    this.addCommand({
+      id: "ultima-orb-cursor-palette",
+      name: "Open Cursor Command Palette",
+      hotkeys: [{ modifiers: ["Ctrl"], key: "J" }],
+      callback: () => this.openCursorCommandPalette(),
+    });
+
+    // Refresh Context
+    this.addCommand({
+      id: "ultima-orb-refresh-context",
+      name: "Refresh Context",
+      callback: () => this.refreshContext(),
+    });
   }
 
-  public openAIGeneration(): void {
-    try {
-      if (!this.aiGenerationButtons) {
-        this.aiGenerationButtons = new AIGenerationButtons(this);
-      }
-      this.aiGenerationButtons.open();
-    } catch (error) {
-      this.logger.error('Failed to open AI generation:', error);
-      new Notice('❌ Failed to open AI generation');
-    }
+  /**
+   * Open Chat View (Right Sidebar)
+   */
+  private openChatView(): void {
+    this.logger.info("Opening Chat View...");
+    new Notice(
+      "💬 Chat View - Coming Soon! Use Command Palette (Ctrl+K) for AI commands."
+    );
   }
 
-  public openToolManagement(): void {
-    try {
-      if (!this.toolTemplateView) {
-        this.toolTemplateView = new ToolTemplateView(this);
-      }
-      this.toolTemplateView.open();
-    } catch (error) {
-      this.logger.error('Failed to open tool management:', error);
-      new Notice('❌ Failed to open tool management');
-    }
+  /**
+   * Open Knowledge View (Left Sidebar)
+   */
+  private openKnowledgeView(): void {
+    this.logger.info("Opening Knowledge View...");
+    new Notice(
+      "📚 Knowledge View - Coming Soon! Use Command Palette (Ctrl+K) for AI commands."
+    );
   }
 
-  public openKnowledgeBase(): void {
-    try {
-      if (!this.knowledgeView) {
-        this.knowledgeView = new KnowledgeView(this);
-      }
-      this.knowledgeView.open();
-    } catch (error) {
-      this.logger.error('Failed to open knowledge base:', error);
-      new Notice('❌ Failed to open knowledge base');
-    }
+  /**
+   * Open Tool Template View
+   */
+  private openToolTemplateView(): void {
+    this.logger.info("Opening Tool Template View...");
+    new Notice(
+      "🛠️ Tool Template View - Coming Soon! Use Command Palette (Ctrl+K) for AI commands."
+    );
   }
 
-  public openAnalytics(): void {
-    try {
-      if (!this.analyticsDashboard) {
-        this.analyticsDashboard = new AnalyticsDashboard(this);
-      }
-      this.analyticsDashboard.open();
-    } catch (error) {
-      this.logger.error('Failed to open analytics:', error);
-      new Notice('❌ Failed to open analytics');
-    }
+  /**
+   * Open Advanced Chat Interface
+   */
+  private openAdvancedChatInterface(): void {
+    this.logger.info("Opening Advanced Chat Interface...");
+    const chatInterface = new AdvancedChatInterface(
+      this.app,
+      this.aiFeatures,
+      this.agentMode,
+      this.atCommands
+    );
+    chatInterface.open();
   }
 
-  public openSettings(): void {
-    try {
-      this.app.setting.open();
-      this.app.setting.openTabById('ultima-orb');
-    } catch (error) {
-      this.logger.error('Failed to open settings:', error);
-      new Notice('❌ Failed to open settings');
-    }
+  /**
+   * Open Cursor Command Palette
+   */
+  private openCursorCommandPalette(): void {
+    this.logger.info("Opening Cursor Command Palette...");
+    const cursorPalette = new CursorCommandPalette(
+      this.app,
+      this.cursorFeatures
+    );
+    cursorPalette.open();
   }
 
-  // Public getters
-  public getLogger(): Logger {
-    return this.logger;
+  /**
+   * Refresh context
+   */
+  private async refreshContext(): Promise<void> {
+    this.logger.info("Refreshing context...");
+    await this.contextManager.refreshContext();
   }
 
-  public getEventsBus(): EventsBus {
-    return this.eventsBus;
+  /**
+   * Get settings manager
+   */
+  getSettingsManager(): SettingsManager {
+    return this.settingsManager;
   }
 
-  public getAIOrchestrator(): AIOrchestrator {
-    return this.aiOrchestrator;
-  }
-
-  public getToolManager(): ToolManager {
-    return this.toolManager;
-  }
-
-  public getKnowledgeManager(): KnowledgeManager {
-    return this.knowledgeManager;
-  }
-
-  public getCredentialManager(): CredentialManager {
-    return this.credentialManager;
-  }
-
-  public getContextManager(): ContextManager {
+  /**
+   * Get context manager
+   */
+  getContextManager(): ContextManager {
     return this.contextManager;
   }
 
-  public getIntegrationManager(): IntegrationManager {
-    return this.integrationManager;
-  }
-
-  public getTemplateManager(): TemplateManager {
-    return this.templateManager;
+  /**
+   * Get logger
+   */
+  getLogger(): Logger {
+    return this.logger;
   }
 }

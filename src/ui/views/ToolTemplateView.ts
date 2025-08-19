@@ -1,456 +1,629 @@
-import { App, PluginSettingTab, Setting, ButtonComponent, TextComponent, DropdownComponent } from 'obsidian';
-import { ToolManager } from '../../core/ToolManager';
-import { Logger } from '../../services/Logger';
+import { ItemView, WorkspaceLeaf, Notice } from "obsidian";
+import { UltimaOrbPlugin } from "../../UltimaOrbPlugin";
 
-export interface ToolTemplate {
+export const TOOL_TEMPLATE_VIEW_TYPE = "ultima-orb-tool-template-view";
+
+interface ToolTemplate {
   id: string;
   name: string;
   description: string;
   category: string;
-  provider: string;
-  config: Record<string, any>;
-  enabled: boolean;
-  lastUsed?: Date;
-  usageCount: number;
+  prompt: string;
+  parameters: ToolParameter[];
+  examples: string[];
+  tags: string[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export class ToolTemplateView {
-  private containerEl: HTMLElement;
-  private toolManager: ToolManager;
-  private logger: Logger;
-  private templates: ToolTemplate[] = [];
+interface ToolParameter {
+  name: string;
+  type: "string" | "number" | "boolean" | "select";
+  description: string;
+  required: boolean;
+  defaultValue?: any;
+  options?: string[];
+}
 
-  // UI Elements
-  private templatesContainer: HTMLElement;
-  private searchInput: TextComponent;
-  private categoryFilter: DropdownComponent;
-  private providerFilter: DropdownComponent;
+export class ToolTemplateView extends ItemView {
+  plugin: UltimaOrbPlugin;
+  templateContainer: HTMLElement;
+  searchInput: HTMLInputElement;
+  categoryFilter: HTMLSelectElement;
+  templates: ToolTemplate[] = [];
+  filteredTemplates: ToolTemplate[] = [];
 
-  constructor(containerEl: HTMLElement, toolManager: ToolManager, logger: Logger) {
-    this.containerEl = containerEl;
-    this.toolManager = toolManager;
-    this.logger = logger;
-    this.initializeUI();
-    this.loadTemplates();
+  constructor(leaf: WorkspaceLeaf, plugin: UltimaOrbPlugin) {
+    super(leaf);
+    this.plugin = plugin;
   }
 
-  private initializeUI(): void {
-    // Clear container
-    this.containerEl.empty();
+  getViewType(): string {
+    return TOOL_TEMPLATE_VIEW_TYPE;
+  }
 
-    // Create header
-    const headerEl = this.containerEl.createEl('div', { cls: 'ultima-orb-tools-header' });
-    headerEl.createEl('h3', { text: '🛠️ Tool Templates', cls: 'ultima-orb-tools-title' });
+  getDisplayText(): string {
+    return "Ultima-Orb Tool Templates";
+  }
 
-    // Search and filters
-    const filtersContainer = headerEl.createEl('div', { cls: 'ultima-orb-tools-filters' });
-    
+  getIcon(): string {
+    return "wrench";
+  }
+
+  async onOpen(): Promise<void> {
+    const container = this.containerEl.children[1];
+    container.empty();
+    container.createEl("h4", { text: "🛠️ Tool Templates" });
+
+    // Create tool template interface
+    this.createToolTemplateInterface(container);
+
+    // Load existing templates
+    await this.loadTemplates();
+  }
+
+  async onClose(): Promise<void> {
+    // Save templates
+    await this.saveTemplates();
+  }
+
+  private createToolTemplateInterface(container: HTMLElement): void {
+    // Header with search, filter, and add button
+    const header = container.createEl("div", { cls: "tool-template-header" });
+
     // Search input
-    const searchContainer = filtersContainer.createEl('div', { cls: 'ultima-orb-search-container' });
-    searchContainer.createEl('label', { text: 'Search:', cls: 'ultima-orb-label' });
-    
-    this.searchInput = new TextComponent(searchContainer)
-      .setPlaceholder('Search tools...')
-      .setClass('ultima-orb-search-input')
-      .onChange(() => this.filterTemplates());
+    this.searchInput = header.createEl("input", {
+      type: "text",
+      placeholder: "🔍 Search templates...",
+      cls: "template-search",
+    });
+    this.searchInput.addEventListener("input", () => this.filterTemplates());
 
     // Category filter
-    const categoryContainer = filtersContainer.createEl('div', { cls: 'ultima-orb-filter-container' });
-    categoryContainer.createEl('label', { text: 'Category:', cls: 'ultima-orb-label' });
-    
-    this.categoryFilter = new DropdownComponent(categoryContainer)
-      .addOption('all', 'All Categories')
-      .addOption('notion', 'Notion')
-      .addOption('airtable', 'Airtable')
-      .addOption('clickup', 'ClickUp')
-      .addOption('knowledge', 'Knowledge')
-      .addOption('automation', 'Automation')
-      .setValue('all')
-      .onChange(() => this.filterTemplates());
+    this.categoryFilter = header.createEl("select", { cls: "category-filter" });
+    this.categoryFilter.createEl("option", {
+      text: "All Categories",
+      value: "",
+    });
+    this.categoryFilter.createEl("option", {
+      text: "Writing",
+      value: "writing",
+    });
+    this.categoryFilter.createEl("option", {
+      text: "Analysis",
+      value: "analysis",
+    });
+    this.categoryFilter.createEl("option", { text: "Code", value: "code" });
+    this.categoryFilter.createEl("option", {
+      text: "Business",
+      value: "business",
+    });
+    this.categoryFilter.createEl("option", {
+      text: "Creative",
+      value: "creative",
+    });
+    this.categoryFilter.addEventListener("change", () =>
+      this.filterTemplates()
+    );
 
-    // Provider filter
-    const providerContainer = filtersContainer.createEl('div', { cls: 'ultima-orb-filter-container' });
-    providerContainer.createEl('label', { text: 'Provider:', cls: 'ultima-orb-label' });
-    
-    this.providerFilter = new DropdownComponent(providerContainer)
-      .addOption('all', 'All Providers')
-      .addOption('ollama', 'Ollama')
-      .addOption('claude', 'Claude')
-      .addOption('openai', 'OpenAI')
-      .addOption('gemini', 'Gemini')
-      .addOption('anythingllm', 'AnythingLLM')
-      .setValue('all')
-      .onChange(() => this.filterTemplates());
-
-    // Add new template button
-    const addButton = new ButtonComponent(headerEl)
-      .setButtonText('➕ Add Template')
-      .setClass('ultima-orb-button ultima-orb-add-button')
-      .onClick(() => this.showAddTemplateModal());
+    // Add template button
+    const addButton = header.createEl("button", {
+      text: "➕ Add Template",
+      cls: "add-template-btn",
+    });
+    addButton.onclick = () => this.showAddTemplateModal();
 
     // Templates container
-    this.templatesContainer = this.containerEl.createEl('div', { 
-      cls: 'ultima-orb-templates-container' 
+    this.templateContainer = container.createEl("div", {
+      cls: "tool-templates",
     });
-
-    // Add default templates
-    this.addDefaultTemplates();
   }
 
-  private addDefaultTemplates(): void {
-    const defaultTemplates: ToolTemplate[] = [
+  private async loadTemplates(): Promise<void> {
+    try {
+      const savedTemplates = await this.plugin.loadData();
+      this.templates =
+        savedTemplates?.toolTemplates || this.getDefaultTemplates();
+      this.filteredTemplates = [...this.templates];
+      this.renderTemplates();
+    } catch (error) {
+      console.error("Failed to load templates:", error);
+      this.templates = this.getDefaultTemplates();
+      this.filteredTemplates = [...this.templates];
+    }
+  }
+
+  private async saveTemplates(): Promise<void> {
+    try {
+      await this.plugin.saveData({ toolTemplates: this.templates });
+    } catch (error) {
+      console.error("Failed to save templates:", error);
+    }
+  }
+
+  private getDefaultTemplates(): ToolTemplate[] {
+    return [
       {
-        id: 'notion-create-page',
-        name: 'Create Notion Page',
-        description: 'Create a new page in Notion with specified properties',
-        category: 'notion',
-        provider: 'notion',
-        config: {
-          parentId: '',
-          properties: {}
-        },
-        enabled: true,
-        usageCount: 0
+        id: "1",
+        name: "Blog Post Writer",
+        description: "Generate engaging blog posts on any topic",
+        category: "writing",
+        prompt:
+          "Write a comprehensive blog post about {{topic}}. Include an introduction, main points, and conclusion. Make it engaging and informative.",
+        parameters: [
+          {
+            name: "topic",
+            type: "string",
+            description: "The main topic of the blog post",
+            required: true,
+          },
+          {
+            name: "tone",
+            type: "select",
+            description: "The tone of the writing",
+            required: false,
+            defaultValue: "professional",
+            options: ["professional", "casual", "academic", "conversational"],
+          },
+          {
+            name: "length",
+            type: "select",
+            description: "Length of the blog post",
+            required: false,
+            defaultValue: "medium",
+            options: ["short", "medium", "long"],
+          },
+        ],
+        examples: [
+          "Write a blog post about artificial intelligence trends in 2024",
+          "Create a blog post about healthy eating habits with a casual tone",
+        ],
+        tags: ["writing", "blog", "content"],
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       {
-        id: 'notion-query-database',
-        name: 'Query Notion Database',
-        description: 'Search and filter records in a Notion database',
-        category: 'notion',
-        provider: 'notion',
-        config: {
-          databaseId: '',
-          filter: {},
-          sorts: []
-        },
-        enabled: true,
-        usageCount: 0
+        id: "2",
+        name: "Code Review Assistant",
+        description: "Review and improve code quality",
+        category: "code",
+        prompt:
+          "Review this code and provide suggestions for improvement:\n\n{{code}}\n\nFocus on: {{focus_areas}}",
+        parameters: [
+          {
+            name: "code",
+            type: "string",
+            description: "The code to review",
+            required: true,
+          },
+          {
+            name: "focus_areas",
+            type: "select",
+            description: "Areas to focus on during review",
+            required: false,
+            defaultValue: "all",
+            options: [
+              "all",
+              "performance",
+              "security",
+              "readability",
+              "best_practices",
+            ],
+          },
+          {
+            name: "language",
+            type: "string",
+            description: "Programming language",
+            required: false,
+            defaultValue: "JavaScript",
+          },
+        ],
+        examples: [
+          "Review this JavaScript function for performance issues",
+          "Check this Python code for security vulnerabilities",
+        ],
+        tags: ["code", "review", "development"],
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
       {
-        id: 'airtable-create-record',
-        name: 'Create Airtable Record',
-        description: 'Add a new record to an Airtable table',
-        category: 'airtable',
-        provider: 'airtable',
-        config: {
-          baseId: '',
-          tableName: '',
-          fields: {}
-        },
-        enabled: true,
-        usageCount: 0
+        id: "3",
+        name: "Meeting Notes Generator",
+        description: "Generate structured meeting notes from discussion points",
+        category: "business",
+        prompt:
+          "Create meeting notes for a {{meeting_type}} meeting with the following discussion points:\n\n{{discussion_points}}\n\nInclude: agenda, key decisions, action items, and next steps.",
+        parameters: [
+          {
+            name: "meeting_type",
+            type: "select",
+            description: "Type of meeting",
+            required: true,
+            options: ["project", "team", "client", "planning", "review"],
+          },
+          {
+            name: "discussion_points",
+            type: "string",
+            description: "Main discussion points",
+            required: true,
+          },
+          {
+            name: "participants",
+            type: "string",
+            description: "Meeting participants",
+            required: false,
+          },
+        ],
+        examples: [
+          "Generate notes for a project planning meeting about website redesign",
+          "Create meeting notes for a client presentation about new features",
+        ],
+        tags: ["business", "meeting", "notes"],
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
-      {
-        id: 'clickup-create-task',
-        name: 'Create ClickUp Task',
-        description: 'Create a new task in ClickUp',
-        category: 'clickup',
-        provider: 'clickup',
-        config: {
-          listId: '',
-          taskData: {}
-        },
-        enabled: true,
-        usageCount: 0
-      },
-      {
-        id: 'knowledge-search',
-        name: 'Knowledge Search',
-        description: 'Search through knowledge base documents',
-        category: 'knowledge',
-        provider: 'anythingllm',
-        config: {
-          workspaceId: '',
-          query: '',
-          limit: 10
-        },
-        enabled: true,
-        usageCount: 0
-      }
     ];
-
-    this.templates = defaultTemplates;
-    this.renderTemplates();
   }
 
-  private filterTemplates(): void {
-    const searchTerm = this.searchInput.getValue().toLowerCase();
-    const categoryFilter = this.categoryFilter.getValue();
-    const providerFilter = this.providerFilter.getValue();
+  private renderTemplates(): void {
+    this.templateContainer.empty();
 
-    const filteredTemplates = this.templates.filter(template => {
-      const matchesSearch = template.name.toLowerCase().includes(searchTerm) ||
-                           template.description.toLowerCase().includes(searchTerm);
-      const matchesCategory = categoryFilter === 'all' || template.category === categoryFilter;
-      const matchesProvider = providerFilter === 'all' || template.provider === providerFilter;
-
-      return matchesSearch && matchesCategory && matchesProvider;
-    });
-
-    this.renderTemplates(filteredTemplates);
-  }
-
-  private renderTemplates(templates: ToolTemplate[] = this.templates): void {
-    this.templatesContainer.empty();
-
-    if (templates.length === 0) {
-      this.templatesContainer.createEl('div', {
-        cls: 'ultima-orb-no-templates',
-        text: 'No tools found matching your criteria.'
+    if (this.filteredTemplates.length === 0) {
+      this.templateContainer.createEl("div", {
+        text: "No templates found. Add some templates to get started!",
+        cls: "no-templates-message",
       });
       return;
     }
 
-    templates.forEach(template => {
-      this.renderTemplateCard(template);
+    this.filteredTemplates.forEach((template) => {
+      this.createTemplateElement(template);
     });
   }
 
-  private renderTemplateCard(template: ToolTemplate): void {
-    const cardEl = this.templatesContainer.createEl('div', {
-      cls: `ultima-orb-template-card ${template.enabled ? 'enabled' : 'disabled'}`
+  private createTemplateElement(template: ToolTemplate): void {
+    const templateEl = this.templateContainer.createEl("div", {
+      cls: "tool-template-item",
     });
 
-    // Template header
-    const headerEl = cardEl.createEl('div', { cls: 'ultima-orb-template-header' });
-    
-    const titleEl = headerEl.createEl('div', { cls: 'ultima-orb-template-title' });
-    titleEl.createEl('h4', { text: template.name });
-    
-    const categoryEl = headerEl.createEl('span', { 
-      cls: 'ultima-orb-template-category',
-      text: template.category
+    // Header
+    const header = templateEl.createEl("div", { cls: "template-header" });
+
+    const title = header.createEl("h5", {
+      text: template.name,
+      cls: "template-title",
     });
 
-    // Template description
-    cardEl.createEl('p', { 
-      cls: 'ultima-orb-template-description',
-      text: template.description
+    const category = header.createEl("span", {
+      text: template.category,
+      cls: "template-category",
     });
 
-    // Template metadata
-    const metadataEl = cardEl.createEl('div', { cls: 'ultima-orb-template-metadata' });
-    
-    metadataEl.createEl('span', { 
-      cls: 'ultima-orb-template-provider',
-      text: `Provider: ${template.provider}`
+    const actions = header.createEl("div", { cls: "template-actions" });
+
+    // Use template button
+    const useBtn = actions.createEl("button", {
+      text: "🚀 Use",
+      cls: "use-template-btn",
+    });
+    useBtn.onclick = () => this.useTemplate(template);
+
+    // Edit button
+    const editBtn = actions.createEl("button", {
+      text: "✏️",
+      cls: "edit-template-btn",
+    });
+    editBtn.onclick = () => this.editTemplate(template);
+
+    // Delete button
+    const deleteBtn = actions.createEl("button", {
+      text: "🗑️",
+      cls: "delete-template-btn",
+    });
+    deleteBtn.onclick = () => this.deleteTemplate(template.id);
+
+    // Description
+    const description = templateEl.createEl("div", {
+      text: template.description,
+      cls: "template-description",
     });
 
-    metadataEl.createEl('span', { 
-      cls: 'ultima-orb-template-usage',
-      text: `Used: ${template.usageCount} times`
-    });
-
-    if (template.lastUsed) {
-      metadataEl.createEl('span', { 
-        cls: 'ultima-orb-template-last-used',
-        text: `Last: ${template.lastUsed.toLocaleDateString()}`
+    // Parameters preview
+    if (template.parameters.length > 0) {
+      const paramsContainer = templateEl.createEl("div", {
+        cls: "template-parameters",
+      });
+      paramsContainer.createEl("strong", { text: "Parameters: " });
+      template.parameters.forEach((param) => {
+        const paramEl = paramsContainer.createEl("span", {
+          text: `${param.name}${param.required ? "*" : ""}`,
+          cls: `parameter ${param.required ? "required" : "optional"}`,
+        });
       });
     }
 
-    // Template actions
-    const actionsEl = cardEl.createEl('div', { cls: 'ultima-orb-template-actions' });
+    // Examples
+    if (template.examples.length > 0) {
+      const examplesContainer = templateEl.createEl("div", {
+        cls: "template-examples",
+      });
+      examplesContainer.createEl("strong", { text: "Examples:" });
+      template.examples.forEach((example) => {
+        examplesContainer.createEl("div", {
+          text: `• ${example}`,
+          cls: "template-example",
+        });
+      });
+    }
 
-    // Enable/Disable toggle
-    const toggleButton = new ButtonComponent(actionsEl)
-      .setButtonText(template.enabled ? '✅ Enabled' : '❌ Disabled')
-      .setClass(`ultima-orb-button ultima-orb-toggle-button ${template.enabled ? 'enabled' : 'disabled'}`)
-      .onClick(() => this.toggleTemplate(template));
-
-    // Configure button
-    const configButton = new ButtonComponent(actionsEl)
-      .setButtonText('⚙️ Configure')
-      .setClass('ultima-orb-button ultima-orb-config-button')
-      .onClick(() => this.showConfigModal(template));
-
-    // Execute button
-    const executeButton = new ButtonComponent(actionsEl)
-      .setButtonText('🚀 Execute')
-      .setClass('ultima-orb-button ultima-orb-execute-button')
-      .onClick(() => this.executeTemplate(template));
-
-    // Delete button
-    const deleteButton = new ButtonComponent(actionsEl)
-      .setButtonText('🗑️ Delete')
-      .setClass('ultima-orb-button ultima-orb-delete-button')
-      .onClick(() => this.deleteTemplate(template));
+    // Tags
+    if (template.tags.length > 0) {
+      const tagsContainer = templateEl.createEl("div", {
+        cls: "template-tags",
+      });
+      template.tags.forEach((tag) => {
+        tagsContainer.createEl("span", {
+          text: `#${tag}`,
+          cls: "template-tag",
+        });
+      });
+    }
   }
 
-  private toggleTemplate(template: ToolTemplate): void {
-    template.enabled = !template.enabled;
-    this.logger.info(`Toggled template ${template.name} to ${template.enabled ? 'enabled' : 'disabled'}`);
-    this.renderTemplates();
-  }
+  private useTemplate(template: ToolTemplate): void {
+    const modal = new (this.app as any).Modal(this.app);
+    modal.titleEl.setText(`Use Template: ${template.name}`);
+    modal.containerEl.addClass("template-modal");
 
-  private showConfigModal(template: ToolTemplate): void {
-    // Create modal for configuration
-    const modal = new (window as any).Modal(this.containerEl);
-    modal.titleEl.setText(`Configure ${template.name}`);
-    
-    const contentEl = modal.contentEl;
-    contentEl.createEl('p', { text: 'Configure the tool parameters:' });
+    const content = modal.contentEl.createEl("div", {
+      cls: "template-modal-content",
+    });
 
-    // Create configuration form
-    const formEl = contentEl.createEl('form', { cls: 'ultima-orb-config-form' });
+    // Description
+    content.createEl("p", {
+      text: template.description,
+      cls: "template-modal-description",
+    });
 
-    Object.entries(template.config).forEach(([key, value]) => {
-      const fieldContainer = formEl.createEl('div', { cls: 'ultima-orb-config-field' });
-      fieldContainer.createEl('label', { text: key, cls: 'ultima-orb-label' });
-      
-      if (typeof value === 'string') {
-        const input = new TextComponent(fieldContainer)
-          .setValue(value)
-          .setClass('ultima-orb-config-input')
-          .onChange((newValue) => {
-            template.config[key] = newValue;
+    // Parameters form
+    const form = content.createEl("form", { cls: "template-form" });
+
+    template.parameters.forEach((param) => {
+      const paramContainer = form.createEl("div", { cls: "form-param" });
+
+      const label = paramContainer.createEl("label", {
+        text: `${param.name}${param.required ? " *" : ""}`,
+        cls: "param-label",
+      });
+
+      let input: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+
+      switch (param.type) {
+        case "select":
+          input = paramContainer.createEl("select", { cls: "param-input" });
+          param.options?.forEach((option) => {
+            input.createEl("option", { text: option, value: option });
           });
-      } else if (typeof value === 'number') {
-        const input = new TextComponent(fieldContainer)
-          .setValue(value.toString())
-          .setClass('ultima-orb-config-input')
-          .onChange((newValue) => {
-            template.config[key] = parseInt(newValue) || 0;
+          if (param.defaultValue) {
+            input.value = param.defaultValue;
+          }
+          break;
+        case "boolean":
+          input = paramContainer.createEl("input", {
+            type: "checkbox",
+            cls: "param-input",
+          }) as HTMLInputElement;
+          if (param.defaultValue) {
+            input.checked = param.defaultValue;
+          }
+          break;
+        default:
+          input = paramContainer.createEl("input", {
+            type: param.type,
+            placeholder: param.description,
+            cls: "param-input",
           });
-      } else if (typeof value === 'object') {
-        const textarea = new TextComponent(fieldContainer)
-          .setValue(JSON.stringify(value, null, 2))
-          .setClass('ultima-orb-config-textarea')
-          .onChange((newValue) => {
-            try {
-              template.config[key] = JSON.parse(newValue);
-            } catch (e) {
-              // Keep old value if JSON is invalid
-            }
-          });
+          if (param.defaultValue) {
+            input.value = param.defaultValue;
+          }
+      }
+
+      if (param.description) {
+        paramContainer.createEl("small", {
+          text: param.description,
+          cls: "param-description",
+        });
       }
     });
 
-    // Save button
-    const saveButton = new ButtonComponent(formEl)
-      .setButtonText('💾 Save Configuration')
-      .setClass('ultima-orb-button ultima-orb-save-button')
-      .onClick(() => {
-        this.logger.info(`Saved configuration for template ${template.name}`);
-        modal.close();
-        this.renderTemplates();
+    // Generate button
+    const generateBtn = form.createEl("button", {
+      text: "🚀 Generate",
+      type: "submit",
+      cls: "generate-template-btn",
+    });
+
+    form.onsubmit = (e) => {
+      e.preventDefault();
+
+      // Collect form data
+      const formData = new FormData(form);
+      const params: Record<string, any> = {};
+
+      template.parameters.forEach((param) => {
+        const value = formData.get(param.name);
+        if (param.type === "boolean") {
+          params[param.name] = value === "on";
+        } else {
+          params[param.name] = value;
+        }
       });
 
+      // Generate prompt with parameters
+      let generatedPrompt = template.prompt;
+      Object.entries(params).forEach(([key, value]) => {
+        generatedPrompt = generatedPrompt.replace(
+          new RegExp(`{{${key}}}`, "g"),
+          String(value)
+        );
+      });
+
+      // Copy to clipboard
+      navigator.clipboard.writeText(generatedPrompt).then(() => {
+        new Notice("Generated prompt copied to clipboard!");
+        modal.close();
+      });
+    };
+
     modal.open();
-  }
-
-  private async executeTemplate(template: ToolTemplate): Promise<void> {
-    try {
-      this.logger.info(`Executing template: ${template.name}`);
-      
-      // Update usage statistics
-      template.usageCount++;
-      template.lastUsed = new Date();
-
-      // Execute the tool through tool manager
-      const result = await this.toolManager.executeTool(template.id, template.config);
-      
-      this.logger.info(`Template ${template.name} executed successfully`);
-      
-      // Show success notification
-      new (window as any).Notice(`✅ ${template.name} executed successfully!`);
-      
-      this.renderTemplates();
-    } catch (error) {
-      this.logger.error(`Failed to execute template ${template.name}:`, error);
-      new (window as any).Notice(`❌ Failed to execute ${template.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
-
-  private deleteTemplate(template: ToolTemplate): void {
-    const index = this.templates.findIndex(t => t.id === template.id);
-    if (index !== -1) {
-      this.templates.splice(index, 1);
-      this.logger.info(`Deleted template: ${template.name}`);
-      this.renderTemplates();
-    }
   }
 
   private showAddTemplateModal(): void {
-    const modal = new (window as any).Modal(this.containerEl);
-    modal.titleEl.setText('Add New Tool Template');
-    
-    const contentEl = modal.contentEl;
-    const formEl = contentEl.createEl('form', { cls: 'ultima-orb-add-template-form' });
+    const modal = new (this.app as any).Modal(this.app);
+    modal.titleEl.setText("Add New Tool Template");
+    modal.containerEl.addClass("template-modal");
 
-    // Template name
-    const nameContainer = formEl.createEl('div', { cls: 'ultima-orb-form-field' });
-    nameContainer.createEl('label', { text: 'Template Name:', cls: 'ultima-orb-label' });
-    const nameInput = new TextComponent(nameContainer)
-      .setPlaceholder('Enter template name')
-      .setClass('ultima-orb-form-input');
+    const content = modal.contentEl.createEl("div", {
+      cls: "template-modal-content",
+    });
 
-    // Template description
-    const descContainer = formEl.createEl('div', { cls: 'ultima-orb-form-field' });
-    descContainer.createEl('label', { text: 'Description:', cls: 'ultima-orb-label' });
-    const descInput = new TextComponent(descContainer)
-      .setPlaceholder('Enter template description')
-      .setClass('ultima-orb-form-input');
+    // Name input
+    const nameInput = content.createEl("input", {
+      type: "text",
+      placeholder: "Template name...",
+      cls: "template-input",
+    });
 
-    // Category
-    const categoryContainer = formEl.createEl('div', { cls: 'ultima-orb-form-field' });
-    categoryContainer.createEl('label', { text: 'Category:', cls: 'ultima-orb-label' });
-    const categoryDropdown = new DropdownComponent(categoryContainer)
-      .addOption('notion', 'Notion')
-      .addOption('airtable', 'Airtable')
-      .addOption('clickup', 'ClickUp')
-      .addOption('knowledge', 'Knowledge')
-      .addOption('automation', 'Automation')
-      .setClass('ultima-orb-form-dropdown');
+    // Description input
+    const descInput = content.createEl("textarea", {
+      placeholder: "Template description...",
+      cls: "template-textarea",
+    });
 
-    // Provider
-    const providerContainer = formEl.createEl('div', { cls: 'ultima-orb-form-field' });
-    providerContainer.createEl('label', { text: 'Provider:', cls: 'ultima-orb-label' });
-    const providerDropdown = new DropdownComponent(providerContainer)
-      .addOption('notion', 'Notion')
-      .addOption('airtable', 'Airtable')
-      .addOption('clickup', 'ClickUp')
-      .addOption('anythingllm', 'AnythingLLM')
-      .setClass('ultima-orb-form-dropdown');
+    // Category select
+    const categorySelect = content.createEl("select", {
+      cls: "template-select",
+    });
+    categorySelect.createEl("option", { text: "Writing", value: "writing" });
+    categorySelect.createEl("option", { text: "Analysis", value: "analysis" });
+    categorySelect.createEl("option", { text: "Code", value: "code" });
+    categorySelect.createEl("option", { text: "Business", value: "business" });
+    categorySelect.createEl("option", { text: "Creative", value: "creative" });
 
-    // Add button
-    const addButton = new ButtonComponent(formEl)
-      .setButtonText('➕ Add Template')
-      .setClass('ultima-orb-button ultima-orb-add-button')
-      .onClick(() => {
-        const newTemplate: ToolTemplate = {
-          id: `custom-${Date.now()}`,
-          name: nameInput.getValue(),
-          description: descInput.getValue(),
-          category: categoryDropdown.getValue(),
-          provider: providerDropdown.getValue(),
-          config: {},
-          enabled: true,
-          usageCount: 0
-        };
+    // Prompt textarea
+    const promptTextarea = content.createEl("textarea", {
+      placeholder: "Template prompt with {{parameters}}...",
+      cls: "template-textarea",
+    });
 
-        this.templates.push(newTemplate);
-        this.logger.info(`Added new template: ${newTemplate.name}`);
+    // Tags input
+    const tagsInput = content.createEl("input", {
+      type: "text",
+      placeholder: "Tags (comma-separated)",
+      cls: "template-input",
+    });
+
+    // Buttons
+    const buttons = content.createEl("div", { cls: "template-modal-buttons" });
+
+    const saveBtn = buttons.createEl("button", {
+      text: "Save Template",
+      cls: "save-template-btn",
+    });
+    saveBtn.onclick = () => {
+      const name = nameInput.value.trim();
+      const description = descInput.value.trim();
+      const category = categorySelect.value;
+      const prompt = promptTextarea.value.trim();
+      const tags = tagsInput.value
+        .split(",")
+        .map((t) => t.trim())
+        .filter((t) => t);
+
+      if (name && description && prompt) {
+        this.addTemplate({
+          id: Date.now().toString(),
+          name,
+          description,
+          category,
+          prompt,
+          parameters: [], // Can be enhanced later
+          examples: [],
+          tags,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
         modal.close();
-        this.renderTemplates();
-      });
+        new Notice("Template added successfully!");
+      } else {
+        new Notice("Please fill in all required fields!");
+      }
+    };
+
+    const cancelBtn = buttons.createEl("button", {
+      text: "Cancel",
+      cls: "cancel-template-btn",
+    });
+    cancelBtn.onclick = () => modal.close();
 
     modal.open();
   }
 
-  private loadTemplates(): void {
-    // Load templates from storage or use defaults
-    this.logger.info('Loading tool templates');
+  private addTemplate(template: ToolTemplate): void {
+    this.templates.push(template);
+    this.filteredTemplates = [...this.templates];
+    this.renderTemplates();
+    this.saveTemplates();
   }
 
+  private editTemplate(template: ToolTemplate): void {
+    // Similar to add modal but pre-filled
+    new Notice("Edit functionality coming soon!");
+  }
+
+  private deleteTemplate(id: string): void {
+    this.templates = this.templates.filter((template) => template.id !== id);
+    this.filteredTemplates = [...this.templates];
+    this.renderTemplates();
+    this.saveTemplates();
+    new Notice("Template deleted!");
+  }
+
+  private filterTemplates(): void {
+    const searchTerm = this.searchInput.value.toLowerCase();
+    const selectedCategory = this.categoryFilter.value;
+
+    this.filteredTemplates = this.templates.filter((template) => {
+      const matchesSearch =
+        template.name.toLowerCase().includes(searchTerm) ||
+        template.description.toLowerCase().includes(searchTerm) ||
+        template.tags.some((tag) => tag.toLowerCase().includes(searchTerm));
+
+      const matchesCategory =
+        !selectedCategory || template.category === selectedCategory;
+
+      return matchesSearch && matchesCategory;
+    });
+
+    this.renderTemplates();
+  }
+
+  // Public methods for external access
   public getTemplates(): ToolTemplate[] {
     return [...this.templates];
   }
 
-  public getEnabledTemplates(): ToolTemplate[] {
-    return this.templates.filter(template => template.enabled);
+  public getTemplatesByCategory(category: string): ToolTemplate[] {
+    return this.templates.filter((template) => template.category === category);
   }
 
-  public destroy(): void {
-    this.containerEl.empty();
+  public searchTemplates(query: string): ToolTemplate[] {
+    const searchTerm = query.toLowerCase();
+    return this.templates.filter(
+      (template) =>
+        template.name.toLowerCase().includes(searchTerm) ||
+        template.description.toLowerCase().includes(searchTerm) ||
+        template.tags.some((tag) => tag.toLowerCase().includes(searchTerm))
+    );
   }
 }

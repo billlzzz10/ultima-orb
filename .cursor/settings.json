@@ -1,4 +1,4 @@
-{
+
   // Cursor AI Settings
   "cursor.chat.defaultModel": "claude-3.5-sonnet",
   "cursor.chat.enableCodeActions": true,
@@ -9,7 +9,7 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit",
     "source.organizeImports": "explicit"
-  },
+  },{
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
   "editor.rulers": [

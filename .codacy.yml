@@ -1,0 +1,92 @@
+# Codacy Configuration for Ultima-Orb
+# Automated code quality and security analysis
+
+# Exclude patterns
+exclude_paths:
+  - "node_modules/**"
+  - "dist/**"
+  - "*.js"
+  - "*.min.js"
+  - "coverage/**"
+  - "test-results/**"
+  - ".git/**"
+  - "docs/**"
+  - "scripts/**"
+
+# Include patterns
+include_paths:
+  - "src/**/*.ts"
+  - "test/**/*.ts"
+  - "*.ts"
+  - "*.tsx"
+
+# Tool configurations
+tools:
+  - name: "ESLint"
+    patterns:
+      - "**/*.ts"
+      - "**/*.tsx"
+    config_file: ".eslintrc.js"
+  
+  - name: "TypeScript"
+    patterns:
+      - "**/*.ts"
+      - "**/*.tsx"
+    config_file: "tsconfig.json"
+  
+  - name: "SonarQube"
+    patterns:
+      - "**/*.ts"
+      - "**/*.tsx"
+    config_file: "sonar-project.properties"
+
+# Quality gates
+quality_gates:
+  - name: "Code Coverage"
+    threshold: 80
+    metric: "coverage"
+  
+  - name: "Code Duplication"
+    threshold: 5
+    metric: "duplication"
+  
+  - name: "Maintainability"
+    threshold: "A"
+    metric: "maintainability"
+  
+  - name: "Reliability"
+    threshold: "A"
+    metric: "reliability"
+  
+  - name: "Security"
+    threshold: "A"
+    metric: "security"
+
+# Commit message patterns
+commit_message_patterns:
+  - pattern: "^(feat|fix|docs|style|refactor|test|chore)(\\(.+\\))?: .+"
+    message: "Commit messages should follow conventional commits format"
+  
+  - pattern: "^[A-Z].+"
+    message: "Commit messages should start with a capital letter"
+
+# Pull request rules
+pull_request_rules:
+  - name: "Code Review Required"
+    enabled: true
+    min_reviewers: 1
+  
+  - name: "Build Status Check"
+    enabled: true
+    required_status_checks:
+      - "build"
+      - "test"
+      - "lint"
+  
+  - name: "Quality Gate Check"
+    enabled: true
+    quality_gates:
+      - "Code Coverage"
+      - "Maintainability"
+      - "Reliability"
+      - "Security"

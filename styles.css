@@ -1,229 +1,662 @@
-/* Ultima-Orb Plugin Styles */
+/* 🔮 Ultima-Orb Plugin Styles */
 
-/* Main Container */
-.ultima-orb-container {
-    padding: 20px;
-    font-family: var(--font-text);
+/* ===== COMMAND PALETTE ===== */
+.ultima-orb-command-palette {
+  background: var(--background-primary);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  max-width: 600px;
+  width: 90vw;
+  max-height: 80vh;
+  overflow: hidden;
 }
 
-/* Chat Interface */
-.ultima-orb-chat {
-    display: flex;
-    flex-direction: column;
-    height: 500px;
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 8px;
-    overflow: hidden;
+.command-palette-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
 }
 
-.ultima-orb-chat-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px;
-    background: var(--background-primary);
+.command-palette-title {
+  margin: 0 0 15px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-normal);
 }
 
-.ultima-orb-chat-input {
-    display: flex;
-    padding: 12px;
-    background: var(--background-secondary);
-    border-top: 1px solid var(--background-modifier-border);
+.command-palette-search {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--background-modifier-border);
+  border-radius: 8px;
+  font-size: 14px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  transition: border-color 0.2s ease;
 }
 
-.ultima-orb-chat-input textarea {
-    flex: 1;
-    margin-right: 8px;
-    resize: none;
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 4px;
-    padding: 8px;
-    font-family: inherit;
+.command-palette-search:focus {
+  outline: none;
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 3px rgba(var(--interactive-accent-rgb), 0.1);
 }
 
-/* Message Styles */
-.ultima-orb-message {
-    margin-bottom: 12px;
-    padding: 12px;
-    border-radius: 8px;
-    max-width: 80%;
+.command-palette-results {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 0;
 }
 
-.ultima-orb-message.user {
-    background: var(--interactive-accent);
-    color: var(--text-on-accent);
-    margin-left: auto;
+.command-category-header {
+  padding: 12px 20px 8px;
+  background: var(--background-secondary-alt);
+  border-bottom: 1px solid var(--background-modifier-border);
 }
 
-.ultima-orb-message.assistant {
-    background: var(--background-secondary);
-    border: 1px solid var(--background-modifier-border);
+.category-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-/* Provider Selection */
-.ultima-orb-provider-selector {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
-    padding: 12px;
-    background: var(--background-secondary);
-    border-radius: 6px;
+.command-item {
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid var(--background-modifier-border);
 }
 
-.ultima-orb-provider-btn {
-    padding: 6px 12px;
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 4px;
-    background: var(--background-primary);
-    cursor: pointer;
-    transition: all 0.2s ease;
+.command-item:hover {
+  background: var(--background-modifier-hover);
 }
 
-.ultima-orb-provider-btn.active {
-    background: var(--interactive-accent);
-    color: var(--text-on-accent);
-    border-color: var(--interactive-accent);
+.command-item.selected {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
 }
 
-.ultima-orb-provider-btn:hover {
-    background: var(--background-modifier-hover);
+.command-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
 }
 
-/* Settings Tabs */
-.ultima-orb-settings-tabs {
-    display: flex;
-    border-bottom: 1px solid var(--background-modifier-border);
-    margin-bottom: 20px;
+.command-icon {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
 }
 
-.ultima-orb-tab {
-    padding: 12px 20px;
-    border: none;
-    background: none;
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: all 0.2s ease;
+.command-name {
+  font-weight: 500;
+  font-size: 14px;
+  flex: 1;
 }
 
-.ultima-orb-tab.active {
-    border-bottom-color: var(--interactive-accent);
-    color: var(--interactive-accent);
+.command-shortcut {
+  font-size: 11px;
+  padding: 2px 6px;
+  background: var(--background-modifier-border);
+  border-radius: 4px;
+  color: var(--text-muted);
 }
 
-.ultima-orb-tab:hover {
-    background: var(--background-modifier-hover);
+.command-description {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-left: 32px;
 }
 
-/* Tool Management */
-.ultima-orb-tool-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 16px;
-    margin-top: 16px;
+.no-commands-message {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
 }
 
-.ultima-orb-tool-card {
-    padding: 16px;
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 8px;
-    background: var(--background-primary);
+/* ===== CHAT VIEW ===== */
+.chat-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
 }
 
-.ultima-orb-tool-card h4 {
-    margin: 0 0 8px 0;
-    color: var(--text-normal);
+.model-selector {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 13px;
 }
 
-.ultima-orb-tool-card p {
-    margin: 0;
-    color: var(--text-muted);
-    font-size: 0.9em;
+.clear-chat-btn {
+  padding: 8px 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-/* Knowledge Base */
-.ultima-orb-knowledge-workspace {
-    padding: 16px;
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 8px;
-    margin-bottom: 16px;
-    background: var(--background-primary);
+.clear-chat-btn:hover {
+  background: var(--background-modifier-hover);
 }
 
-.ultima-orb-knowledge-workspace h4 {
-    margin: 0 0 8px 0;
-    color: var(--text-normal);
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  max-height: 60vh;
 }
 
-.ultima-orb-knowledge-stats {
-    display: flex;
-    gap: 16px;
-    font-size: 0.9em;
-    color: var(--text-muted);
+.chat-message {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  max-width: 85%;
 }
 
-/* Buttons */
-.ultima-orb-btn {
-    padding: 8px 16px;
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 4px;
-    background: var(--background-primary);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: inherit;
+.user-message {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  margin-left: auto;
 }
 
-.ultima-orb-btn.primary {
-    background: var(--interactive-accent);
-    color: var(--text-on-accent);
-    border-color: var(--interactive-accent);
+.assistant-message {
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  margin-right: auto;
 }
 
-.ultima-orb-btn:hover {
-    background: var(--background-modifier-hover);
+.message-role {
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  opacity: 0.8;
 }
 
-.ultima-orb-btn.primary:hover {
-    background: var(--interactive-accent-hover);
+.message-content {
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
 }
 
-/* Loading States */
-.ultima-orb-loading {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    color: var(--text-muted);
+.message-time {
+  font-size: 10px;
+  opacity: 0.6;
+  margin-top: 4px;
 }
 
-.ultima-orb-spinner {
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--background-modifier-border);
-    border-top: 2px solid var(--interactive-accent);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-right: 8px;
+.chat-input-container {
+  padding: 16px;
+  border-top: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+.chat-input {
+  width: 100%;
+  min-height: 60px;
+  padding: 12px 16px;
+  border: 2px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 14px;
+  resize: vertical;
+  transition: border-color 0.2s ease;
 }
 
-/* Responsive Design */
+.chat-input:focus {
+  outline: none;
+  border-color: var(--interactive-accent);
+}
+
+.send-button {
+  margin-top: 8px;
+  padding: 10px 20px;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.send-button:hover:not(:disabled) {
+  background: var(--interactive-accent-hover);
+}
+
+.send-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== KNOWLEDGE VIEW ===== */
+.knowledge-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+}
+
+.knowledge-search {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 13px;
+}
+
+.add-knowledge-btn,
+.import-knowledge-btn {
+  padding: 8px 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-knowledge-btn:hover,
+.import-knowledge-btn:hover {
+  background: var(--background-modifier-hover);
+}
+
+.knowledge-items {
+  padding: 16px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.knowledge-item {
+  margin-bottom: 16px;
+  padding: 16px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-primary);
+  transition: all 0.2s ease;
+}
+
+.knowledge-item:hover {
+  border-color: var(--interactive-accent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.knowledge-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.knowledge-item-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+.knowledge-item-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-knowledge-btn,
+.delete-knowledge-btn {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.edit-knowledge-btn:hover {
+  background: var(--background-modifier-hover);
+}
+
+.delete-knowledge-btn:hover {
+  background: var(--background-modifier-error);
+  color: var(--text-error);
+}
+
+.knowledge-item-content {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.knowledge-item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.knowledge-tag {
+  padding: 2px 8px;
+  background: var(--background-modifier-border);
+  border-radius: 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.knowledge-item-metadata {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ===== TOOL TEMPLATE VIEW ===== */
+.tool-template-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+}
+
+.template-search {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 13px;
+}
+
+.category-filter {
+  padding: 8px 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 13px;
+}
+
+.add-template-btn {
+  padding: 8px 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-template-btn:hover {
+  background: var(--background-modifier-hover);
+}
+
+.tool-templates {
+  padding: 16px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.tool-template-item {
+  margin-bottom: 16px;
+  padding: 16px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-primary);
+  transition: all 0.2s ease;
+}
+
+.tool-template-item:hover {
+  border-color: var(--interactive-accent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.template-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.template-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+.template-category {
+  padding: 2px 8px;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.template-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.use-template-btn,
+.edit-template-btn,
+.delete-template-btn {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.use-template-btn {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.use-template-btn:hover {
+  background: var(--interactive-accent-hover);
+}
+
+.edit-template-btn:hover {
+  background: var(--background-modifier-hover);
+}
+
+.delete-template-btn:hover {
+  background: var(--background-modifier-error);
+  color: var(--text-error);
+}
+
+.template-description {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.template-parameters {
+  margin-bottom: 8px;
+}
+
+.parameter {
+  display: inline-block;
+  padding: 2px 6px;
+  margin: 2px;
+  background: var(--background-modifier-border);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.parameter.required {
+  background: var(--background-modifier-error);
+  color: var(--text-error);
+}
+
+.template-examples {
+  margin-bottom: 8px;
+}
+
+.template-example {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 2px 0;
+}
+
+.template-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.template-tag {
+  padding: 2px 8px;
+  background: var(--background-modifier-border);
+  border-radius: 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ===== MODAL STYLES ===== */
+.knowledge-modal,
+.template-modal {
+  max-width: 500px;
+  width: 90vw;
+}
+
+.knowledge-modal-content,
+.template-modal-content {
+  padding: 20px;
+}
+
+.knowledge-input,
+.template-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.knowledge-textarea,
+.template-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 8px 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 14px;
+  resize: vertical;
+  margin-bottom: 12px;
+}
+
+.template-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.knowledge-modal-buttons,
+.template-modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.save-knowledge-btn,
+.save-template-btn,
+.cancel-knowledge-btn,
+.cancel-template-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.save-knowledge-btn,
+.save-template-btn {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.save-knowledge-btn:hover,
+.save-template-btn:hover {
+  background: var(--interactive-accent-hover);
+}
+
+.cancel-knowledge-btn,
+.cancel-template-btn {
+  background: var(--background-modifier-border);
+  color: var(--text-normal);
+}
+
+.cancel-knowledge-btn:hover,
+.cancel-template-btn:hover {
+  background: var(--background-modifier-hover);
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
-    .ultima-orb-container {
-        padding: 12px;
-    }
-    
-    .ultima-orb-chat {
-        height: 400px;
-    }
-    
-    .ultima-orb-tool-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .ultima-orb-provider-selector {
-        flex-wrap: wrap;
-    }
+  .ultima-orb-command-palette {
+    width: 95vw;
+    max-width: none;
+  }
+  
+  .command-palette-header {
+    padding: 16px;
+  }
+  
+  .command-palette-results {
+    max-height: 50vh;
+  }
+  
+  .chat-header,
+  .knowledge-header,
+  .tool-template-header {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .model-selector,
+  .knowledge-search,
+  .template-search {
+    width: 100%;
+  }
 }

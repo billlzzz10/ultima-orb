@@ -20,7 +20,7 @@ async function copyStaticFiles() {
 
 // Build configuration
 const buildConfig = {
-    entryPoints: ["src/main.ts"],
+    entryPoints: ["main.ts"],
     bundle: true,
     external: ["obsidian", "electron", ...builtins],
     format: "cjs",
