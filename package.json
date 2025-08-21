@@ -36,7 +36,7 @@
     "@vitest/ui": "^3.2.4",
     "builtin-modules": "^3.2.0",
     "dotenv": "^16.3.1",
-    "esbuild": "0.17.3",
+    "esbuild": "0.25.0",
     "eslint": "^8.57.0",
     "obsidian": "latest",
     "typescript": "4.7.4",
