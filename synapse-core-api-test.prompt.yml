@@ -1,0 +1,219 @@
+messages:
+  - role: system
+    content: |-
+      name: synapse-core-api-test
+      description: Prompt หลักสำหรับทดสอบการโต้ตอบ Synapse-Core API
+      parameters:
+        temperature: 0
+        max_tokens: 800
+
+      messages:
+        - role: system
+          content: |
+            คุณคือผู้ช่วยนักพัฒนา Obsidian Plugin
+            มีความรู้เกี่ยวกับ Synapse-Core และ MCP Integration ตามสรุปด้านล่าง
+            ตอบสั้น กระชับ และอ้างอิง API ตามเอกสารเท่านั้น
+
+            [Context README]
+            - Synapse-Core คือ plugin หลักสำหรับ data sync และ core management
+            - รองรับ Notion, ClickUp, Airtable ผ่าน MCP
+            - API หลัก: hasFeature(), getToolDatabase(), syncToolsWithNotion()
+            - Storage API: saveData(), loadData()
+            - Event System: subscribe(), publish()
+  - role: user
+    content: |2
+       เขียนโค้ด {{language}} ที่ใช้ Synapse-Core เพื่อทำ {{action}} 
+            และเช็กว่ามีฟีเจอร์ {{feature_name}} หรือไม่
+  - role: assistant
+    content: >-
+      ### Team Building Activity Plan: Collaborative Coding Challenge
+
+
+      #### Objective:
+
+      To foster teamwork, enhance problem-solving skills, and encourage
+      collaboration among team members through a fun and engaging coding
+      challenge.
+
+
+      ---
+
+
+      #### Overview:
+
+      The activity will focus on creating a simulated coding environment where
+      participants work together to solve a specific problem related to feature
+      verification. The challenge will revolve around the variables provided:
+      **language**, **action**, and **feature_name**. Teams will collaborate to
+      design, implement, and test a solution based on the given parameters.
+
+
+      ---
+
+
+      #### Agenda:
+
+
+      **1. Introduction (15 minutes)**  
+
+      - Welcome and icebreaker activity to set a positive tone.  
+
+      - Brief explanation of the challenge and its objectives.  
+
+      - Overview of the provided variables:  
+        - **language**: The programming language to be used (default: TypeScript).  
+        - **action**: The task or use case to be addressed (default: feature verification).  
+        - **feature_name**: The specific feature to focus on (default: notion-sync).  
+
+      ---
+
+
+      **2. Team Formation (10 minutes)**  
+
+      - Divide participants into teams of 4–6 members.  
+
+      - Ensure each team has a mix of skill levels to promote learning and
+      collaboration.  
+
+
+      ---
+
+
+      **3. Challenge Kickoff (60 minutes)**  
+
+      - Each team will work on creating a solution for verifying the
+      functionality of the **notion-sync** feature using **TypeScript**.  
+
+      - Teams will need to:  
+        - Analyze the requirements based on the provided variables.  
+        - Write code to implement the feature verification process.  
+        - Test the code to ensure it meets the objectives.  
+
+      ---
+
+
+      **4. Break (15 minutes)**  
+
+      - Provide refreshments and encourage informal discussions among
+      participants.  
+
+
+      ---
+
+
+      **5. Presentation and Review (45 minutes)**  
+
+      - Each team will present their solution, explaining their approach and
+      reasoning.  
+
+      - A panel of judges (team leads or organizers) will review the solutions,
+      providing constructive feedback.  
+
+      - Criteria for evaluation:  
+        - Teamwork and collaboration.  
+        - Code quality and functionality.  
+        - Creativity and problem-solving approach.  
+
+      ---
+
+
+      **6. Awards and Closing (20 minutes)**  
+
+      - Announce winning teams based on evaluation criteria.  
+
+      - Distribute small prizes or certificates to recognize participation and
+      achievement.  
+
+      - Share final thoughts and thank participants for their involvement.  
+
+
+      ---
+
+
+      #### Logistics:
+
+
+      **Materials Needed:**  
+
+      - Laptops or computers for each participant.  
+
+      - Access to a shared code repository (e.g., GitHub or GitLab).  
+
+      - A projector or screen for presentations.  
+
+
+      **Venue Requirements:**  
+
+      - A meeting room with enough space for all participants.  
+
+      - Reliable internet connection.  
+
+
+      ---
+
+
+      #### Expected Outcomes:
+
+      - Improved collaboration and communication skills among team members.  
+
+      - Enhanced understanding of feature verification processes.  
+
+      - Increased motivation and engagement through a fun and challenging
+      activity.  
+
+
+      ---
+
+
+      This plan is designed to provide a meaningful and enjoyable experience for
+      the team while aligning with the technical focus of the organization.
+  - role: user
+    content: |-
+      name: synapse-core-api-test
+      description: Prompt หลักสำหรับทดสอบการโต้ตอบ Synapse-Core API
+      model: openai/gpt-4o # หรือ gpt-4o-mini ถ้าต้องการทดสอบเร็ว
+      parameters:
+        temperature: 0
+        max_tokens: 800
+
+      messages:
+        - role: system
+          content: |
+            คุณคือผู้ช่วยนักพัฒนา Obsidian Plugin
+            มีความรู้เกี่ยวกับ Synapse-Core และ MCP Integration ตามสรุปด้านล่าง
+            ตอบสั้น กระชับ และอ้างอิง API ตามเอกสารเท่านั้น
+
+            [Context README]
+            - Synapse-Core คือ plugin หลักสำหรับ data sync และ core management
+            - รองรับ Notion, ClickUp, Airtable ผ่าน MCP
+            - API หลัก: hasFeature(), getToolDatabase(), syncToolsWithNotion()
+            - Storage API: saveData(), loadData()
+            - Event System: subscribe(), publish()
+
+        - role: user
+          content: |
+            เขียนโค้ด {{language}} ที่ใช้ Synapse
+  - role: user
+    content: >+
+      ฟังก์ชันใดใน Synapse-Core API ที่ใช้ตรวจสอบว่าฟีเจอร์มีอยู่ในระบบหรือไม่?
+
+
+      ากต้องการเชื่อมต่อข้อมูลจาก Notion เข้าสู่ระบบ Synapse-Core
+      ควรใช้ฟังก์ชันใด?
+
+
+      ในระบบ Event ของ Synapse-Core หากต้องการรับฟังเหตุการณ์ควรใช้ฟังก์ชันใด?
+
+
+      คำสั่งใดใน TypeScript ที่ใช้เรียกตรวจสอบฟีเจอร์ notion-sync?
+
+
+      ฟังก์ชันใดใน Synapse-Core API ที่ใช้จัดการข้อมูลใน storage?
+
+model: openai/gpt-4o-mini
+modelParameters:
+  max_tokens: 2082
+  temperature: 0.7
+  top_p: 0.7
+  stop:
+    - </end>
