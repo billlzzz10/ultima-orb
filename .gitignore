@@ -3,12 +3,14 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
 # Build outputs
 dist/
 build/
 *.js.map
 *.d.ts.map
+main.js
 
 # Environment variables
 .env
@@ -117,3 +119,136 @@ tmp/
 temp/
 *.tmp
 *.temp
+
+# AI Development Tools
+.cursor/
+.cursorrules
+.continue/
+.continueignore
+.continue/
+*.continue
+.copilot/
+.copilotignore
+.github/copilot/
+
+# Security and API Keys
+secrets/
+api-keys/
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cert
+*.p8
+*.env
+.env.*
+config/secrets.json
+config/api-keys.json
+credentials/
+auth/
+tokens/
+
+# Development and Local Files
+.dev/
+.local/
+dev/
+local/
+development/
+staging/
+production/
+
+# Data and Cache Files
+*.db
+*.sqlite
+*.sqlite3
+cache/
+.cache/
+artifacts/
+.artifacts/
+data/
+.data/
+logs/
+*.log
+*.log.*
+
+# IDE and Editor Specific
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/usage.statistics.xml
+.idea/dictionaries/
+.idea/shelf/
+
+# OS Specific
+Thumbs.db
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+
+# Package Manager Lock Files (optional - uncomment if you want to ignore them)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# Backup Files
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+
+# Synapse-Core specific (if it exists in this repo)
+synapse-core/
+synapse-ai/
+synapse-ui/
+synapse-views/
+synapse-productivity/
+
+# Notion outputs and temporary files
+notion-outputs/
+*.notion
+notion-*.json
+
+# MCP related files
+mcp-*.json
+*.mcp
+mcp/
+
+# AI Model files and caches
+models/
+*.model
+*.bin
+*.gguf
+*.ggml
+embeddings/
+vector-db/
+
+# Documentation builds
+docs/_build/
+docs/.doctrees/
+docs/build/
+
+# Performance and monitoring
+.perf/
+.monitoring/
+metrics/
+*.metrics
+
+# Backup and sync files
+*.sync
+*.backup
+*.tmp
+*.temp
+.sync/
+.backup/
+
+# Ignore cursor AI rules
+.cursor/rules/codacy.mdc
+.cursor/rules/ai-integration.mdc

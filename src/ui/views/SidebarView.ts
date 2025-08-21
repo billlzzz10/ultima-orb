@@ -55,7 +55,7 @@ export class SidebarView extends ItemView {
       text: "Settings",
       cls: "ultima-orb-sidebar-button",
     });
-    settingsButton.addEventListener("click", () => this.app.setting.open());
+    settingsButton.addEventListener("click", () => this.app.settings.open());
 
     // Feature Status
     const featureStatus = container.createDiv("ultima-orb-feature-status");

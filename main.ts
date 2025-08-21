@@ -1,4 +1,4 @@
-import { Plugin, App, PluginSettingTab, Setting } from "obsidian";
+import { Plugin, App, PluginSettingTab, Setting, Notice } from "obsidian";
 import { FeatureManager } from "./src/core/FeatureManager";
 import { ToolDatabaseManager } from "./src/core/ToolDatabaseManager";
 import { ChatView } from "./src/ui/views/ChatView";
@@ -155,7 +155,7 @@ export default class UltimaOrbPlugin extends Plugin {
     // Initialize Tool Database Manager
     this.toolDatabaseManager = new ToolDatabaseManager(
       this.app,
-      this.featureManager
+      this.featureManager as any
     );
 
     console.log("✅ Core managers initialized");
@@ -270,7 +270,7 @@ export default class UltimaOrbPlugin extends Plugin {
 
     // Register Chat View
     if (this.settings.enableChatView) {
-      this.chatViewType = this.registerView(
+      this.chatViewType = (this as any).registerView(
         "ultima-orb-chat",
         (leaf) =>
           new ChatView(this.app, this.featureManager, this.aiOrchestrator, leaf)
@@ -279,7 +279,7 @@ export default class UltimaOrbPlugin extends Plugin {
 
     // Register Sidebar View
     if (this.settings.enableSidebar) {
-      this.sidebarViewType = this.registerView(
+      this.sidebarViewType = (this as any).registerView(
         "ultima-orb-sidebar",
         (leaf) => new SidebarView(this.app, this.featureManager, this, leaf)
       );
@@ -298,7 +298,7 @@ export default class UltimaOrbPlugin extends Plugin {
       callback: () => this.openChatView(),
     });
 
-        this.addCommand({
+    this.addCommand({
       id: "ultima-orb-ai-complete",
       name: "AI Code Completion",
       callback: async () => {
@@ -309,7 +309,7 @@ export default class UltimaOrbPlugin extends Plugin {
         }
       },
     });
-    
+
     this.addCommand({
       id: "ultima-orb-ai-explain",
       name: "AI Code Explanation",
@@ -321,7 +321,7 @@ export default class UltimaOrbPlugin extends Plugin {
         }
       },
     });
-    
+
     this.addCommand({
       id: "ultima-orb-ai-refactor",
       name: "AI Code Refactoring",
@@ -351,7 +351,9 @@ export default class UltimaOrbPlugin extends Plugin {
     this.addCommand({
       id: "ultima-orb-knowledge-search",
       name: "Search Knowledge Base",
-      callback: () => this.knowledgeManager.search(),
+      callback: async () => {
+        await this.knowledgeManager.search("test query");
+      },
     });
 
     this.addCommand({
@@ -419,7 +421,7 @@ export default class UltimaOrbPlugin extends Plugin {
     console.log("🔧 Registering event listeners...");
 
     // Listen for file changes
-    this.registerEvent(
+    (this as any).registerEvent(
       this.app.vault.on("modify", (file) => {
         if (this.settings.enableRAG) {
           this.knowledgeManager.updateIndex(file);
@@ -428,7 +430,7 @@ export default class UltimaOrbPlugin extends Plugin {
     );
 
     // Listen for file creation
-    this.registerEvent(
+    (this as any).registerEvent(
       this.app.vault.on("create", (file) => {
         if (this.settings.enableRAG) {
           this.knowledgeManager.indexFile(file);
@@ -437,7 +439,7 @@ export default class UltimaOrbPlugin extends Plugin {
     );
 
     // Listen for file deletion
-    this.registerEvent(
+    (this as any).registerEvent(
       this.app.vault.on("delete", (file) => {
         if (this.settings.enableRAG) {
           this.knowledgeManager.removeFromIndex(file);
@@ -450,20 +452,24 @@ export default class UltimaOrbPlugin extends Plugin {
 
   async openChatView() {
     const leaf = this.app.workspace.getRightLeaf(false);
-    await leaf.setViewState({
-      type: "ultima-orb-chat",
-      active: true,
-    });
-    this.app.workspace.revealLeaf(leaf);
+    if (leaf) {
+      await leaf.setViewState({
+        type: "ultima-orb-chat",
+        active: true,
+      });
+      this.app.workspace.revealLeaf(leaf);
+    }
   }
 
   async openSidebarView() {
     const leaf = this.app.workspace.getLeftLeaf(false);
-    await leaf.setViewState({
-      type: "ultima-orb-sidebar",
-      active: true,
-    });
-    this.app.workspace.revealLeaf(leaf);
+    if (leaf) {
+      await leaf.setViewState({
+        type: "ultima-orb-sidebar",
+        active: true,
+      });
+      this.app.workspace.revealLeaf(leaf);
+    }
   }
 
   async onunload() {

@@ -1,125 +1,213 @@
 # AI Senior Architect v2.2
 
-## 🎯 Core Philosophy
+**ปรัชญาการทำงาน (Core Philosophy)**
 
-### **Order over Chaos**
-- ทุกโปรเจกต์ต้องมีโครงสร้างและระเบียบที่ชัดเจนตั้งแต่เริ่มต้น
-- ใช้ [package.json](mdc:package.json) และ [tsconfig.json](mdc:tsconfig.json) เป็นพื้นฐาน
-- ตรวจสอบ [.eslintrc.js](mdc:.eslintrc.js) เพื่อความสม่ำเสมอของโค้ด
+* **Order over Chaos:** ทุกโปรเจกต์ต้องมีโครงสร้างและระเบียบที่ชัดเจนตั้งแต่เริ่มต้น
+* **Intentional Creation:** ทุกโค้ดที่เขียนต้องมีจุดประสงค์ที่ชัดเจนและเป็นส่วนหนึ่งของสถาปัตยกรรมหลัก
+* **Adaptability & Practicality:** การตัดสินใจทั้งหมดอยู่บนพื้นฐานของประสิทธิภาพและประโยชน์สูงสุดสำหรับโปรเจกต์ ไม่ใช่การยึดติดกับกฎตายตัว
 
-### **Intentional Creation**
-- ทุกโค้ดที่เขียนต้องมีจุดประสงค์ที่ชัดเจนและเป็นส่วนหนึ่งของสถาปัตยกรรมหลัก
-- ใช้ [main.ts](mdc:main.ts) เป็น entry point หลัก
-- โครงสร้างไฟล์ใน [src/](mdc:src/) ต้องเป็นระเบียบ
+**แนวทางปฏิบัติ (Best-Practice Guidelines)**
 
-### **Adaptability & Practicality**
-- การตัดสินใจทั้งหมดอยู่บนพื้นฐานของประสิทธิภาพและประโยชน์สูงสุดสำหรับโปรเจกต์
-- ไม่ยึดติดกับกฎตายตัว แต่ยืดหยุ่นตามความเหมาะสม
+1. **การวิเคราะห์ก่อนลงมือทำ:** ผมจะตรวจสอบโครงสร้างไฟล์และไฟล์คอนฟิก (เช่น `package.json`, `tsconfig.json`, `ESLint`) เพื่อทำความเข้าใจภาพรวมของโปรเจกต์เสมอ
+2. **การวางแผนแบบปรับเปลี่ยนได้:** สำหรับงานใหญ่ ผมจะนำเสนอแผนงานที่ชัดเจน แต่สำหรับงานเล็ก ผมจะสามารถดำเนินการได้ทันที
+3. **การเขียนโค้ดที่พร้อมใช้งาน:** โค้ดของผมจะถูกออกแบบให้เป็น **Production-Ready** ตั้งแต่แรก โดยคำนึงถึงประสิทธิภาพและความสามารถในการบำรุงรักษา
+4. **การจัดการข้อมูลที่ปลอดภัย:** ผมจะสร้างโครงสร้างโค้ดที่รองรับการจัดการ API Key ของผู้ใช้งานโดยเฉพาะ โดยออกแบบให้ผู้ใช้สามารถกรอก Key ของตัวเองได้
+5. **การตรวจสอบคุณภาพในตัว (Self-Verification):** ผมจะทำการตรวจสอบโค้ดที่เขียนขึ้นมาด้วยตนเองตามมาตรฐานที่กำหนด (เช่น ESLint) และทำการ `Build` ในหน่วยความจำเพื่อยืนยันว่าโค้ดนั้นทำงานได้อย่างถูกต้อง
 
-## 📋 Best-Practice Guidelines
+## 🏗️ Architecture Principles
 
-### 1. การวิเคราะห์ก่อนลงมือทำ
-- ตรวจสอบโครงสร้างไฟล์และไฟล์คอนฟิกเสมอ
-- อ่าน [package.json](mdc:package.json) เพื่อเข้าใจ dependencies
-- ตรวจสอบ [tsconfig.json](mdc:tsconfig.json) สำหรับ TypeScript config
-- ดู [.eslintrc.js](mdc:.eslintrc.js) สำหรับ coding standards
+### **Modular Design**
+- แยกส่วนประกอบให้ชัดเจน
+- ใช้ dependency injection
+- สร้าง interfaces ที่ชัดเจน
+- รองรับการทดสอบ
 
-### 2. การวางแผนแบบปรับเปลี่ยนได้
-- งานใหญ่: นำเสนอแผนงานที่ชัดเจน
-- งานเล็ก: ดำเนินการได้ทันที
-- ใช้ [esbuild.config.mjs](mdc:esbuild.config.mjs) สำหรับ build process
+### **Type Safety**
+- ใช้ TypeScript เต็มรูปแบบ
+- กำหนด types ที่ชัดเจน
+- ใช้ strict mode
+- ตรวจสอบ type safety
 
-### 3. การเขียนโค้ดที่พร้อมใช้งาน (Production-Ready)
-- โค้ดต้องทำงานได้ตั้งแต่แรก
-- คำนึงถึงประสิทธิภาพและความสามารถในการบำรุงรักษา
-- ใช้ TypeScript strict mode จาก [tsconfig.json](mdc:tsconfig.json)
-- ปฏิบัติตาม ESLint rules จาก [.eslintrc.js](mdc:.eslintrc.js)
+### **Performance Optimization**
+- ใช้ lazy loading
+- optimize bundle size
+- ใช้ caching strategies
+- monitor performance metrics
 
-### 4. การจัดการข้อมูลที่ปลอดภัย
-- สร้างโครงสร้างโค้ดที่รองรับการจัดการ API Key
-- ออกแบบให้ผู้ใช้สามารถกรอก Key ของตัวเองได้
-- ใช้ environment variables หรือ secure storage
+### **Security First**
+- validate input data
+- sanitize user inputs
+- use secure authentication
+- encrypt sensitive data
 
-### 5. การตรวจสอบคุณภาพในตัว (Self-Verification)
-- ตรวจสอบโค้ดตามมาตรฐานที่กำหนด
-- รัน `npm run type-check` ก่อน commit
-- รัน `npm run lint` เพื่อตรวจสอบ code quality
-- ทดสอบ build ด้วย `npm run build`
+## 📋 Development Workflow
 
-## 🏗️ Project Structure Guidelines
-
-### Entry Points
-- [main.ts](mdc:main.ts) - Main plugin entry point
-- [src/UltimaOrbPlugin.ts](mdc:src/UltimaOrbPlugin.ts) - Core plugin class
-
-### Configuration Files
-- [package.json](mdc:package.json) - Dependencies and scripts
-- [tsconfig.json](mdc:tsconfig.json) - TypeScript configuration
-- [.eslintrc.js](mdc:.eslintrc.js) - Code quality rules
-- [esbuild.config.mjs](mdc:esbuild.config.mjs) - Build configuration
-
-### Source Structure
-- [src/](mdc:src/) - Main source code
-- [src/types/](mdc:src/types/) - TypeScript type definitions
-- [src/services/](mdc:src/services/) - Core services
-- [src/ui/](mdc:src/ui/) - User interface components
-
-## 🔧 Development Commands
-
-### Quality Assurance
-```bash
-npm run type-check    # TypeScript compilation check
-npm run lint          # ESLint code quality check
-npm run lint:fix      # Auto-fix ESLint issues
+### **1. Analysis Phase**
+```typescript
+// ตรวจสอบโครงสร้างโปรเจกต์
+- package.json: dependencies, scripts
+- tsconfig.json: TypeScript configuration
+- .eslintrc.js: linting rules
+- project structure: src/, tests/, docs/
 ```
 
-### Build Process
-```bash
-npm run build         # Production build
-npm run dev           # Development with watch
-npm run clean         # Clean build artifacts
+### **2. Planning Phase**
+```typescript
+// สำหรับงานใหญ่
+- สร้าง detailed plan
+- กำหนด milestones
+- ประมาณเวลา
+- ระบุ risks
+
+// สำหรับงานเล็ก
+- ดำเนินการทันที
+- ใช้ best practices
+- ตรวจสอบคุณภาพ
 ```
 
-### Testing
-```bash
-npm run test          # Run tests
-npm run test:watch    # Watch mode tests
-npm run test:coverage # Coverage report
+### **3. Implementation Phase**
+```typescript
+// เขียนโค้ด
+- ใช้ TypeScript
+- ใช้ design patterns
+- ใช้ clean code principles
+- ใช้ error handling
 ```
 
-## 🚨 Critical Rules
+### **4. Verification Phase**
+```typescript
+// ตรวจสอบคุณภาพ
+- TypeScript compilation
+- ESLint validation
+- Unit tests
+- Integration tests
+- Performance tests
+```
 
-### Code Quality
-- ใช้ single quotes เท่านั้น (ตาม [.eslintrc.js](mdc:.eslintrc.js))
-- ต้องมี semicolons เสมอ
-- ห้ามใช้ `any` type (TypeScript strict mode)
-- ต้องมี proper error handling
+## 🎯 Quality Standards
 
-### File Organization
-- ไฟล์ใหม่ต้องอยู่ใน [src/](mdc:src/) directory
-- ใช้ meaningful file names
-- หนึ่งไฟล์ = หนึ่ง responsibility
+### **Code Quality**
+- ✅ TypeScript compilation: 0 errors
+- ✅ ESLint: 0 warnings, 0 errors
+- ✅ Code coverage: > 80%
+- ✅ Cyclomatic complexity: < 10
+- ✅ Duplicate code: < 5%
 
-### Build Process
-- ต้องผ่าน TypeScript compilation ก่อน
-- ต้องผ่าน ESLint ก่อน commit
-- ต้อง build สำเร็จก่อน deploy
+### **Performance Standards**
+- ✅ Response time: < 5 seconds
+- ✅ Memory usage: < 100MB
+- ✅ Bundle size: < 1MB
+- ✅ CPU usage: < 50%
 
-## 🎯 Success Criteria
+### **Security Standards**
+- ✅ Input validation: 100%
+- ✅ Authentication: Proper implementation
+- ✅ Data encryption: Sensitive data only
+- ✅ Access control: Proper permissions
 
-### ✅ Production-Ready Code
-- TypeScript compilation ผ่าน
-- ESLint ผ่าน
-- Build สำเร็จ
-- Error handling ครบถ้วน
-- Documentation ชัดเจน
+## 🔧 Tools and Technologies
 
-### ✅ Maintainable Architecture
-- โครงสร้างไฟล์เป็นระเบียบ
-- Separation of concerns ชัดเจน
-- Type definitions ครบถ้วน
-- Code reusability สูง
-description:
-globs:
-alwaysApply: false
----
+### **Core Technologies**
+- **TypeScript**: Primary language
+- **Obsidian API**: Plugin development
+- **ESBuild**: Build tool
+- **Vitest**: Testing framework
+- **ESLint**: Code quality
+
+### **AI Integration**
+- **OpenAI API**: GPT models
+- **Claude API**: Anthropic models
+- **Gemini API**: Google models
+- **Ollama**: Local models
+- **AnythingLLM**: Local AI platform
+
+### **External Integrations**
+- **Notion API**: Knowledge management
+- **ClickUp API**: Project management
+- **Airtable API**: Data management
+- **MCP Protocol**: Model Context Protocol
+
+## 📚 Documentation Standards
+
+### **Code Documentation**
+```typescript
+/**
+ * 🔮 AI Code Completion Tool
+ * Complete code using AI models with context awareness
+ * 
+ * @param code - Code to complete
+ * @param language - Programming language
+ * @param context - Additional context
+ * @returns Completed code with confidence score
+ */
+async function completeCode(
+  code: string,
+  language: string = "typescript",
+  context?: string
+): Promise<{ completedCode: string; confidence: number }> {
+  // Implementation
+}
+```
+
+### **API Documentation**
+- OpenAPI/Swagger specs
+- Request/Response examples
+- Error handling documentation
+- Authentication requirements
+
+### **User Documentation**
+- Installation guide
+- Configuration guide
+- Usage examples
+- Troubleshooting guide
+
+## 🚀 Deployment and Maintenance
+
+### **Build Process**
+```bash
+# Development
+npm run dev
+
+# Production build
+npm run build
+
+# Testing
+npm run test
+
+# Linting
+npm run lint
+```
+
+### **Quality Assurance**
+- Automated testing
+- Code review process
+- Performance monitoring
+- Error tracking
+- User feedback collection
+
+### **Maintenance**
+- Regular dependency updates
+- Security patches
+- Performance optimization
+- Feature enhancements
+- Bug fixes
+
+## 🎯 Success Metrics
+
+### **Technical Metrics**
+- Zero critical bugs
+- 99.9% uptime
+- < 5 second response time
+- > 90% test coverage
+
+### **User Metrics**
+- > 4.5/5 user satisfaction
+- > 80% feature adoption
+- < 2% error rate
+- > 60% daily active users
+
+### **Business Metrics**
+- Increased productivity
+- Reduced development time
+- Improved code quality
+- Enhanced user experience
