@@ -3,6 +3,7 @@ import { FeatureManager } from "../core/FeatureManager";
 import { UltimaOrbSettings } from "../../main";
 import { OpenAIProvider } from "./providers/OpenAIProvider";
 import { OllamaIntegration } from "./local/OllamaIntegration";
+import { ModeSystem } from "./ModeSystem";
 
 export class AIOrchestrator {
   private app: App;
@@ -11,6 +12,7 @@ export class AIOrchestrator {
   private openAIProvider?: OpenAIProvider;
   private ollamaIntegration?: OllamaIntegration;
   private activeProvider: string = "openai";
+  private modeSystem: ModeSystem;
 
   constructor(
     app: App,
@@ -20,6 +22,7 @@ export class AIOrchestrator {
     this.app = app;
     this.featureManager = featureManager;
     this.settings = settings;
+    this.modeSystem = new ModeSystem();
     this.initializeProviders();
   }
 
@@ -49,20 +52,71 @@ export class AIOrchestrator {
   }
 
   async chat(message: string): Promise<string> {
+    return await this.generateResponse(message);
+  }
+
+  /**
+   * 🎯 Set Mode System (for external access)
+   */
+  setModeSystem(modeSystem: ModeSystem): void {
+    this.modeSystem = modeSystem;
+  }
+
+  /**
+   * 🎯 Get Mode System
+   */
+  getModeSystem(): ModeSystem {
+    return this.modeSystem;
+  }
+
+  /**
+   * 🎯 Switch Active Mode
+   */
+  setActiveMode(modeId: string): boolean {
+    return this.modeSystem.setActiveMode(modeId);
+  }
+
+  /**
+   * 🎯 Get Active Mode
+   */
+  getActiveMode() {
+    return this.modeSystem.getActiveMode();
+  }
+
+  /**
+   * 🎯 Generate Response with Mode Context
+   */
+  async generateResponse(
+    message: string,
+    customInstructions?: string
+  ): Promise<string> {
     try {
-      if (this.activeProvider === "openai" && this.openAIProvider) {
+      const context = this.modeSystem.buildContext(customInstructions);
+      const aiSettings = this.modeSystem.getAISettings();
+
+      // Use mode-specific AI settings
+      const provider = aiSettings.provider || this.activeProvider;
+      const model = aiSettings.model || this.settings.defaultAIModel;
+
+      const fullPrompt = `${context}\n\nUser: ${message}`;
+
+      if (provider === "openai" && this.openAIProvider) {
         const response = await this.openAIProvider.chatCompletion({
-          model: this.settings.defaultAIModel,
-          messages: [{ role: "user" as const, content: message }],
+          model: model,
+          messages: [{ role: "user" as const, content: fullPrompt }],
+          temperature: aiSettings.temperature,
+          max_tokens: aiSettings.maxTokens,
         });
         return response.choices[0]?.message?.content || "No response from AI";
-      } else if (this.activeProvider === "ollama" && this.ollamaIntegration) {
-        return await this.ollamaIntegration.chat(message);
+      } else if (provider === "ollama" && this.ollamaIntegration) {
+        return await this.ollamaIntegration.chat([
+          { role: "user", content: fullPrompt },
+        ]);
       } else {
-        throw new Error("No AI provider available");
+        throw new Error(`No AI provider available for: ${provider}`);
       }
     } catch (error) {
-      console.error("Chat error:", error);
+      console.error("Generate response error:", error);
       throw error;
     }
   }

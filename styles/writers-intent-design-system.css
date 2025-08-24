@@ -1,0 +1,400 @@
+/* ===================================================
+   CSS Blueprint: Writer's Intent v10.0
+   Final Dual Theme System for AI
+   =================================================== */
+
+/* --- 1. FONTS --- */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=JetBrains+Mono&display=swap');
+
+/* --- 2. THEME VARIABLES --- */
+
+/* 2.1 Light Theme (Default) */
+:root {
+  /* Fonts */
+  --font-main: 'Noto Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* UI Colors (GitHub Light) */
+  --color-background-base: #FFFFFF;
+  --color-background-surface: #F6F8FA;
+  --color-border-default: #E1E4E8;
+  --color-text-primary: #24292E;
+  --color-text-secondary: #586069;
+  --color-text-accent: #0366D6;
+  --color-heading-3-accent: #A38900;
+
+  /* Code Syntax Colors (GitHub Light) */
+  --code-bg: #F6F8FA;
+  --code-text: #24292E;
+  --code-keyword: #D73A49;
+  --code-string: #032F62;
+  --code-function: #6F42C1;
+  --code-comment: #6A737D;
+  --code-number: #005CC5;
+  --code-operator: #D73A49;
+  --code-variable: #E36209;
+  --code-constant: #6F42C1;
+}
+
+/* 2.2 Dark Theme Overrides */
+.theme-dark {
+  /* UI Colors (Writer's Intent Dark) */
+  --color-background-base: #1A1D24;
+  --color-background-surface: #232731;
+  --color-border-default: rgba(255, 255, 255, 0.1);
+  --color-text-primary: #D4D7E2;
+  --color-text-secondary: #7A8195;
+  --color-text-accent: #4FD6BE;
+  --color-heading-3-accent: #D4B943; /* Lighter Muted Yellow for Dark Mode */
+
+  /* Code Syntax Colors (Tokyo Night) */
+  --code-bg: #1A1B26;
+  --code-text: #A9B1D6;
+  --code-keyword: #BB9AF7;
+  --code-string: #9ECE6A;
+  --code-function: #7AA2F7;
+  --code-comment: #565F89;
+  --code-number: #FF9E64;
+  --code-operator: #89DDFF;
+  --code-variable: #7AA2F7;
+  --code-constant: #F7768E;
+}
+
+/* --- 3. BASE STYLES --- */
+body {
+  font-family: var(--font-main);
+  background-color: var(--color-background-base);
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  transition: background-color 0.3s, color 0.3s;
+  margin: 0;
+  padding: 0;
+}
+
+/* Typography Scale */
+h1, h2, h3, h4, h5, h6 { 
+  color: var(--color-text-primary); 
+  margin-top: 0;
+  margin-bottom: 0.5em;
+}
+
+h1 { 
+  font-size: 1.8rem; 
+  font-weight: 700; 
+}
+
+h2 { 
+  font-size: 1.5rem; 
+  font-weight: 600; 
+  color: var(--color-text-secondary); 
+}
+
+h3 { 
+  font-size: 1.25rem; 
+  font-weight: 600; 
+  color: var(--color-heading-3-accent); 
+}
+
+h4 { 
+  font-size: 1.1rem; 
+  font-weight: 500; 
+  color: var(--color-text-accent); 
+}
+
+h5 { 
+  font-size: 1.0rem; 
+  font-weight: 500; 
+  color: var(--color-text-secondary); 
+}
+
+h6 { 
+  font-size: 0.9rem; 
+  font-weight: 400; 
+  color: var(--color-text-secondary); 
+}
+
+p {
+  margin-top: 0;
+  margin-bottom: 1em;
+  line-height: 1.7;
+}
+
+a { 
+  color: var(--color-text-accent); 
+  text-decoration: none;
+  font-weight: 500;
+}
+
+a:hover { 
+  text-decoration: underline; 
+}
+
+hr { 
+  border: none; 
+  border-top: 1px solid var(--color-border-default); 
+  margin: 2em 0; 
+}
+
+/* --- 4. COMPONENTS --- */
+
+/* Cards */
+.card {
+  background-color: var(--color-background-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  padding: 1.5em;
+  margin-bottom: 1.5em;
+  transition: background-color 0.3s, border-color 0.3s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+  margin-bottom: 0.5em;
+  font-weight: 600;
+}
+
+.card-content {
+  color: var(--color-text-secondary);
+}
+
+/* Buttons */
+button {
+  font-family: var(--font-main);
+  background-color: var(--color-text-accent);
+  color: var(--color-background-base);
+  border: 1px solid rgba(27, 31, 35, 0.15);
+  border-radius: 6px;
+  padding: 0.7em 1.5em;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
+}
+
+button:hover { 
+  opacity: 0.85; 
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+/* Alerts */
+.alert {
+  padding: 1em 1.5em;
+  border-radius: 6px;
+  border: 1px solid;
+  margin-bottom: 1em;
+  font-weight: 500;
+}
+
+.alert-success {
+  background-color: rgba(40, 167, 69, 0.1);
+  border-color: #28A745;
+  color: #28A745;
+}
+
+.alert-danger {
+  background-color: rgba(220, 53, 69, 0.1);
+  border-color: #DC3545;
+  color: #DC3545;
+}
+
+.alert-warning {
+  background-color: rgba(255, 193, 7, 0.1);
+  border-color: #FFC107;
+  color: #856404;
+}
+
+.alert-info {
+  background-color: rgba(23, 162, 184, 0.1);
+  border-color: #17A2B8;
+  color: #17A2B8;
+}
+
+/* Code Blocks */
+pre {
+  background-color: var(--code-bg);
+  color: var(--code-text);
+  border-radius: 6px;
+  padding: 1.5em;
+  overflow-x: auto;
+  border: 1px solid var(--color-border-default);
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
+pre code { 
+  font-family: var(--font-mono); 
+  background: none;
+  padding: 0;
+  border: none;
+}
+
+code {
+  font-family: var(--font-mono);
+  background-color: var(--color-background-surface);
+  color: var(--color-text-primary);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+/* Syntax Highlighting Tokens */
+.token.keyword { color: var(--code-keyword); }
+.token.string { color: var(--code-string); }
+.token.function { color: var(--code-function); }
+.token.comment { color: var(--code-comment); font-style: italic; }
+.token.number { color: var(--code-number); }
+.token.operator { color: var(--code-operator); }
+.token.variable { color: var(--code-variable); }
+.token.constant { color: var(--code-constant); }
+.token.punctuation { color: var(--code-text); }
+
+/* Forms */
+.form-group {
+  margin-bottom: 1.2em;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5em;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+input[type="text"], 
+input[type="email"], 
+input[type="password"],
+input[type="number"],
+textarea,
+select {
+  width: 100%;
+  background-color: var(--color-background-base);
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  color: var(--color-text-primary);
+  padding: 0.8em 1em;
+  font-family: var(--font-main);
+  font-size: 1em;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus, 
+textarea:focus, 
+select:focus { 
+  outline: none; 
+  border-color: var(--color-text-accent); 
+  box-shadow: 0 0 0 3px rgba(3, 102, 214, 0.1);
+}
+
+/* Icons */
+.icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  stroke-width: 1.5px;
+  stroke: currentColor;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icon-sm {
+  width: 0.875em;
+  height: 0.875em;
+  stroke-width: 1.5px;
+}
+
+.icon-lg {
+  width: 1.25em;
+  height: 1.25em;
+  stroke-width: 2px;
+}
+
+/* --- 5. UTILITIES --- */
+
+.text-gradient {
+  background: linear-gradient(90deg, var(--color-text-accent), var(--color-heading-3-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+}
+
+.text-muted {
+  color: var(--color-text-secondary);
+}
+
+.text-accent {
+  color: var(--color-text-accent);
+}
+
+.bg-surface {
+  background-color: var(--color-background-surface);
+}
+
+.border-default {
+  border: 1px solid var(--color-border-default);
+}
+
+.rounded {
+  border-radius: 6px;
+}
+
+.shadow {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.transition {
+  transition: all 0.3s ease;
+}
+
+/* --- 6. RESPONSIVE --- */
+
+@media (max-width: 768px) {
+  body {
+    padding: 1em;
+  }
+  
+  .card {
+    padding: 1em;
+  }
+  
+  pre {
+    padding: 1em;
+    font-size: 0.85em;
+  }
+  
+  h1 { font-size: 1.6rem; }
+  h2 { font-size: 1.3rem; }
+  h3 { font-size: 1.1rem; }
+}
+
+/* --- 7. OBSIDIAN SPECIFIC --- */
+
+/* สำหรับ Obsidian ใช้ body.theme-dark แทน .theme-dark */
+body.theme-dark {
+  /* UI Colors (Writer's Intent Dark) */
+  --color-background-base: #1A1D24;
+  --color-background-surface: #232731;
+  --color-border-default: rgba(255, 255, 255, 0.1);
+  --color-text-primary: #D4D7E2;
+  --color-text-secondary: #7A8195;
+  --color-text-accent: #4FD6BE;
+  --color-heading-3-accent: #D4B943;
+
+  /* Code Syntax Colors (Tokyo Night) */
+  --code-bg: #1A1B26;
+  --code-text: #A9B1D6;
+  --code-keyword: #BB9AF7;
+  --code-string: #9ECE6A;
+  --code-function: #7AA2F7;
+  --code-comment: #565F89;
+  --code-number: #FF9E64;
+  --code-operator: #89DDFF;
+  --code-variable: #7AA2F7;
+  --code-constant: #F7768E;
+}

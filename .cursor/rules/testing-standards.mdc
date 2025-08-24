@@ -1,3 +1,53 @@
----
+# Testing Standards - เข้มงวดสูงสุด
+
+## Unit Testing
+- ใช้ Jest หรือ Vitest
+- ต้องมี test coverage > 80%
+- ใช้ meaningful test names
+- ต้องมี proper assertions
+
+## Test Structure
+- ใช้ AAA pattern (Arrange, Act, Assert)
+- แยก test cases ชัดเจน
+- ใช้ describe blocks
+- ต้องมี proper setup/teardown
+
+## Mocking
+- Mock external dependencies
+- ใช้ proper mock data
+- ต้องมี mock validation
+- ใช้ spy functions
+
+## Integration Testing
+- ทดสอบ API endpoints
+- ทดสอบ database operations
+- ทดสอบ file operations
+- ทดสอบ UI interactions
+
+## E2E Testing
+- ใช้ Playwright หรือ Cypress
+- ทดสอบ user workflows
+- ทดสอบ cross-browser
+- ทดสอบ responsive design
+
+## Test Data
+- ใช้ factories สำหรับ test data
+- ต้องมี proper cleanup
+- ใช้ isolated test data
+- หลีกเลี่ยง shared state
+
+## Performance Testing
+- ทดสอบ load times
+- ทดสอบ memory usage
+- ทดสอบ API response times
+- ทดสอบ bundle size
+
+## Security Testing
+- ทดสอบ input validation
+- ทดสอบ authentication
+- ทดสอบ authorization
+- ทดสอบ data sanitization
+description:
+globs:
 alwaysApply: false
 ---

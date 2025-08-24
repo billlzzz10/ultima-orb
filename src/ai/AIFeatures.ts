@@ -1,5 +1,6 @@
 import { App, Editor, MarkdownView, Notice } from "obsidian";
 import { AIOrchestrator } from "./AIOrchestrator";
+import { ModeSystem } from "./ModeSystem";
 
 /**
  * 🔮 AI Features - ฟีเจอร์หลักจาก Continue + Cursor
@@ -7,10 +8,33 @@ import { AIOrchestrator } from "./AIOrchestrator";
 export class AIFeatures {
   private app: App;
   private aiOrchestrator: AIOrchestrator;
+  private modeSystem: ModeSystem;
 
   constructor(app: App, aiOrchestrator: AIOrchestrator) {
     this.app = app;
     this.aiOrchestrator = aiOrchestrator;
+    this.modeSystem = aiOrchestrator.getModeSystem();
+  }
+
+  /**
+   * 🎯 Get Mode System
+   */
+  getModeSystem(): ModeSystem {
+    return this.modeSystem;
+  }
+
+  /**
+   * 🎯 Switch Active Mode
+   */
+  setActiveMode(modeId: string): boolean {
+    return this.modeSystem.setActiveMode(modeId);
+  }
+
+  /**
+   * 🎯 Get Active Mode
+   */
+  getActiveMode() {
+    return this.modeSystem.getActiveMode();
   }
 
   // ===== CONTINUE FEATURES =====
@@ -20,11 +44,12 @@ export class AIFeatures {
    */
   async chatWithAI(message: string, context?: string): Promise<string> {
     try {
-      const prompt = context
-        ? `Context: ${context}\n\nUser: ${message}`
-        : message;
-
-      const response = await this.aiOrchestrator.generateResponse(prompt);
+      // ใช้ Mode System เพื่อสร้าง context ที่เหมาะสม
+      const modeContext = this.modeSystem.buildContext(context);
+      const response = await this.aiOrchestrator.generateResponse(
+        message,
+        modeContext
+      );
       return response;
     } catch (error) {
       new Notice("❌ Error chatting with AI");

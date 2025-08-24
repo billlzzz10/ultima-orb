@@ -18,6 +18,7 @@ import { AtCommands } from "./ai/AtCommands";
 import { CursorFeatures } from "./ai/CursorFeatures";
 import { AdvancedChatInterface } from "./ui/AdvancedChatInterface";
 import { CursorCommandPalette } from "./ui/CursorCommandPalette";
+import { ModeSystem } from "./ai/ModeSystem";
 
 /**
  * 🔮 Ultima-Orb Plugin
@@ -36,6 +37,7 @@ export default class UltimaOrbPlugin extends Plugin {
   private agentMode!: AgentMode;
   private atCommands!: AtCommands;
   private cursorFeatures!: CursorFeatures;
+  private modeSystem!: ModeSystem;
 
   async onload() {
     this.logger = new Logger();
@@ -63,11 +65,19 @@ export default class UltimaOrbPlugin extends Plugin {
       await this.contextManager.initialize();
 
       // Initialize AI components (Ultima-Orb specific)
-      this.aiOrchestrator = new AIOrchestrator(this.app, this.settingsManager, this.logger);
+      this.aiOrchestrator = new AIOrchestrator(
+        this.app,
+        this.settingsManager,
+        this.settingsManager.getSettings()
+      );
       this.aiFeatures = new AIFeatures(this.app, this.aiOrchestrator);
       this.agentMode = new AgentMode(this.app, this.aiFeatures);
       this.atCommands = new AtCommands(this.app, this.aiFeatures);
       this.cursorFeatures = new CursorFeatures(this.app, this.aiFeatures);
+      this.modeSystem = new ModeSystem();
+
+      // Connect Mode System with AI Orchestrator
+      this.aiOrchestrator.setModeSystem(this.modeSystem);
 
       // Register commands
       this.registerCommands();
@@ -145,7 +155,8 @@ export default class UltimaOrbPlugin extends Plugin {
     this.addCommand({
       id: "ultima-orb-command-palette",
       name: "Open Enhanced Command Palette",
-      callback: () => openEnhancedCommandPalette(this.app, this.aiFeatures, this),
+      callback: () =>
+        openEnhancedCommandPalette(this.app, this.aiFeatures, this),
     });
 
     // AI Features
@@ -241,6 +252,19 @@ export default class UltimaOrbPlugin extends Plugin {
       callback: async () => {
         await this.cursorFeatures.doAnything("");
       },
+    });
+
+    // Mode System Commands
+    this.addCommand({
+      id: "ultima-orb-switch-mode",
+      name: "Switch AI Mode",
+      callback: () => this.showModeSelector(),
+    });
+
+    this.addCommand({
+      id: "ultima-orb-mode-settings",
+      name: "AI Mode Settings",
+      callback: () => this.openModeSettings(),
     });
 
     // Synapse-Core Integration
@@ -346,6 +370,13 @@ export default class UltimaOrbPlugin extends Plugin {
    */
   getCursorFeatures(): CursorFeatures {
     return this.cursorFeatures;
+  }
+
+  /**
+   * 🤖 Get mode system
+   */
+  getModeSystem(): ModeSystem {
+    return this.modeSystem;
   }
 
   /**

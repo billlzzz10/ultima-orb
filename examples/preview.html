@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Writer's Intent Design System - Preview</title>
+    <link rel="stylesheet" href="../styles/writers-intent-design-system.css">
+    <style>
+        body {
+            padding: 2em;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .theme-toggle {
+            position: fixed;
+            top: 1em;
+            right: 1em;
+            z-index: 1000;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5em;
+            margin-top: 2em;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .demo-section {
+            margin-bottom: 3em;
+        }
+        
+        .demo-title {
+            border-bottom: 2px solid var(--color-border-default);
+            padding-bottom: 0.5em;
+            margin-bottom: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <span id="theme-text">🌙 Dark Mode</span>
+    </button>
+
+    <div class="card full-width">
+        <h1 class="text-gradient">Writer's Intent Design System</h1>
+        <h2>Dual Theme System Preview</h2>
+        <p>ระบบออกแบบที่รองรับทั้ง Light Theme (GitHub) และ Dark Theme (Writer's Intent) พร้อม Tokyo Night สำหรับโค้ดบล็อก</p>
+        <button onclick="toggleTheme()">Toggle Theme</button>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h3>Typography Scale</h3>
+            <h1>H1: Main Title (1.8rem, 700)</h1>
+            <h2>H2: Secondary Title (1.5rem, 600)</h2>
+            <h3>H3: Accent Title (1.25rem, 600)</h3>
+            <h4>H4: Link-like Accent (1.1rem, 500)</h4>
+            <h5>H5: Subsection (1.0rem, 500)</h5>
+            <h6>H6: Caption (0.9rem, 400)</h6>
+            <p>Regular paragraph text with <strong>strong emphasis</strong> and <em>italic text</em>.</p>
+        </div>
+
+        <div class="card">
+            <h3>Code Blocks</h3>
+            <p>โค้ดบล็อกจะเปลี่ยนธีมตาม UI หลัก:</p>
+            <pre><code class="language-js"><span class="token.comment">// Example JavaScript with syntax highlighting</span>
+<span class="token.keyword">const</span> <span class="token.variable">API_URL</span> <span class="token.operator">=</span> <span class="token.string">'https://api.example.com'</span><span class="token.punctuation">;</span>
+
+<span class="token.keyword">async</span> <span class="token.keyword">function</span> <span class="token.function">fetchData</span><span class="token.punctuation">(</span><span class="token.variable">endpoint</span><span class="token.punctuation">)</span> <span class="token.punctuation">{</span>
+  <span class="token.keyword">const</span> <span class="token.variable">response</span> <span class="token.operator">=</span> <span class="token.keyword">await</span> <span class="token.function">fetch</span><span class="token.punctuation">(</span><span class="token.string">\`</span><span class="token.interpolation"><span class="token.punctuation">${</span><span class="token.constant">API_URL</span><span class="token.punctuation">}</span></span><span class="token.string">/</span><span class="token.interpolation"><span class="token.punctuation">${</span><span class="token.variable">endpoint</span><span class="token.punctuation">}</span></span><span class="token.string">\`</span><span class="token.punctuation">)</span><span class="token.punctuation">;</span>
+  <span class="token.keyword">if</span> <span class="token.punctuation">(</span><span class="token.variable">response</span><span class="token.punctuation">.</span><span class="token.property">status</span> <span class="token.operator">===</span> <span class="token.number">200</span><span class="token.punctuation">)</span> <span class="token.punctuation">{</span>
+    <span class="token.keyword">return</span> <span class="token.variable">response</span><span class="token.punctuation">.</span><span class="token.function">json</span><span class="token.punctuation">(</span><span class="token.punctuation">)</span><span class="token.punctuation">;</span>
+  <span class="token.punctuation">}</span>
+<span class="token.punctuation">}</span></code></pre>
+        </div>
+
+        <div class="card">
+            <h3>Alerts & Notifications</h3>
+            <div class="alert alert-success">
+                ✅ This is a success message with proper styling.
+            </div>
+            <div class="alert alert-danger">
+                ❌ This is an error message with proper styling.
+            </div>
+            <div class="alert alert-warning">
+                ⚠️ This is a warning message with proper styling.
+            </div>
+            <div class="alert alert-info">
+                ℹ️ This is an info message with proper styling.
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Forms & Inputs</h3>
+            <div class="form-group">
+                <label for="name">Text Input</label>
+                <input type="text" id="name" placeholder="Enter your name...">
+            </div>
+            <div class="form-group">
+                <label for="email">Email Input</label>
+                <input type="email" id="email" placeholder="Enter your email...">
+            </div>
+            <div class="form-group">
+                <label for="message">Textarea</label>
+                <textarea id="message" rows="3" placeholder="Enter your message..."></textarea>
+            </div>
+            <button>Submit Form</button>
+        </div>
+
+        <div class="card">
+            <h3>Utility Classes</h3>
+            <p class="text-muted">This text uses the .text-muted class</p>
+            <p class="text-accent">This text uses the .text-accent class</p>
+            <p class="text-gradient">This text uses the .text-gradient class</p>
+            <div class="bg-surface border-default rounded shadow" style="padding: 1em; margin-top: 1em;">
+                This div uses utility classes: .bg-surface, .border-default, .rounded, .shadow
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Icons (Line Style)</h3>
+            <p>Icons should use line-style with rounded corners:</p>
+            <div style="display: flex; gap: 1em; align-items: center;">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+                <svg class="icon icon-sm" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M8 12l3 3 5-5"/>
+                </svg>
+                <svg class="icon icon-lg" viewBox="0 0 24 24">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                </svg>
+            </div>
+            <p class="text-muted">Recommended icon sets: Heroicons, Feather Icons, Phosphor Icons</p>
+        </div>
+    </div>
+
+    <div class="card full-width">
+        <h3>Theme Information</h3>
+        <p><strong>Light Theme:</strong> GitHub-inspired colors for UI, GitHub colors for code</p>
+        <p><strong>Dark Theme:</strong> Writer's Intent colors for UI, Tokyo Night colors for code</p>
+        <p><strong>Fonts:</strong> Noto Sans for UI, JetBrains Mono for code</p>
+        <p><strong>Icons:</strong> Line-style with rounded corners, 1.5px-2px stroke width</p>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            const body = document.body;
+            const themeText = document.getElementById('theme-text');
+            
+            if (body.classList.contains('theme-dark')) {
+                body.classList.remove('theme-dark');
+                themeText.textContent = '🌙 Dark Mode';
+            } else {
+                body.classList.add('theme-dark');
+                themeText.textContent = '☀️ Light Mode';
+            }
+        }
+
+        // Check system preference on load
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.body.classList.add('theme-dark');
+            document.getElementById('theme-text').textContent = '☀️ Light Mode';
+        }
+    </script>
+</body>
+</html>
