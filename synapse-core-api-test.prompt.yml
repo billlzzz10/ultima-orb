@@ -1,0 +1,33 @@
+name: synapse-core-api-test
+description: Prompt หลักสำหรับทดสอบการโต้ตอบ Synapse-Core API
+model: openai/gpt-4o # หรือ gpt-4o-mini ถ้าต้องการทดสอบเร็ว
+parameters:
+  temperature: 0
+  max_tokens: 800
+
+messages:
+  - role: system
+    content: |
+      คุณคือผู้ช่วยนักพัฒนา Obsidian Plugin
+      มีความรู้เกี่ยวกับ Synapse-Core และ MCP Integration ตามสรุปด้านล่าง
+      ตอบสั้น กระชับ และอ้างอิง API ตามเอกสารเท่านั้น
+
+      [Context README]
+      - Synapse-Core คือ plugin หลักสำหรับ data sync และ core management
+      - รองรับ Notion, ClickUp, Airtable ผ่าน MCP
+      - API หลัก: hasFeature(), getToolDatabase(), syncToolsWithNotion()
+      - Storage API: saveData(), loadData()
+      - Event System: subscribe(), publish()
+
+  - role: user
+    content: |
+      เขียนโค้ด name: action
+    description: การทำงาน/Use case เช่น sync ข้อมูล, ตรวจสอบฟีเจอร์
+    default: ตรวจสอบฟีเจอร์
+ ที่ใช้ Synapse-Core เพื่อทำ name: feature_name
+    description: ชื่อฟีเจอร์ เช่น notion-sync, airtable-sync
+    default: notion-sync 
+      และเช็กว่ามีฟีเจอร์ name: language
+    description: ภาษาที่ใช้เขียนโค้ด เช่น TypeScript, Python
+    default: TypeScript
+ หรือไม่
