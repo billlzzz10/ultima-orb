@@ -247,6 +247,7 @@ export class AIOrchestrationTool extends ToolBase {
       success: true,
       data: results,
       message: "Provider tests completed",
+      timestamp: new Date(),
     };
   }
 
