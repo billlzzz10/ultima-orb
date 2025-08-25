@@ -75,7 +75,7 @@ export class ChartJSManager {
   private async loadChartJS(): Promise<void> {
     try {
       // Load Chart.js from CDN
-      if (!window.Chart) {
+      if (!(window as any).Chart) {
         const script = document.createElement("script");
         script.src = "https://cdn.jsdelivr.net/npm/chart.js";
         script.onload = () => {
@@ -103,7 +103,12 @@ export class ChartJSManager {
         throw new Error("Could not get 2D context from canvas");
       }
 
-      const chart = new (window as any).Chart(ctx, config);
+      const Chart = (window as any).Chart;
+      if (!Chart) {
+        throw new Error("Chart.js not loaded");
+      }
+
+      const chart = new Chart(ctx, config);
       this.charts.set(canvasId, chart);
 
       new Notice(`Chart '${canvasId}' created successfully`);
@@ -327,8 +332,8 @@ export class ChartJSManager {
               display: true,
               text: "Values",
             },
-          },
-        },
+          } as any,
+        } as any,
         ...options,
       },
     };
@@ -453,13 +458,7 @@ export class ChartJSManager {
   }
 
   // Utility methods for data generation
-  generateRandomData(
-    labels: string[],
-    datasets: number,
-    min: number = 0,
-    max: number = 100
-  ): ChartData {
-    const datasetsArray = [];
+  generateRandomData(labels: string[], datasets: number): ChartData {
     const colors = [
       "rgba(255, 99, 132, 0.8)",
       "rgba(54, 162, 235, 0.8)",
@@ -468,6 +467,10 @@ export class ChartJSManager {
       "rgba(153, 102, 255, 0.8)",
       "rgba(255, 159, 64, 0.8)",
     ];
+
+    const min = 10;
+    const max = 100;
+    const datasetsArray: any[] = [];
 
     for (let i = 0; i < datasets; i++) {
       const data = labels.map(
@@ -490,7 +493,7 @@ export class ChartJSManager {
   }
 
   generateTimeSeriesData(days: number, datasets: number): ChartData {
-    const labels = [];
+    const labels: string[] = [];
     const today = new Date();
 
     for (let i = days - 1; i >= 0; i--) {
@@ -535,7 +538,7 @@ export class ChartJSManager {
       const { canvasId, type, data: chartData, options } = data;
 
       const config: ChartConfig = {
-        type,
+        type: type as any,
         data: chartData,
         options,
       };

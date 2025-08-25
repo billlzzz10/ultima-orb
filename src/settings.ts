@@ -6,8 +6,8 @@
 export interface UltimaOrbSettings {
   // AI Provider Settings
   openaiApiKey: string;
-  claudeApiKey: string;
-  geminiApiKey: string;
+  anthropicApiKey: string;
+  googleApiKey: string;
   ollamaEndpoint: string;
   anythingLLMEndpoint: string;
 
@@ -20,23 +20,47 @@ export interface UltimaOrbSettings {
   notionToken: string;
   airtableApiKey: string;
   clickUpApiKey: string;
+  githubApiKey: string;
 
   // UI Settings
   enableChatView: boolean;
   enableToolTemplateView: boolean;
   enableKnowledgeView: boolean;
+  enableSidebar: boolean;
+  enableSettingsPanel: boolean;
 
   // Advanced Settings
   enableLogging: boolean;
   enablePerformanceOptimization: boolean;
   enableBundleOptimization: boolean;
+  enableAdvancedFeatures: boolean;
+  enableMaxMode: boolean;
+  maxModeApiKey: string;
+  enableOllama: boolean;
+  ollamaBaseUrl: string;
+  enableLMStudio: boolean;
+  lmStudioBaseUrl: string;
+  enableChartJS: boolean;
+  enableD3JS: boolean;
+  enableThreeJS: boolean;
+  enableScripting: boolean;
+  enableRAG: boolean;
+  enableExcalidraw: boolean;
+  enableGitHub: boolean;
+  enableNotion: boolean;
+
+  // MCP Settings
+  mcpConnectionType: string;
+  notionMCPUrl: string;
+  clickUpMCPUrl: string;
+  airtableMCPUrl: string;
 }
 
 export const DEFAULT_SETTINGS: UltimaOrbSettings = {
   // AI Provider Settings
   openaiApiKey: "",
-  claudeApiKey: "",
-  geminiApiKey: "",
+  anthropicApiKey: "",
+  googleApiKey: "",
   ollamaEndpoint: "http://localhost:11434",
   anythingLLMEndpoint: "http://localhost:3001",
 
@@ -49,16 +73,40 @@ export const DEFAULT_SETTINGS: UltimaOrbSettings = {
   notionToken: "",
   airtableApiKey: "",
   clickUpApiKey: "",
+  githubApiKey: "",
 
   // UI Settings
   enableChatView: true,
   enableToolTemplateView: true,
   enableKnowledgeView: true,
+  enableSidebar: true,
+  enableSettingsPanel: true,
 
   // Advanced Settings
   enableLogging: true,
   enablePerformanceOptimization: true,
   enableBundleOptimization: true,
+  enableAdvancedFeatures: false,
+  enableMaxMode: false,
+  maxModeApiKey: "",
+  enableOllama: false,
+  ollamaBaseUrl: "http://localhost:11434",
+  enableLMStudio: false,
+  lmStudioBaseUrl: "http://localhost:1234",
+  enableChartJS: true,
+  enableD3JS: true,
+  enableThreeJS: false,
+  enableScripting: true,
+  enableRAG: true,
+  enableExcalidraw: false,
+  enableGitHub: false,
+  enableNotion: false,
+
+  // MCP Settings
+  mcpConnectionType: "http",
+  notionMCPUrl: "http://localhost:3000",
+  clickUpMCPUrl: "http://localhost:3001",
+  airtableMCPUrl: "http://localhost:3002",
 };
 
 /**

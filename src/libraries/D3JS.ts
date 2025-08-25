@@ -74,13 +74,28 @@ export class D3JSManager {
       width: 800,
       height: 600,
       margin: { top: 20, right: 20, bottom: 30, left: 40 },
-      colors: ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"],
+      colors: [
+        "#1f77b4",
+        "#ff7f0e",
+        "#2ca02c",
+        "#d62728",
+        "#9467bd",
+        "#8c564b",
+        "#e377c2",
+        "#7f7f7f",
+        "#bcbd22",
+        "#17becf",
+      ],
       animation: true,
-      duration: 750
+      duration: 750,
     };
   }
 
-  createBarChart(containerId: string, data: D3Data[], config?: Partial<D3Config>): D3Chart {
+  createBarChart(
+    containerId: string,
+    data: D3Data[],
+    config?: Partial<D3Config>
+  ): D3Chart {
     if (!this.d3) {
       throw new Error("D3.js not loaded");
     }
@@ -95,24 +110,33 @@ export class D3JSManager {
     container.innerHTML = "";
 
     // Create SVG
-    const svg = this.d3.select(container)
+    const svg = this.d3
+      .select(container)
       .append("svg")
       .attr("width", fullConfig.width)
       .attr("height", fullConfig.height);
 
-    const chartWidth = fullConfig.width - fullConfig.margin.left - fullConfig.margin.right;
-    const chartHeight = fullConfig.height - fullConfig.margin.top - fullConfig.margin.bottom;
+    const chartWidth =
+      fullConfig.width - fullConfig.margin.left - fullConfig.margin.right;
+    const chartHeight =
+      fullConfig.height - fullConfig.margin.top - fullConfig.margin.bottom;
 
-    const chart = svg.append("g")
-      .attr("transform", `translate(${fullConfig.margin.left},${fullConfig.margin.top})`);
+    const chart = svg
+      .append("g")
+      .attr(
+        "transform",
+        `translate(${fullConfig.margin.left},${fullConfig.margin.top})`
+      );
 
     // Scales
-    const xScale = this.d3.scaleBand()
-      .domain(data.map(d => d.label))
+    const xScale = this.d3
+      .scaleBand()
+      .domain(data.map((d) => d.label))
       .range([0, chartWidth])
       .padding(0.1);
 
-    const yScale = this.d3.scaleLinear()
+    const yScale = this.d3
+      .scaleLinear()
       .domain([0, this.d3.max(data, (d: D3Data) => d.value)])
       .range([chartHeight, 0]);
 
@@ -120,15 +144,16 @@ export class D3JSManager {
     const xAxis = this.d3.axisBottom(xScale);
     const yAxis = this.d3.axisLeft(yScale);
 
-    chart.append("g")
+    chart
+      .append("g")
       .attr("transform", `translate(0,${chartHeight})`)
       .call(xAxis);
 
-    chart.append("g")
-      .call(yAxis);
+    chart.append("g").call(yAxis);
 
     // Bars
-    const bars = chart.selectAll(".bar")
+    const bars = chart
+      .selectAll(".bar")
       .data(data)
       .enter()
       .append("rect")
@@ -137,10 +162,15 @@ export class D3JSManager {
       .attr("y", (d: D3Data) => yScale(d.value))
       .attr("width", xScale.bandwidth())
       .attr("height", (d: D3Data) => chartHeight - yScale(d.value))
-      .attr("fill", (d: D3Data, i: number) => d.color || fullConfig.colors[i % fullConfig.colors.length]);
+      .attr(
+        "fill",
+        (d: D3Data, i: number) =>
+          d.color || fullConfig.colors[i % fullConfig.colors.length]
+      );
 
     // Labels
-    chart.selectAll(".label")
+    chart
+      .selectAll(".label")
       .data(data)
       .enter()
       .append("text")
@@ -158,14 +188,18 @@ export class D3JSManager {
       config: fullConfig,
       svg: svg,
       update: (newData: D3Data[]) => this.updateBarChart(chartObj, newData),
-      destroy: () => this.destroyChart(containerId)
+      destroy: () => this.destroyChart(containerId),
     };
 
     this.charts.set(containerId, chartObj);
     return chartObj;
   }
 
-  createLineChart(containerId: string, data: D3Data[], config?: Partial<D3Config>): D3Chart {
+  createLineChart(
+    containerId: string,
+    data: D3Data[],
+    config?: Partial<D3Config>
+  ): D3Chart {
     if (!this.d3) {
       throw new Error("D3.js not loaded");
     }
@@ -180,28 +214,38 @@ export class D3JSManager {
     container.innerHTML = "";
 
     // Create SVG
-    const svg = this.d3.select(container)
+    const svg = this.d3
+      .select(container)
       .append("svg")
       .attr("width", fullConfig.width)
       .attr("height", fullConfig.height);
 
-    const chartWidth = fullConfig.width - fullConfig.margin.left - fullConfig.margin.right;
-    const chartHeight = fullConfig.height - fullConfig.margin.top - fullConfig.margin.bottom;
+    const chartWidth =
+      fullConfig.width - fullConfig.margin.left - fullConfig.margin.right;
+    const chartHeight =
+      fullConfig.height - fullConfig.margin.top - fullConfig.margin.bottom;
 
-    const chart = svg.append("g")
-      .attr("transform", `translate(${fullConfig.margin.left},${fullConfig.margin.top})`);
+    const chart = svg
+      .append("g")
+      .attr(
+        "transform",
+        `translate(${fullConfig.margin.left},${fullConfig.margin.top})`
+      );
 
     // Scales
-    const xScale = this.d3.scalePoint()
-      .domain(data.map(d => d.label))
+    const xScale = this.d3
+      .scalePoint()
+      .domain(data.map((d) => d.label))
       .range([0, chartWidth]);
 
-    const yScale = this.d3.scaleLinear()
+    const yScale = this.d3
+      .scaleLinear()
       .domain([0, this.d3.max(data, (d: D3Data) => d.value)])
       .range([chartHeight, 0]);
 
     // Line generator
-    const line = this.d3.line<D3Data>()
+    const line = this.d3
+      .line()
       .x((d: D3Data) => xScale(d.label))
       .y((d: D3Data) => yScale(d.value))
       .curve(this.d3.curveMonotoneX);
@@ -210,15 +254,16 @@ export class D3JSManager {
     const xAxis = this.d3.axisBottom(xScale);
     const yAxis = this.d3.axisLeft(yScale);
 
-    chart.append("g")
+    chart
+      .append("g")
       .attr("transform", `translate(0,${chartHeight})`)
       .call(xAxis);
 
-    chart.append("g")
-      .call(yAxis);
+    chart.append("g").call(yAxis);
 
     // Line path
-    chart.append("path")
+    chart
+      .append("path")
       .datum(data)
       .attr("fill", "none")
       .attr("stroke", fullConfig.colors[0])
@@ -226,7 +271,8 @@ export class D3JSManager {
       .attr("d", line);
 
     // Data points
-    chart.selectAll(".point")
+    chart
+      .selectAll(".point")
       .data(data)
       .enter()
       .append("circle")
@@ -244,14 +290,18 @@ export class D3JSManager {
       config: fullConfig,
       svg: svg,
       update: (newData: D3Data[]) => this.updateLineChart(chartObj, newData),
-      destroy: () => this.destroyChart(containerId)
+      destroy: () => this.destroyChart(containerId),
     };
 
     this.charts.set(containerId, chartObj);
     return chartObj;
   }
 
-  createPieChart(containerId: string, data: D3Data[], config?: Partial<D3Config>): D3Chart {
+  createPieChart(
+    containerId: string,
+    data: D3Data[],
+    config?: Partial<D3Config>
+  ): D3Chart {
     if (!this.d3) {
       throw new Error("D3.js not loaded");
     }
@@ -266,37 +316,46 @@ export class D3JSManager {
     container.innerHTML = "";
 
     // Create SVG
-    const svg = this.d3.select(container)
+    const svg = this.d3
+      .select(container)
       .append("svg")
       .attr("width", fullConfig.width)
       .attr("height", fullConfig.height);
 
     const radius = Math.min(fullConfig.width, fullConfig.height) / 2 - 40;
 
-    const chart = svg.append("g")
-      .attr("transform", `translate(${fullConfig.width / 2},${fullConfig.height / 2})`);
+    const chart = svg
+      .append("g")
+      .attr(
+        "transform",
+        `translate(${fullConfig.width / 2},${fullConfig.height / 2})`
+      );
 
     // Pie generator
-    const pie = this.d3.pie<D3Data>()
-      .value((d: D3Data) => d.value);
+    const pie = this.d3.pie().value((d: D3Data) => d.value);
 
-    const arc = this.d3.arc<any>()
-      .innerRadius(0)
-      .outerRadius(radius);
+    const arc = this.d3.arc().innerRadius(0).outerRadius(radius);
 
     // Create pie slices
-    const slices = chart.selectAll(".slice")
+    const slices = chart
+      .selectAll(".slice")
       .data(pie(data))
       .enter()
       .append("g")
       .attr("class", "slice");
 
-    slices.append("path")
+    slices
+      .append("path")
       .attr("d", arc)
-      .attr("fill", (d: any, i: number) => d.data.color || fullConfig.colors[i % fullConfig.colors.length]);
+      .attr(
+        "fill",
+        (d: any, i: number) =>
+          d.data.color || fullConfig.colors[i % fullConfig.colors.length]
+      );
 
     // Add labels
-    slices.append("text")
+    slices
+      .append("text")
       .attr("transform", (d: any) => `translate(${arc.centroid(d)})`)
       .attr("text-anchor", "middle")
       .text((d: any) => d.data.label);
@@ -309,14 +368,18 @@ export class D3JSManager {
       config: fullConfig,
       svg: svg,
       update: (newData: D3Data[]) => this.updatePieChart(chartObj, newData),
-      destroy: () => this.destroyChart(containerId)
+      destroy: () => this.destroyChart(containerId),
     };
 
     this.charts.set(containerId, chartObj);
     return chartObj;
   }
 
-  createTreeMap(containerId: string, data: D3Data[], config?: Partial<D3Config>): D3Chart {
+  createTreeMap(
+    containerId: string,
+    data: D3Data[],
+    config?: Partial<D3Config>
+  ): D3Chart {
     if (!this.d3) {
       throw new Error("D3.js not loaded");
     }
@@ -331,45 +394,60 @@ export class D3JSManager {
     container.innerHTML = "";
 
     // Create SVG
-    const svg = this.d3.select(container)
+    const svg = this.d3
+      .select(container)
       .append("svg")
       .attr("width", fullConfig.width)
       .attr("height", fullConfig.height);
 
-    const chartWidth = fullConfig.width - fullConfig.margin.left - fullConfig.margin.right;
-    const chartHeight = fullConfig.height - fullConfig.margin.top - fullConfig.margin.bottom;
+    const chartWidth =
+      fullConfig.width - fullConfig.margin.left - fullConfig.margin.right;
+    const chartHeight =
+      fullConfig.height - fullConfig.margin.top - fullConfig.margin.bottom;
 
-    const chart = svg.append("g")
-      .attr("transform", `translate(${fullConfig.margin.left},${fullConfig.margin.top})`);
+    const chart = svg
+      .append("g")
+      .attr(
+        "transform",
+        `translate(${fullConfig.margin.left},${fullConfig.margin.top})`
+      );
 
     // Hierarchical data
-    const root = this.d3.stratify<D3Data>()
+    const root = this.d3
+      .stratify()
       .id((d: D3Data) => d.id)
-      .parentId((d: D3Data) => d.category)
-      (data);
+      .parentId((d: D3Data) => d.category)(data);
 
     // Treemap layout
-    const treemap = this.d3.treemap()
+    const treemap = this.d3
+      .treemap()
       .size([chartWidth, chartHeight])
       .padding(1);
 
     treemap(root);
 
     // Create rectangles
-    const nodes = chart.selectAll(".node")
+    const nodes = chart
+      .selectAll(".node")
       .data(root.descendants())
       .enter()
       .append("g")
       .attr("class", "node")
       .attr("transform", (d: any) => `translate(${d.x0},${d.y0})`);
 
-    nodes.append("rect")
+    nodes
+      .append("rect")
       .attr("width", (d: any) => d.x1 - d.x0)
       .attr("height", (d: any) => d.y1 - d.y0)
-      .attr("fill", (d: any, i: number) => d.data.color || fullConfig.colors[i % fullConfig.colors.length]);
+      .attr(
+        "fill",
+        (d: any, i: number) =>
+          d.data.color || fullConfig.colors[i % fullConfig.colors.length]
+      );
 
     // Add labels
-    nodes.append("text")
+    nodes
+      .append("text")
       .attr("x", 3)
       .attr("y", 15)
       .text((d: any) => d.data.label);
@@ -382,7 +460,7 @@ export class D3JSManager {
       config: fullConfig,
       svg: svg,
       update: (newData: D3Data[]) => this.updateTreeMap(chartObj, newData),
-      destroy: () => this.destroyChart(containerId)
+      destroy: () => this.destroyChart(containerId),
     };
 
     this.charts.set(containerId, chartObj);
@@ -393,35 +471,43 @@ export class D3JSManager {
     if (!this.d3) return;
 
     const chartGroup = chart.svg.select("g");
-    const chartWidth = chart.config.width - chart.config.margin.left - chart.config.margin.right;
-    const chartHeight = chart.config.height - chart.config.margin.top - chart.config.margin.bottom;
+    const chartWidth =
+      chart.config.width - chart.config.margin.left - chart.config.margin.right;
+    const chartHeight =
+      chart.config.height -
+      chart.config.margin.top -
+      chart.config.margin.bottom;
 
     // Update scales
-    const xScale = this.d3.scaleBand()
-      .domain(newData.map(d => d.label))
+    const xScale = this.d3
+      .scaleBand()
+      .domain(newData.map((d) => d.label))
       .range([0, chartWidth])
       .padding(0.1);
 
-    const yScale = this.d3.scaleLinear()
+    const yScale = this.d3
+      .scaleLinear()
       .domain([0, this.d3.max(newData, (d: D3Data) => d.value)])
       .range([chartHeight, 0]);
 
     // Update bars
-    const bars = chartGroup.selectAll(".bar")
-      .data(newData);
+    const bars = chartGroup.selectAll(".bar").data(newData);
 
     bars.exit().remove();
 
-    const newBars = bars.enter()
-      .append("rect")
-      .attr("class", "bar");
+    const newBars = bars.enter().append("rect").attr("class", "bar");
 
-    bars.merge(newBars)
+    bars
+      .merge(newBars)
       .attr("x", (d: D3Data) => xScale(d.label))
       .attr("y", (d: D3Data) => yScale(d.value))
       .attr("width", xScale.bandwidth())
       .attr("height", (d: D3Data) => chartHeight - yScale(d.value))
-      .attr("fill", (d: D3Data, i: number) => d.color || chart.config.colors[i % chart.config.colors.length]);
+      .attr(
+        "fill",
+        (d: D3Data, i: number) =>
+          d.color || chart.config.colors[i % chart.config.colors.length]
+      );
 
     chart.data = newData;
   }
@@ -430,39 +516,42 @@ export class D3JSManager {
     if (!this.d3) return;
 
     const chartGroup = chart.svg.select("g");
-    const chartWidth = chart.config.width - chart.config.margin.left - chart.config.margin.right;
-    const chartHeight = chart.config.height - chart.config.margin.top - chart.config.margin.bottom;
+    const chartWidth =
+      chart.config.width - chart.config.margin.left - chart.config.margin.right;
+    const chartHeight =
+      chart.config.height -
+      chart.config.margin.top -
+      chart.config.margin.bottom;
 
     // Update scales
-    const xScale = this.d3.scalePoint()
-      .domain(newData.map(d => d.label))
+    const xScale = this.d3
+      .scalePoint()
+      .domain(newData.map((d) => d.label))
       .range([0, chartWidth]);
 
-    const yScale = this.d3.scaleLinear()
+    const yScale = this.d3
+      .scaleLinear()
       .domain([0, this.d3.max(newData, (d: D3Data) => d.value)])
       .range([chartHeight, 0]);
 
     // Update line
-    const line = this.d3.line<D3Data>()
+    const line = this.d3
+      .line()
       .x((d: D3Data) => xScale(d.label))
       .y((d: D3Data) => yScale(d.value))
       .curve(this.d3.curveMonotoneX);
 
-    chartGroup.select("path")
-      .datum(newData)
-      .attr("d", line);
+    chartGroup.select("path").datum(newData).attr("d", line);
 
     // Update points
-    const points = chartGroup.selectAll(".point")
-      .data(newData);
+    const points = chartGroup.selectAll(".point").data(newData);
 
     points.exit().remove();
 
-    const newPoints = points.enter()
-      .append("circle")
-      .attr("class", "point");
+    const newPoints = points.enter().append("circle").attr("class", "point");
 
-    points.merge(newPoints)
+    points
+      .merge(newPoints)
       .attr("cx", (d: D3Data) => xScale(d.label))
       .attr("cy", (d: D3Data) => yScale(d.value))
       .attr("r", 4)
@@ -478,31 +567,33 @@ export class D3JSManager {
     const radius = Math.min(chart.config.width, chart.config.height) / 2 - 40;
 
     // Update pie generator
-    const pie = this.d3.pie<D3Data>()
-      .value((d: D3Data) => d.value);
+    const pie = this.d3.pie().value((d: D3Data) => d.value);
 
-    const arc = this.d3.arc<any>()
-      .innerRadius(0)
-      .outerRadius(radius);
+    const arc = this.d3.arc().innerRadius(0).outerRadius(radius);
 
     // Update slices
-    const slices = chartGroup.selectAll(".slice")
-      .data(pie(newData));
+    const slices = chartGroup.selectAll(".slice").data(pie(newData));
 
     slices.exit().remove();
 
-    const newSlices = slices.enter()
-      .append("g")
-      .attr("class", "slice");
+    const newSlices = slices.enter().append("g").attr("class", "slice");
 
     newSlices.append("path");
     newSlices.append("text");
 
-    slices.merge(newSlices).select("path")
+    slices
+      .merge(newSlices)
+      .select("path")
       .attr("d", arc)
-      .attr("fill", (d: any, i: number) => d.data.color || chart.config.colors[i % chart.config.colors.length]);
+      .attr(
+        "fill",
+        (d: any, i: number) =>
+          d.data.color || chart.config.colors[i % chart.config.colors.length]
+      );
 
-    slices.merge(newSlices).select("text")
+    slices
+      .merge(newSlices)
+      .select("text")
       .attr("transform", (d: any) => `translate(${arc.centroid(d)})`)
       .attr("text-anchor", "middle")
       .text((d: any) => d.data.label);
@@ -514,44 +605,55 @@ export class D3JSManager {
     if (!this.d3) return;
 
     const chartGroup = chart.svg.select("g");
-    const chartWidth = chart.config.width - chart.config.margin.left - chart.config.margin.right;
-    const chartHeight = chart.config.height - chart.config.margin.top - chart.config.margin.bottom;
+    const chartWidth =
+      chart.config.width - chart.config.margin.left - chart.config.margin.right;
+    const chartHeight =
+      chart.config.height -
+      chart.config.margin.top -
+      chart.config.margin.bottom;
 
     // Update hierarchical data
-    const root = this.d3.stratify<D3Data>()
+    const root = this.d3
+      .stratify()
       .id((d: D3Data) => d.id)
-      .parentId((d: D3Data) => d.category)
-      (newData);
+      .parentId((d: D3Data) => d.category)(newData);
 
     // Update treemap layout
-    const treemap = this.d3.treemap()
+    const treemap = this.d3
+      .treemap()
       .size([chartWidth, chartHeight])
       .padding(1);
 
     treemap(root);
 
     // Update nodes
-    const nodes = chartGroup.selectAll(".node")
-      .data(root.descendants());
+    const nodes = chartGroup.selectAll(".node").data(root.descendants());
 
     nodes.exit().remove();
 
-    const newNode = nodes.enter()
-      .append("g")
-      .attr("class", "node");
+    const newNode = nodes.enter().append("g").attr("class", "node");
 
     newNode.append("rect");
     newNode.append("text");
 
-    nodes.merge(newNode)
+    nodes
+      .merge(newNode)
       .attr("transform", (d: any) => `translate(${d.x0},${d.y0})`);
 
-    nodes.merge(newNode).select("rect")
+    nodes
+      .merge(newNode)
+      .select("rect")
       .attr("width", (d: any) => d.x1 - d.x0)
       .attr("height", (d: any) => d.y1 - d.y0)
-      .attr("fill", (d: any, i: number) => d.data.color || chart.config.colors[i % chart.config.colors.length]);
+      .attr(
+        "fill",
+        (d: any, i: number) =>
+          d.data.color || chart.config.colors[i % chart.config.colors.length]
+      );
 
-    nodes.merge(newNode).select("text")
+    nodes
+      .merge(newNode)
+      .select("text")
       .attr("x", 3)
       .attr("y", 15)
       .text((d: any) => d.data.label);
@@ -576,13 +678,19 @@ export class D3JSManager {
   }
 
   // Utility methods
-  generateRandomData(count: number, categories: string[] = ["A", "B", "C", "D", "E"]): D3Data[] {
+  generateRandomData(
+    count: number,
+    categories: string[] = ["A", "B", "C", "D", "E"]
+  ): D3Data[] {
     return Array.from({ length: count }, (_, i) => ({
       id: `item-${i}`,
       value: Math.random() * 100,
       label: `Item ${i + 1}`,
       category: categories[i % categories.length],
-      color: this.getDefaultConfig().colors[i % this.getDefaultConfig().colors.length]
+      color:
+        this.getDefaultConfig().colors[
+          i % this.getDefaultConfig().colors.length
+        ],
     }));
   }
 
@@ -598,7 +706,7 @@ export class D3JSManager {
         id: `day-${i}`,
         value: Math.random() * 100,
         label: date.toLocaleDateString(),
-        category: "time-series"
+        category: "time-series",
       });
     }
 
@@ -622,7 +730,8 @@ export class D3JSManager {
     if (!chart || !this.d3) return;
 
     // Add animation to chart elements
-    chart.svg.selectAll("*")
+    chart.svg
+      .selectAll("*")
       .transition()
       .duration(animationDuration)
       .ease(this.d3.easeLinear);
@@ -635,9 +744,7 @@ export class D3JSManager {
     chart.config.width = width;
     chart.config.height = height;
 
-    chart.svg
-      .attr("width", width)
-      .attr("height", height);
+    chart.svg.attr("width", width).attr("height", height);
 
     // Re-render chart
     chart.update(chart.data);
