@@ -6,8 +6,13 @@
 // Core API Types
 export * from "./api";
 
-// Notion Types
-export * from "./notion";
+// Notion Types - Export specific types to avoid conflicts
+export type {
+  NotionDatabase as NotionDatabaseType,
+  NotionPage as NotionPageType,
+  NotionRichText as NotionRichTextType,
+} from "./notion";
+
 export * from "./notion-api";
 
 // MCP Types

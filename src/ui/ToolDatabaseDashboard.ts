@@ -6,9 +6,9 @@ import { NotionDatabaseUpdater } from "../integrations/NotionDatabaseUpdater";
  * 🛠️ Tool Database Dashboard - แสดงสถานะและจัดการ tools
  */
 export class ToolDatabaseDashboard extends Modal {
-  private app: App;
   private toolManager: ToolDatabaseManager;
   private notionUpdater: NotionDatabaseUpdater;
+  contentEl!: HTMLElement;
 
   constructor(
     app: App,
@@ -16,7 +16,6 @@ export class ToolDatabaseDashboard extends Modal {
     notionUpdater: NotionDatabaseUpdater
   ) {
     super(app);
-    this.app = app;
     this.toolManager = toolManager;
     this.notionUpdater = notionUpdater;
   }
@@ -67,8 +66,8 @@ export class ToolDatabaseDashboard extends Modal {
     const progressBar = mainProgress.createEl("div", { cls: "progress-bar" });
     const progressFill = progressBar.createEl("div", {
       cls: "progress-fill",
-      style: `width: ${progress.progress}%`,
     });
+    progressFill.style.width = `${progress.progress}%`;
 
     // Stats Grid
     const statsGrid = overviewSection.createEl("div", { cls: "stats-grid" });

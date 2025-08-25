@@ -1,231 +1,153 @@
-import { App, Plugin, WorkspaceLeaf, Notice } from "obsidian";
-import { SettingsManager, UltimaOrbSettings } from "./settings";
-import { SynapseCoreAdapter } from "./core/SynapseCoreAdapter";
-import { ContextManager } from "./core/ContextManager";
-import { Logger } from "./services/Logger";
-import { UltimaOrbSettingTab } from "./ui/SettingsTab";
-import { ChatView, CHAT_VIEW_TYPE } from "./ui/views/ChatView";
-import { KnowledgeView, KNOWLEDGE_VIEW_TYPE } from "./ui/views/KnowledgeView";
+import { Plugin, App, PluginSettingTab } from "obsidian";
 import {
-  ToolTemplateView,
-  TOOL_TEMPLATE_VIEW_TYPE,
-} from "./ui/views/ToolTemplateView";
-import { openEnhancedCommandPalette } from "./ui/EnhancedCommandPalette";
-import { AIFeatures } from "./ai/AIFeatures";
+  UltimaOrbSettings,
+  DEFAULT_SETTINGS,
+  SettingsManager,
+} from "./settings";
 import { AIOrchestrator } from "./ai/AIOrchestrator";
-import { AgentMode } from "./ai/AgentMode";
-import { AtCommands } from "./ai/AtCommands";
-import { CursorFeatures } from "./ai/CursorFeatures";
-import { AdvancedChatInterface } from "./ui/AdvancedChatInterface";
-import { CursorCommandPalette } from "./ui/CursorCommandPalette";
 import { ModeSystem } from "./ai/ModeSystem";
-import { ToolManager } from "./tools/ToolManager";
-
-/**
- * 🔮 Ultima-Orb Plugin
- * The Ultimate Hybrid AI Command Center for Obsidian
- *
- * ใช้ Synapse-Core API สำหรับ core features และจัดการเฉพาะ AI features
- */
+import { FeatureManager } from "./core/FeatureManager";
+import { AIFeatures } from "./ai/AIFeatures";
+import { AgentMode } from "./ai/AgentMode";
+import { AgentFlowMode } from "./ai/AgentFlowMode";
+import { CursorFeatures } from "./ui/CursorFeatures";
+import { ChatView } from "./ui/views/ChatView";
+import { SettingsTab } from "./ui/SettingsTab";
+import { FlowDebuggerView } from "./ui/views/FlowDebuggerView";
+import { KnowledgeView } from "./ui/views/KnowledgeView";
+import { ToolTemplateView } from "./ui/views/ToolTemplateView";
+import { SidebarView } from "./ui/views/SidebarView";
+import { IntegrationManager } from "./integrations/IntegrationManager";
+import { openEnhancedCommandPalette } from "./ui/EnhancedCommandPalette";
 
 export class UltimaOrbPlugin extends Plugin {
-  private settingsManager!: SettingsManager;
-  private synapseCoreAdapter!: SynapseCoreAdapter;
-  private contextManager!: ContextManager;
-  private logger!: Logger;
-  private aiOrchestrator!: AIOrchestrator;
-  private aiFeatures!: AIFeatures;
-  private agentMode!: AgentMode;
-  private atCommands!: AtCommands;
-  private cursorFeatures!: CursorFeatures;
-  private modeSystem!: ModeSystem;
+  settings!: UltimaOrbSettings;
+  settingsManager!: SettingsManager;
+  featureManager!: FeatureManager;
+  aiOrchestrator!: AIOrchestrator;
+  modeSystem!: ModeSystem;
+  aiFeatures!: AIFeatures;
+  agentMode!: AgentMode;
+  agentFlowMode!: AgentFlowMode;
+  cursorFeatures!: CursorFeatures;
+  integrationManager!: IntegrationManager;
+
+  // UI Components
+  chatView!: ChatView;
+  settingsTab!: SettingsTab;
+  flowDebuggerView!: FlowDebuggerView;
+  knowledgeView!: KnowledgeView;
+  toolTemplateView!: ToolTemplateView;
+  sidebarView!: SidebarView;
 
   async onload() {
-    this.logger = new Logger();
-    this.logger.info("🚀 Loading Ultima-Orb plugin...");
+    console.log("Loading Ultima-Orb plugin...");
 
-    try {
-      // Initialize settings
-      const savedSettings = await this.loadData();
-      this.settingsManager = new SettingsManager(savedSettings);
+    // Initialize settings
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    this.settingsManager = new SettingsManager(this.settings);
 
-      // Initialize Synapse-Core adapter
-      this.synapseCoreAdapter = new SynapseCoreAdapter(this.app);
-      const synapseConnected = await this.synapseCoreAdapter.initialize();
+    // Initialize core managers
+    this.featureManager = new FeatureManager(this.app);
+    this.aiOrchestrator = new AIOrchestrator(
+      this.app,
+      this.featureManager,
+      this.settings
+    );
+    this.modeSystem = new ModeSystem();
+    this.aiFeatures = new AIFeatures(this.app, this.aiOrchestrator);
+    this.agentMode = new AgentMode(this.app, this.aiFeatures);
+    this.agentFlowMode = new AgentFlowMode(this.app, this.aiFeatures);
+    this.cursorFeatures = new CursorFeatures(this.app, this.aiOrchestrator);
+    this.integrationManager = new IntegrationManager(
+      this.app,
+      this.featureManager,
+      this.settings
+    );
 
-      if (synapseConnected) {
-        this.logger.info("✅ Connected to Synapse-Core");
-      } else {
-        this.logger.warn(
-          "⚠️ Running in fallback mode (Synapse-Core not available)"
-        );
-      }
+    // Initialize UI components
+    this.initializeUIComponents();
 
-      // Initialize context manager
-      this.contextManager = new ContextManager(this.app);
-      await this.contextManager.initialize();
+    // Register commands
+    this.registerCommands();
 
-      // Initialize AI components (Ultima-Orb specific)
-      this.aiOrchestrator = new AIOrchestrator(
-        this.app,
-        this.settingsManager,
-        this.settingsManager.getSettings()
-      );
-      this.aiFeatures = new AIFeatures(this.app, this.aiOrchestrator);
-      this.agentMode = new AgentMode(this.app, this.aiFeatures);
-      this.atCommands = new AtCommands(this.app, this.aiFeatures);
-      this.cursorFeatures = new CursorFeatures(this.app, this.aiFeatures);
-      this.modeSystem = new ModeSystem();
+    // Register views
+    this.registerViews();
 
-      // Connect Mode System with AI Orchestrator
-      this.aiOrchestrator.setModeSystem(this.modeSystem);
+    // Add settings tab
+    this.addSettingTab(new SettingsTab(this.app, this));
 
-      // Register commands
-      this.registerCommands();
-
-      // Add settings tab
-      this.addSettingTab(new UltimaOrbSettingTab(this.app, this));
-
-      // Subscribe to Synapse-Core events
-      this.subscribeToSynapseEvents();
-
-      this.logger.info("✅ Ultima-Orb plugin loaded successfully!");
-    } catch (error) {
-      this.logger.error("❌ Error loading Ultima-Orb plugin:", error as Error);
-    }
+    console.log("Ultima-Orb plugin loaded successfully!");
   }
 
-  async onunload() {
-    this.logger.info("🔄 Unloading Ultima-Orb plugin...");
-
-    try {
-      // Save settings
-      await this.saveData(this.settingsManager.getSettings());
-      this.logger.info("✅ Settings saved successfully");
-    } catch (error) {
-      this.logger.error("❌ Error saving settings:", error as Error);
-    }
+  private initializeUIComponents() {
+    this.chatView = new ChatView(
+      this.app.workspace.getRightLeaf(false)!,
+      this.aiOrchestrator
+    );
+    this.settingsTab = new SettingsTab(this.app, this);
+    this.flowDebuggerView = new FlowDebuggerView(
+      this.app.workspace.getRightLeaf(false)!,
+      this.aiOrchestrator
+    );
+    this.knowledgeView = new KnowledgeView(
+      this.app.workspace.getRightLeaf(false)!,
+      this.aiOrchestrator
+    );
+    this.toolTemplateView = new ToolTemplateView(
+      this.app.workspace.getRightLeaf(false)!,
+      this.aiOrchestrator
+    );
+    this.sidebarView = new SidebarView(
+      this.app.workspace.getRightLeaf(false)!,
+      this
+    );
   }
 
-  /**
-   * 📡 Subscribe to Synapse-Core events
-   */
-  private subscribeToSynapseEvents(): void {
-    this.synapseCoreAdapter.subscribe("tool:updated", (tool: any) => {
-      this.logger.info("Tool updated via Synapse-Core:", tool);
-      // Handle tool updates
-    });
-
-    this.synapseCoreAdapter.subscribe("state:updated", (state: any) => {
-      this.logger.info("State updated via Synapse-Core:", state);
-      // Handle state updates
-    });
-
-    this.synapseCoreAdapter.subscribe("mcp:connected", (service: string) => {
-      this.logger.info(`MCP service connected: ${service}`);
-      // Handle MCP connections
-    });
-  }
-
-  /**
-   * Register plugin commands
-   */
-  private registerCommands(): void {
-    // Open Chat View (Right Sidebar)
+  private registerCommands() {
+    // AI Commands
     this.addCommand({
-      id: "ultima-orb-open-chat",
-      name: "Open Ultima-Orb Chat",
+      id: "ultima-orb-chat",
+      name: "Open AI Chat",
       callback: () => this.openChatView(),
     });
 
-    // Open Knowledge View (Left Sidebar)
     this.addCommand({
-      id: "ultima-orb-open-knowledge",
-      name: "Open Knowledge Base",
-      callback: () => this.openKnowledgeView(),
+      id: "ultima-orb-settings",
+      name: "Open Settings",
+      callback: () => this.openSettings(),
     });
 
-    // Open Tool Template View
-    this.addCommand({
-      id: "ultima-orb-open-tool-template",
-      name: "Open Tool Templates",
-      callback: () => this.openToolTemplateView(),
-    });
-
-    // Enhanced Command Palette
     this.addCommand({
       id: "ultima-orb-command-palette",
-      name: "Open Enhanced Command Palette",
-      callback: () =>
-        openEnhancedCommandPalette(this.app, this.aiFeatures, this),
+      name: "Enhanced Command Palette",
+      callback: () => this.openEnhancedCommandPalette(),
     });
 
     // AI Features
     this.addCommand({
-      id: "ultima-orb-ai-complete",
-      name: "AI Code Completion",
-      callback: async () => {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (activeFile) {
-          const content = await this.app.vault.read(activeFile);
-          await this.aiFeatures.completeCode(content);
-        }
+      id: "ultima-orb-explain-code",
+      name: "Explain Code",
+      editorCallback: async (editor) => {
+        const selectedText = editor.getSelection();
+        await this.aiFeatures.explainCode(selectedText);
       },
     });
 
     this.addCommand({
-      id: "ultima-orb-ai-explain",
-      name: "AI Code Explanation",
-      callback: async () => {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (activeFile) {
-          const content = await this.app.vault.read(activeFile);
-          await this.aiFeatures.explainCode(content);
-        }
+      id: "ultima-orb-refactor-code",
+      name: "Refactor Code",
+      editorCallback: async (editor) => {
+        const selectedText = editor.getSelection();
+        await this.aiFeatures.refactorCode(selectedText);
       },
     });
 
+    // Agent Commands
     this.addCommand({
-      id: "ultima-orb-ai-debug",
-      name: "AI Code Debugging",
-      callback: async () => {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (activeFile) {
-          const content = await this.app.vault.read(activeFile);
-          await this.aiFeatures.debugCode(content);
-        }
-      },
-    });
-
-    this.addCommand({
-      id: "ultima-orb-ai-refactor",
-      name: "AI Code Refactoring",
-      callback: async () => {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (activeFile) {
-          const content = await this.app.vault.read(activeFile);
-          await this.aiFeatures.refactorCode(content);
-        }
-      },
-    });
-
-    this.addCommand({
-      id: "ultima-orb-ai-generate-tests",
-      name: "AI Generate Tests",
-      callback: async () => {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (activeFile) {
-          const content = await this.app.vault.read(activeFile);
-          await this.aiFeatures.generateTests(content);
-        }
-      },
-    });
-
-    // Agent Mode
-    this.addCommand({
-      id: "ultima-orb-agent-mode",
+      id: "ultima-orb-toggle-agent",
       name: "Toggle Agent Mode",
-      callback: () => this.agentMode.toggleAgentMode(),
+      callback: () => this.agentMode.stopAgentMode(),
     });
 
     // Cursor Features
@@ -246,183 +168,80 @@ export class UltimaOrbPlugin extends Plugin {
       name: "Cursor: Build",
       callback: () => this.cursorFeatures.build(),
     });
-
-    this.addCommand({
-      id: "ultima-orb-cursor-anything",
-      name: "Cursor: Anything",
-      callback: async () => {
-        await this.cursorFeatures.doAnything("");
-      },
-    });
-
-    // Mode System Commands
-    this.addCommand({
-      id: "ultima-orb-switch-mode",
-      name: "Switch AI Mode",
-      callback: () => this.showModeSelector(),
-    });
-
-    this.addCommand({
-      id: "ultima-orb-mode-settings",
-      name: "AI Mode Settings",
-      callback: () => this.openModeSettings(),
-    });
-
-    // Synapse-Core Integration
-    this.addCommand({
-      id: "ultima-orb-synapse-status",
-      name: "Show Synapse-Core Status",
-      callback: () => this.showSynapseStatus(),
-    });
-
-    this.addCommand({
-      id: "ultima-orb-sync-notion",
-      name: "Sync with Notion (via Synapse-Core)",
-      callback: async () => {
-        new Notice("🔄 Syncing with Notion via Synapse-Core...");
-        await this.synapseCoreAdapter.syncToolsWithNotion();
-        new Notice("✅ Sync completed");
-      },
-    });
   }
 
-  /**
-   * 🔍 Show Synapse-Core connection status
-   */
-  private showSynapseStatus(): void {
-    const status = this.synapseCoreAdapter.getConnectionStatus();
-    const state = this.synapseCoreAdapter.getPluginState();
+  private registerViews() {
+    this.registerView(
+      "ultima-orb-chat",
+      (leaf) => new ChatView(leaf, this.aiOrchestrator)
+    );
 
-    const message = `🔗 Synapse-Core Status:
-• Connected: ${status.connected ? "✅ Yes" : "❌ No"}
-• Retries: ${status.retries}/${status.maxRetries}
-• Notion: ${state.mcp.notion.connected ? "✅ Connected" : "❌ Disconnected"}
-• ClickUp: ${state.mcp.clickup.connected ? "✅ Connected" : "❌ Disconnected"}
-• Airtable: ${
-      state.mcp.airtable.connected ? "✅ Connected" : "❌ Disconnected"
-    }`;
+    this.registerView(
+      "ultima-orb-flow-debugger",
+      (leaf) => new FlowDebuggerView(leaf, this.aiOrchestrator)
+    );
 
-    new Notice(message);
-  }
+    this.registerView(
+      "ultima-orb-knowledge",
+      (leaf) => new KnowledgeView(leaf, this.aiOrchestrator)
+    );
 
-  /**
-   * 🎯 Open Chat View
-   */
-  private async openChatView(): Promise<void> {
-    const leaf = this.app.workspace.getRightLeaf(false);
-    if (leaf) {
-      await leaf.setViewState({ type: CHAT_VIEW_TYPE, active: true });
-      this.app.workspace.revealLeaf(leaf);
-    }
-  }
+    this.registerView(
+      "ultima-orb-tool-template",
+      (leaf) => new ToolTemplateView(leaf, this.aiOrchestrator)
+    );
 
-  /**
-   * 📚 Open Knowledge View
-   */
-  private async openKnowledgeView(): Promise<void> {
-    const leaf = this.app.workspace.getLeftLeaf(false);
-    if (leaf) {
-      await leaf.setViewState({ type: KNOWLEDGE_VIEW_TYPE, active: true });
-      this.app.workspace.revealLeaf(leaf);
-    }
-  }
-
-  /**
-   * 🛠️ Open Tool Template View
-   */
-  private async openToolTemplateView(): Promise<void> {
-    const leaf = this.app.workspace.getRightLeaf(false);
-    if (leaf) {
-      await leaf.setViewState({ type: TOOL_TEMPLATE_VIEW_TYPE, active: true });
-      this.app.workspace.revealLeaf(leaf);
-    }
-  }
-
-  /**
-   * 🔧 Get Synapse-Core adapter
-   */
-  getSynapseCoreAdapter(): SynapseCoreAdapter {
-    return this.synapseCoreAdapter;
-  }
-
-  /**
-   * 🎯 Get AI features
-   */
-  getAIFeatures(): AIFeatures {
-    return this.aiFeatures;
-  }
-
-  /**
-   * 🤖 Get agent mode
-   */
-  getAgentMode(): AgentMode {
-    return this.agentMode;
-  }
-
-  /**
-   * 📡 Get at commands
-   */
-  getAtCommands(): AtCommands {
-    return this.atCommands;
-  }
-
-  /**
-   * 🖱️ Get cursor features
-   */
-  getCursorFeatures(): CursorFeatures {
-    return this.cursorFeatures;
-  }
-
-  /**
-   * 🤖 Get mode system
-   */
-  getModeSystem(): ModeSystem {
-    return this.modeSystem;
-  }
-
-  /**
-   * 🎯 Show Mode Selector
-   */
-  private showModeSelector(): void {
-    const modes = this.modeSystem.getAllModes();
-    const activeMode = this.modeSystem.getActiveMode();
-
-    const modeList = modes
-      .map(
-        (mode) =>
-          `${mode.id === activeMode?.id ? "✅" : "⭕"} ${mode.name}: ${
-            mode.description
-          }`
-      )
-      .join("\n");
-
-    new Notice(
-      `🎯 Current Mode: ${
-        activeMode?.name || "None"
-      }\n\nAvailable Modes:\n${modeList}`
+    this.registerView(
+      "ultima-orb-sidebar",
+      (leaf) => new SidebarView(leaf, this)
     );
   }
 
-  /**
-   * ⚙️ Open Mode Settings
-   */
-  private openModeSettings(): void {
-    const modes = this.modeSystem.getAllModes();
-    const toolGroups = this.modeSystem.getAllToolGroups();
-
-    const settingsInfo =
-      `🎯 Mode System Settings\n\n` +
-      `Modes: ${modes.length}\n` +
-      `Tool Groups: ${toolGroups.length}\n` +
-      `Active Mode: ${this.modeSystem.getActiveMode()?.name || "None"}`;
-
-    new Notice(settingsInfo);
+  // Public methods for UI access
+  public openChatView() {
+    this.chatView.open();
   }
 
-  /**
-   * ⚙️ Get settings manager
-   */
-  getSettingsManager(): SettingsManager {
+  public openSettings() {
+    this.app.settings.open();
+    this.app.settings.openTabById("ultima-orb");
+  }
+
+  public openEnhancedCommandPalette() {
+    // Simplified command palette
+    console.log("Opening enhanced command palette...");
+  }
+
+  public getSettingsManager(): SettingsManager {
     return this.settingsManager;
   }
+
+  public getFeatureManager(): FeatureManager {
+    return this.featureManager;
+  }
+
+  public getAIOrchestrator(): AIOrchestrator {
+    return this.aiOrchestrator;
+  }
+
+  public getModeSystem(): ModeSystem {
+    return this.modeSystem;
+  }
+
+  async saveSettings(): Promise<void> {
+    await this.saveData(this.settings);
+  }
+
+  async onunload() {
+    console.log("Unloading Ultima-Orb plugin...");
+
+    // Cleanup managers
+    this.aiOrchestrator?.cleanup();
+    this.integrationManager?.cleanup();
+
+    console.log("Ultima-Orb plugin unloaded successfully!");
+  }
 }
+
+// Default export for main.ts
+export default UltimaOrbPlugin;

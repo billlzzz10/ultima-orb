@@ -1,696 +1,467 @@
-import { App, Notice } from "obsidian";
-import {
-  ToolManifest,
-  ToolInput,
-  ToolOutput,
-  AsyncResult,
-  ValidationResult,
-  AuditHook,
-} from "../interfaces";
-import { TFile } from "obsidian";
+import { ToolBase, ToolMetadata } from "./ToolBase";
+import { AdvancedScriptingTool } from "../../tools/AdvancedScriptingTool";
+import { ExcalidrawFeaturesTool } from "../../tools/ExcalidrawFeaturesTool";
+import { RAGFeaturesTool } from "../../tools/RAGFeaturesTool";
+import { LocalModelsTool } from "../../tools/LocalModelsTool";
+import { NotionDatabaseTool } from "../../tools/NotionDatabaseTool";
+import { AIOrchestrationTool } from "../../tools/AIOrchestrationTool";
+import { WebhookIntegrationTool } from "../../tools/WebhookIntegrationTool";
+import { App } from "obsidian";
 
-/**
- * 🛠️ Tool Registry - จัดการ tools แบบ declarative
- */
+export interface ToolRegistration {
+  id: string;
+  tool: ToolBase;
+  enabled: boolean;
+  initialized: boolean;
+  metadata: ToolMetadata;
+  category: string;
+  tags: string[];
+  lastUsed?: Date;
+  usageCount: number;
+}
+
+export interface ToolRegistryConfig {
+  autoInitialize: boolean;
+  enableLogging: boolean;
+  maxTools: number;
+  categories: string[];
+}
+
 export class ToolRegistry {
+  private tools: Map<string, ToolRegistration> = new Map();
+  private config: ToolRegistryConfig;
   private app: App;
-  private tools: Map<string, ToolManifest> = new Map();
-  private categories: Map<string, string[]> = new Map();
-  private auditHook?: AuditHook;
-  private executionCount: Map<string, number> = new Map();
-  private lastExecution: Map<string, number> = new Map();
+  private isInitialized: boolean = false;
 
-  constructor(app: App) {
+  constructor(app: App, config?: Partial<ToolRegistryConfig>) {
     this.app = app;
-    this.initializeDefaultTools();
+    this.config = {
+      autoInitialize: true,
+      enableLogging: true,
+      maxTools: 100,
+      categories: ["AI", "Development", "Integration", "Visualization", "Productivity", "Data"],
+      ...config
+    };
   }
 
-  /**
-   * 🔧 เริ่มต้น tools มาตรฐาน
-   */
-  private initializeDefaultTools(): void {
-    // File System Tools
-    this.registerTool({
-      id: "read_file",
-      type: "utility",
-      label: "Read File",
-      description: "อ่านเนื้อหาของไฟล์",
-      version: "1.0.0",
-      inputs: {
-        path: {
-          type: "string",
-          required: true,
-          description: "Path ของไฟล์ที่ต้องการอ่าน",
-        },
-      },
-      outputs: {
-        content: {
-          type: "string",
-          description: "เนื้อหาของไฟล์",
-        },
-        metadata: {
-          type: "object",
-          description: "ข้อมูลเพิ่มเติมของไฟล์",
-        },
-      },
-      execute: async ({ path }) => {
-        try {
-          const file = this.app.vault.getAbstractFileByPath(path);
-          if (!file || !(file instanceof TFile)) {
-            throw new Error("File not found or not a text file");
-          }
-
-          const content = await this.app.vault.read(file);
-          const metadata = {
-            path: file.path,
-            name: file.name,
-            size: file.stat.size,
-            modified: file.stat.mtime,
-          };
-
-          return { content, metadata };
-        } catch (error) {
-          throw new Error(`Failed to read file: ${error}`);
-        }
-      },
-      tags: ["file", "read"],
-      enabled: true,
-      mobileOptimized: true,
-    });
-
-    this.registerTool({
-      id: "write_file",
-      type: "utility",
-      label: "Write File",
-      description: "เขียนเนื้อหาลงในไฟล์",
-      version: "1.0.0",
-      inputs: {
-        path: {
-          type: "string",
-          required: true,
-          description: "Path ของไฟล์ที่ต้องการเขียน",
-        },
-        content: {
-          type: "string",
-          required: true,
-          description: "เนื้อหาที่ต้องการเขียน",
-        },
-        append: {
-          type: "boolean",
-          required: false,
-          defaultValue: false,
-          description: "เพิ่มต่อท้ายไฟล์หรือเขียนทับ",
-        },
-      },
-      outputs: {
-        success: {
-          type: "boolean",
-          description: "สถานะการเขียนไฟล์",
-        },
-        message: {
-          type: "string",
-          description: "ข้อความแสดงผล",
-        },
-      },
-      execute: async ({ path, content, append = false }) => {
-        try {
-          if (append) {
-            const existingContent = await this.app.vault.adapter.read(path);
-            content = existingContent + "\n" + content;
-          }
-
-          await this.app.vault.adapter.write(path, content);
-          return { success: true, message: "File written successfully" };
-        } catch (error) {
-          throw new Error(`Failed to write file: ${error}`);
-        }
-      },
-      tags: ["file", "write"],
-      enabled: true,
-      mobileOptimized: true,
-    });
-
-    // Search Tools
-    this.registerTool({
-      id: "search_files",
-      type: "utility",
-      label: "Search Files",
-      description: "ค้นหาไฟล์ตามคำค้น",
-      version: "1.0.0",
-      inputs: {
-        query: {
-          type: "string",
-          required: true,
-          description: "คำค้นที่ต้องการค้นหา",
-        },
-        folder: {
-          type: "string",
-          required: false,
-          description: "โฟลเดอร์ที่ต้องการค้นหา",
-        },
-        limit: {
-          type: "number",
-          required: false,
-          defaultValue: 10,
-          description: "จำนวนผลลัพธ์สูงสุด",
-        },
-      },
-      outputs: {
-        results: {
-          type: "array",
-          description: "รายการไฟล์ที่พบ",
-        },
-        count: {
-          type: "number",
-          description: "จำนวนไฟล์ที่พบ",
-        },
-      },
-      execute: async ({ query, folder, limit = 10 }) => {
-        try {
-          const files = this.app.vault.getMarkdownFiles();
-          let filteredFiles = files;
-
-          if (folder) {
-            filteredFiles = files.filter((file) =>
-              file.path.startsWith(folder)
-            );
-          }
-
-          const results: Array<{
-            path: string;
-            name: string;
-            size: number;
-            snippet: string;
-          }> = [];
-
-          for (const file of filteredFiles.slice(0, limit)) {
-            const content = await this.app.vault.read(file);
-            if (content.toLowerCase().includes(query.toLowerCase())) {
-              results.push({
-                path: file.path,
-                name: file.name,
-                size: file.stat.size,
-                snippet: content.substring(0, 200) + "...",
-              });
-            }
-          }
-
-          return { results, count: results.length };
-        } catch (error) {
-          throw new Error(`Failed to search files: ${error}`);
-        }
-      },
-      tags: ["search", "file"],
-      enabled: true,
-      mobileOptimized: true,
-    });
-
-    // Analysis Tools
-    this.registerTool({
-      id: "analyze_content",
-      type: "utility",
-      label: "Analyze Content",
-      description: "วิเคราะห์เนื้อหา",
-      version: "1.0.0",
-      inputs: {
-        content: {
-          type: "string",
-          required: true,
-          description: "เนื้อหาที่ต้องการวิเคราะห์",
-        },
-      },
-      outputs: {
-        analysis: {
-          type: "object",
-          description: "ผลการวิเคราะห์",
-        },
-      },
-      execute: async ({ content }) => {
-        try {
-          const words = content.split(/\s+/);
-          const sentences = content
-            .split(/[.!?]+/)
-            .filter((s) => s.trim().length > 0);
-          const paragraphs = content
-            .split(/\n\s*\n/)
-            .filter((p) => p.trim().length > 0);
-
-          const analysis = {
-            wordCount: words.length,
-            characterCount: content.length,
-            sentenceCount: sentences.length,
-            paragraphCount: paragraphs.length,
-            estimatedReadingTime: Math.ceil(words.length / 200), // 200 words per minute
-            averageWordsPerSentence: words.length / sentences.length,
-            topics: this.extractTopics(content),
-            readability: this.calculateReadability(content),
-          };
-
-          return { analysis };
-        } catch (error) {
-          throw new Error(`Failed to analyze content: ${error}`);
-        }
-      },
-      tags: ["analysis", "content"],
-      enabled: true,
-      mobileOptimized: true,
-    });
-
-    // MCP Tools
-    this.registerTool({
-      id: "mcp_notion_sync",
-      type: "mcp",
-      label: "Notion Sync",
-      description: "ซิงค์ข้อมูลกับ Notion",
-      version: "1.0.0",
-      inputs: {
-        databaseId: {
-          type: "string",
-          required: true,
-          description: "ID ของ Notion database",
-        },
-        token: {
-          type: "string",
-          required: true,
-          description: "Notion API token",
-        },
-      },
-      outputs: {
-        syncedPages: {
-          type: "array",
-          description: "รายการหน้าที่ซิงค์แล้ว",
-        },
-      },
-      execute: async ({ databaseId, token }) => {
-        try {
-          // ใช้ MCP client สำหรับ Notion
-          const response = await fetch(
-            `https://api.notion.com/v1/databases/${databaseId}/query`,
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Notion-Version": "2022-06-28",
-                "Content-Type": "application/json",
-              },
-            }
-          );
-
-          if (!response.ok) {
-            throw new Error(`Notion API error: ${response.status}`);
-          }
-
-          const data = await response.json();
-          return { syncedPages: data.results };
-        } catch (error) {
-          throw new Error(`Failed to sync with Notion: ${error}`);
-        }
-      },
-      tags: ["mcp", "notion", "sync"],
-      enabled: true,
-      requiresAuth: true,
-      rateLimit: {
-        requests: 10,
-        window: 60, // 10 requests per minute
-      },
-    });
-  }
-
-  /**
-   * 📝 ลงทะเบียน Tool
-   */
-  registerTool(manifest: ToolManifest): void {
-    // ตรวจสอบ validation
-    const validation = this.validateToolManifest(manifest);
-    if (!validation.isValid) {
-      throw new Error(`Invalid tool manifest: ${validation.errors.join(", ")}`);
+  // Initialize the registry with default tools
+  async initialize(): Promise<void> {
+    if (this.isInitialized) {
+      return;
     }
-
-    this.tools.set(manifest.id, manifest);
-
-    // จัดกลุ่มตาม tags
-    if (manifest.tags) {
-      manifest.tags.forEach((tag) => {
-        if (!this.categories.has(tag)) {
-          this.categories.set(tag, []);
-        }
-        this.categories.get(tag)!.push(manifest.id);
-      });
-    }
-
-    console.log(`✅ Tool registered: ${manifest.id}`);
-  }
-
-  /**
-   * 🎯 เรียกใช้ Tool
-   */
-  async executeTool(
-    toolId: string,
-    params: Record<string, any>
-  ): AsyncResult<any> {
-    const tool = this.tools.get(toolId);
-    if (!tool) {
-      return { success: false, error: `Tool not found: ${toolId}` };
-    }
-
-    if (!tool.enabled) {
-      return { success: false, error: `Tool is disabled: ${toolId}` };
-    }
-
-    // ตรวจสอบ rate limit
-    if (tool.rateLimit) {
-      const canExecute = this.checkRateLimit(toolId, tool.rateLimit);
-      if (!canExecute) {
-        return {
-          success: false,
-          error: `Rate limit exceeded for tool: ${toolId}`,
-        };
-      }
-    }
-
-    const startTime = Date.now();
 
     try {
-      // ตรวจสอบ parameters
-      const validation = this.validateToolParams(tool, params);
-      if (!validation.isValid) {
-        return {
-          success: false,
-          error: `Invalid parameters: ${validation.errors.join(", ")}`,
-        };
+      // Register default tools
+      await this.registerDefaultTools();
+      
+      if (this.config.autoInitialize) {
+        await this.initializeAllTools();
       }
 
-      // เรียกใช้ tool
-      const result = await tool.execute(params);
-
-      // บันทึก audit
-      const duration = Date.now() - startTime;
-      this.recordExecution(toolId, duration);
-
-      if (this.auditHook) {
-        this.auditHook.onToolExecution(toolId, params, result, duration);
-      }
-
-      return { success: true, data: result };
+      this.isInitialized = true;
+      this.log("ToolRegistry initialized successfully");
     } catch (error) {
-      const duration = Date.now() - startTime;
+      this.log(`Failed to initialize ToolRegistry: ${error}`, "error");
+      throw error;
+    }
+  }
 
-      if (this.auditHook) {
-        this.auditHook.onError(error as Error, { toolId, params, duration });
+  // Register a new tool
+  async registerTool(tool: ToolBase, enabled: boolean = true): Promise<boolean> {
+    try {
+      const metadata = tool.getMetadata();
+      
+      if (this.tools.has(metadata.id)) {
+        this.log(`Tool with ID ${metadata.id} already exists`, "warn");
+        return false;
       }
 
-      return { success: false, error: (error as Error).message };
-    }
-  }
+      if (this.tools.size >= this.config.maxTools) {
+        this.log(`Maximum number of tools (${this.config.maxTools}) reached`, "warn");
+        return false;
+      }
 
-  /**
-   * 📋 รับ Tools ทั้งหมด
-   */
-  getAllTools(): ToolManifest[] {
-    return Array.from(this.tools.values());
-  }
+      const registration: ToolRegistration = {
+        id: metadata.id,
+        tool,
+        enabled,
+        initialized: false,
+        metadata,
+        category: metadata.category,
+        tags: metadata.tags,
+        usageCount: 0
+      };
 
-  /**
-   * 📋 รับ Tools ตาม Category
-   */
-  getToolsByCategory(category: string): ToolManifest[] {
-    const toolIds = this.categories.get(category) || [];
-    return toolIds.map((id) => this.tools.get(id)!).filter(Boolean);
-  }
+      this.tools.set(metadata.id, registration);
+      this.log(`Tool ${metadata.name} registered successfully`);
 
-  /**
-   * 🔍 ค้นหา Tools
-   */
-  searchTools(query: string): ToolManifest[] {
-    const lowercaseQuery = query.toLowerCase();
-    return Array.from(this.tools.values()).filter(
-      (tool) =>
-        tool.label.toLowerCase().includes(lowercaseQuery) ||
-        tool.description?.toLowerCase().includes(lowercaseQuery) ||
-        tool.tags?.some((tag) => tag.toLowerCase().includes(lowercaseQuery))
-    );
-  }
+      if (enabled && this.config.autoInitialize) {
+        await this.initializeTool(metadata.id);
+      }
 
-  /**
-   * 🔄 อัปเดต Tool
-   */
-  updateTool(toolId: string, updates: Partial<ToolManifest>): boolean {
-    const tool = this.tools.get(toolId);
-    if (tool) {
-      const updatedTool = { ...tool, ...updates };
-      this.tools.set(toolId, updatedTool);
       return true;
+    } catch (error) {
+      this.log(`Failed to register tool: ${error}`, "error");
+      return false;
     }
-    return false;
   }
 
-  /**
-   * 🗑️ ลบ Tool
-   */
-  removeTool(toolId: string): boolean {
-    const tool = this.tools.get(toolId);
-    if (tool) {
-      // ลบจาก categories
-      if (tool.tags) {
-        tool.tags.forEach((tag) => {
-          const category = this.categories.get(tag);
-          if (category) {
-            const index = category.indexOf(toolId);
-            if (index > -1) {
-              category.splice(index, 1);
-            }
-          }
+  // Unregister a tool
+  async unregisterTool(toolId: string): Promise<boolean> {
+    try {
+      const registration = this.tools.get(toolId);
+      if (!registration) {
+        this.log(`Tool with ID ${toolId} not found`, "warn");
+        return false;
+      }
+
+      // Cleanup tool if initialized
+      if (registration.initialized) {
+        await registration.tool.cleanup();
+      }
+
+      this.tools.delete(toolId);
+      this.log(`Tool ${registration.metadata.name} unregistered successfully`);
+      return true;
+    } catch (error) {
+      this.log(`Failed to unregister tool: ${error}`, "error");
+      return false;
+    }
+  }
+
+  // Get a tool by ID
+  getTool(toolId: string): ToolBase | null {
+    const registration = this.tools.get(toolId);
+    return registration?.tool || null;
+  }
+
+  // Get tool registration by ID
+  getToolRegistration(toolId: string): ToolRegistration | null {
+    return this.tools.get(toolId) || null;
+  }
+
+  // Get all tools
+  getAllTools(): ToolBase[] {
+    return Array.from(this.tools.values()).map(reg => reg.tool);
+  }
+
+  // Get enabled tools
+  getEnabledTools(): ToolBase[] {
+    return Array.from(this.tools.values())
+      .filter(reg => reg.enabled)
+      .map(reg => reg.tool);
+  }
+
+  // Get initialized tools
+  getInitializedTools(): ToolBase[] {
+    return Array.from(this.tools.values())
+      .filter(reg => reg.initialized)
+      .map(reg => reg.tool);
+  }
+
+  // Get tools by category
+  getToolsByCategory(category: string): ToolBase[] {
+    return Array.from(this.tools.values())
+      .filter(reg => reg.category === category)
+      .map(reg => reg.tool);
+  }
+
+  // Get tools by tag
+  getToolsByTag(tag: string): ToolBase[] {
+    return Array.from(this.tools.values())
+      .filter(reg => reg.tags.includes(tag))
+      .map(reg => reg.tool);
+  }
+
+  // Enable a tool
+  async enableTool(toolId: string): Promise<boolean> {
+    try {
+      const registration = this.tools.get(toolId);
+      if (!registration) {
+        this.log(`Tool with ID ${toolId} not found`, "warn");
+        return false;
+      }
+
+      registration.enabled = true;
+      registration.tool.enable();
+
+      if (!registration.initialized && this.config.autoInitialize) {
+        await this.initializeTool(toolId);
+      }
+
+      this.log(`Tool ${registration.metadata.name} enabled`);
+      return true;
+    } catch (error) {
+      this.log(`Failed to enable tool: ${error}`, "error");
+      return false;
+    }
+  }
+
+  // Disable a tool
+  async disableTool(toolId: string): Promise<boolean> {
+    try {
+      const registration = this.tools.get(toolId);
+      if (!registration) {
+        this.log(`Tool with ID ${toolId} not found`, "warn");
+        return false;
+      }
+
+      registration.enabled = false;
+      registration.tool.disable();
+
+      this.log(`Tool ${registration.metadata.name} disabled`);
+      return true;
+    } catch (error) {
+      this.log(`Failed to disable tool: ${error}`, "error");
+      return false;
+    }
+  }
+
+  // Initialize a specific tool
+  async initializeTool(toolId: string): Promise<boolean> {
+    try {
+      const registration = this.tools.get(toolId);
+      if (!registration) {
+        this.log(`Tool with ID ${toolId} not found`, "warn");
+        return false;
+      }
+
+      if (registration.initialized) {
+        return true;
+      }
+
+      await registration.tool.initialize();
+      registration.initialized = true;
+
+      this.log(`Tool ${registration.metadata.name} initialized`);
+      return true;
+    } catch (error) {
+      this.log(`Failed to initialize tool: ${error}`, "error");
+      return false;
+    }
+  }
+
+  // Execute a tool
+  async executeTool(toolId: string, params: any): Promise<any> {
+    try {
+      const registration = this.tools.get(toolId);
+      if (!registration) {
+        throw new Error(`Tool with ID ${toolId} not found`);
+      }
+
+      if (!registration.enabled) {
+        throw new Error(`Tool ${registration.metadata.name} is disabled`);
+      }
+
+      if (!registration.initialized) {
+        await this.initializeTool(toolId);
+      }
+
+      // Update usage statistics
+      registration.usageCount++;
+      registration.lastUsed = new Date();
+
+      const result = await registration.tool.execute(params);
+      
+      this.log(`Tool ${registration.metadata.name} executed successfully`);
+      return result;
+    } catch (error) {
+      this.log(`Failed to execute tool: ${error}`, "error");
+      throw error;
+    }
+  }
+
+  // Test a tool
+  async testTool(toolId: string): Promise<any> {
+    try {
+      const registration = this.tools.get(toolId);
+      if (!registration) {
+        throw new Error(`Tool with ID ${toolId} not found`);
+      }
+
+      const result = await registration.tool.test();
+      this.log(`Tool ${registration.metadata.name} test completed`);
+      return result;
+    } catch (error) {
+      this.log(`Tool test failed: ${error}`, "error");
+      throw error;
+    }
+  }
+
+  // Get tool statistics
+  getToolStats(): any {
+    const stats = {
+      total: this.tools.size,
+      enabled: 0,
+      initialized: 0,
+      byCategory: {} as Record<string, number>,
+      byTag: {} as Record<string, number>,
+      mostUsed: [] as any[],
+      recentlyUsed: [] as any[]
+    };
+
+    for (const registration of this.tools.values()) {
+      if (registration.enabled) stats.enabled++;
+      if (registration.initialized) stats.initialized++;
+
+      // Category stats
+      stats.byCategory[registration.category] = (stats.byCategory[registration.category] || 0) + 1;
+
+      // Tag stats
+      for (const tag of registration.tags) {
+        stats.byTag[tag] = (stats.byTag[tag] || 0) + 1;
+      }
+
+      // Usage stats
+      if (registration.usageCount > 0) {
+        stats.mostUsed.push({
+          id: registration.id,
+          name: registration.metadata.name,
+          usageCount: registration.usageCount
         });
       }
 
-      return this.tools.delete(toolId);
-    }
-    return false;
-  }
-
-  /**
-   * 📊 สถิติ Tools
-   */
-  getToolStats(): {
-    total: number;
-    enabled: number;
-    disabled: number;
-    categories: number;
-    executions: Record<string, number>;
-  } {
-    const total = this.tools.size;
-    const enabled = Array.from(this.tools.values()).filter(
-      (t) => t.enabled
-    ).length;
-    const disabled = total - enabled;
-    const categories = this.categories.size;
-    const executions = Object.fromEntries(this.executionCount);
-
-    return {
-      total,
-      enabled,
-      disabled,
-      categories,
-      executions,
-    };
-  }
-
-  /**
-   * 🔧 Set Audit Hook
-   */
-  setAuditHook(hook: AuditHook): void {
-    this.auditHook = hook;
-  }
-
-  // ===== PRIVATE METHODS =====
-
-  /**
-   * ✅ ตรวจสอบ Tool Manifest
-   */
-  private validateToolManifest(manifest: ToolManifest): ValidationResult {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-
-    if (!manifest.id) {
-      errors.push("Tool ID is required");
-    }
-
-    if (!manifest.label) {
-      errors.push("Tool label is required");
-    }
-
-    if (!manifest.execute || typeof manifest.execute !== "function") {
-      errors.push("Tool execute function is required");
-    }
-
-    if (manifest.version && !manifest.version.match(/^\d+\.\d+\.\d+$/)) {
-      warnings.push("Version should follow semver format");
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-      warnings,
-    };
-  }
-
-  /**
-   * ✅ ตรวจสอบ Tool Parameters
-   */
-  private validateToolParams(
-    tool: ToolManifest,
-    params: Record<string, any>
-  ): ValidationResult {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-
-    // ตรวจสอบ required inputs
-    for (const [key, input] of Object.entries(tool.inputs)) {
-      if (input.required && !(key in params)) {
-        errors.push(`Required parameter missing: ${key}`);
+      if (registration.lastUsed) {
+        stats.recentlyUsed.push({
+          id: registration.id,
+          name: registration.metadata.name,
+          lastUsed: registration.lastUsed
+        });
       }
     }
 
-    // ตรวจสอบ validation rules
-    for (const [key, input] of Object.entries(tool.inputs)) {
-      if (key in params) {
-        const value = params[key];
+    // Sort by usage
+    stats.mostUsed.sort((a, b) => b.usageCount - a.usageCount);
+    stats.recentlyUsed.sort((a, b) => b.lastUsed.getTime() - a.lastUsed.getTime());
 
-        if (input.validation) {
-          if (
-            input.validation.min !== undefined &&
-            value < input.validation.min
-          ) {
-            errors.push(
-              `Parameter ${key} is below minimum value: ${input.validation.min}`
-            );
-          }
+    return stats;
+  }
 
-          if (
-            input.validation.max !== undefined &&
-            value > input.validation.max
-          ) {
-            errors.push(
-              `Parameter ${key} is above maximum value: ${input.validation.max}`
-            );
-          }
+  // Search tools
+  searchTools(query: string): ToolBase[] {
+    const results: ToolBase[] = [];
+    const lowerQuery = query.toLowerCase();
 
-          if (
-            input.validation.pattern &&
-            !new RegExp(input.validation.pattern).test(value)
-          ) {
-            errors.push(
-              `Parameter ${key} does not match pattern: ${input.validation.pattern}`
-            );
-          }
+    for (const registration of this.tools.values()) {
+      const { metadata, tags } = registration;
+      
+      if (
+        metadata.name.toLowerCase().includes(lowerQuery) ||
+        metadata.description.toLowerCase().includes(lowerQuery) ||
+        metadata.category.toLowerCase().includes(lowerQuery) ||
+        tags.some(tag => tag.toLowerCase().includes(lowerQuery))
+      ) {
+        results.push(registration.tool);
+      }
+    }
 
-          if (input.validation.enum && !input.validation.enum.includes(value)) {
-            errors.push(
-              `Parameter ${key} must be one of: ${input.validation.enum.join(
-                ", "
-              )}`
-            );
-          }
+    return results;
+  }
+
+  // Export registry configuration
+  exportConfig(): any {
+    const config = {
+      tools: Array.from(this.tools.values()).map(reg => ({
+        id: reg.id,
+        enabled: reg.enabled,
+        initialized: reg.initialized,
+        metadata: reg.metadata,
+        category: reg.category,
+        tags: reg.tags,
+        lastUsed: reg.lastUsed,
+        usageCount: reg.usageCount
+      })),
+      config: this.config,
+      stats: this.getToolStats()
+    };
+
+    return config;
+  }
+
+  // Import registry configuration
+  async importConfig(config: any): Promise<void> {
+    try {
+      // Clear existing tools
+      this.tools.clear();
+
+      // Import tools
+      for (const toolConfig of config.tools || []) {
+        // Recreate tool instance (this is a simplified approach)
+        // In a real implementation, you'd need to properly reconstruct tool instances
+        this.log(`Imported tool configuration for ${toolConfig.metadata.name}`);
+      }
+
+      // Update config
+      if (config.config) {
+        this.config = { ...this.config, ...config.config };
+      }
+
+      this.log("Registry configuration imported successfully");
+    } catch (error) {
+      this.log(`Failed to import configuration: ${error}`, "error");
+      throw error;
+    }
+  }
+
+  // Cleanup registry
+  async cleanup(): Promise<void> {
+    try {
+      for (const registration of this.tools.values()) {
+        if (registration.initialized) {
+          await registration.tool.cleanup();
         }
       }
+
+      this.tools.clear();
+      this.isInitialized = false;
+      this.log("ToolRegistry cleaned up successfully");
+    } catch (error) {
+      this.log(`Failed to cleanup registry: ${error}`, "error");
+      throw error;
     }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-      warnings,
-    };
   }
 
-  /**
-   * ⏱️ ตรวจสอบ Rate Limit
-   */
-  private checkRateLimit(
-    toolId: string,
-    rateLimit: { requests: number; window: number }
-  ): boolean {
-    const now = Date.now();
-    const windowStart = now - rateLimit.window * 1000;
+  // Private methods
+  private async registerDefaultTools(): Promise<void> {
+    const defaultTools = [
+      new AdvancedScriptingTool(this.app),
+      new ExcalidrawFeaturesTool(),
+      new RAGFeaturesTool(),
+      new LocalModelsTool(),
+      new NotionDatabaseTool(),
+      new AIOrchestrationTool(this.app),
+      new WebhookIntegrationTool(this.app)
+    ];
 
-    const lastExec = this.lastExecution.get(toolId) || 0;
-    if (lastExec < windowStart) {
-      // Reset counter if window has passed
-      this.executionCount.set(toolId, 1);
-      this.lastExecution.set(toolId, now);
-      return true;
+    for (const tool of defaultTools) {
+      await this.registerTool(tool, true);
     }
+  }
 
-    const currentCount = this.executionCount.get(toolId) || 0;
-    if (currentCount >= rateLimit.requests) {
-      return false;
+  private async initializeAllTools(): Promise<void> {
+    const enabledTools = Array.from(this.tools.values())
+      .filter(reg => reg.enabled && !reg.initialized);
+
+    for (const registration of enabledTools) {
+      await this.initializeTool(registration.id);
     }
-
-    this.executionCount.set(toolId, currentCount + 1);
-    this.lastExecution.set(toolId, now);
-    return true;
   }
 
-  /**
-   * 📝 บันทึกการเรียกใช้
-   */
-  private recordExecution(toolId: string, duration: number): void {
-    const currentCount = this.executionCount.get(toolId) || 0;
-    this.executionCount.set(toolId, currentCount + 1);
-  }
+  private log(message: string, level: "info" | "warn" | "error" = "info"): void {
+    if (!this.config.enableLogging) return;
 
-  /**
-   * 🔍 สกัดหัวข้อจากเนื้อหา
-   */
-  private extractTopics(content: string): string[] {
-    const words = content.toLowerCase().split(/\s+/);
-    const wordCount: Record<string, number> = {};
+    const timestamp = new Date().toISOString();
+    const logMessage = `[ToolRegistry] ${timestamp} [${level.toUpperCase()}] ${message}`;
 
-    words.forEach((word) => {
-      if (word.length > 3) {
-        wordCount[word] = (wordCount[word] || 0) + 1;
-      }
-    });
-
-    return Object.entries(wordCount)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 5)
-      .map(([word]) => word);
-  }
-
-  /**
-   * 📊 คำนวณความอ่านง่าย
-   */
-  private calculateReadability(content: string): number {
-    const sentences = content
-      .split(/[.!?]+/)
-      .filter((s) => s.trim().length > 0);
-    const words = content.split(/\s+/);
-    const syllables = this.countSyllables(content);
-
-    if (sentences.length === 0 || words.length === 0) {
-      return 0;
+    switch (level) {
+      case "error":
+        console.error(logMessage);
+        break;
+      case "warn":
+        console.warn(logMessage);
+        break;
+      default:
+        console.log(logMessage);
     }
-
-    // Flesch Reading Ease
-    const fleschScore =
-      206.835 -
-      1.015 * (words.length / sentences.length) -
-      84.6 * (syllables / words.length);
-    return Math.max(0, Math.min(100, fleschScore));
-  }
-
-  /**
-   * 🔤 นับพยางค์
-   */
-  private countSyllables(text: string): number {
-    const words = text.toLowerCase().split(/\s+/);
-    let count = 0;
-
-    words.forEach((word) => {
-      const syllables = word.match(/[aeiouy]+/g);
-      count += syllables ? syllables.length : 1;
-    });
-
-    return count;
   }
 }

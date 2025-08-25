@@ -155,8 +155,9 @@ export class ContinueCursorFeatures {
  */
 class ChatInterfaceModal extends Modal {
   private aiFeatures: AIFeatures;
-  private messageInput: HTMLTextAreaElement;
-  private chatContainer: HTMLDivElement;
+  private messageInput!: HTMLTextAreaElement;
+  private chatContainer!: HTMLDivElement;
+  contentEl!: HTMLElement;
   private messages: Array<{ role: "user" | "ai"; content: string }> = [];
 
   constructor(app: App, aiFeatures: AIFeatures) {
@@ -257,8 +258,9 @@ class ChatInterfaceModal extends Modal {
 class InlineEditModal extends Modal {
   private aiFeatures: AIFeatures;
   private originalText: string;
-  private instructionInput: HTMLTextAreaElement;
-  private resultContainer: HTMLDivElement;
+  private instructionInput!: HTMLTextAreaElement;
+  private resultContainer!: HTMLDivElement;
+  contentEl!: HTMLElement;
 
   constructor(app: App, aiFeatures: AIFeatures, originalText: string) {
     super(app);
@@ -356,6 +358,7 @@ class ImproveTextModal extends Modal {
   private aiFeatures: AIFeatures;
   private originalText: string;
   private improvementType: string = "grammar";
+  contentEl!: HTMLElement;
 
   constructor(app: App, aiFeatures: AIFeatures, originalText: string) {
     super(app);
@@ -385,9 +388,9 @@ class ImproveTextModal extends Modal {
       const label = typeContainer.createEl("label", { cls: "type-option" });
       const radio = label.createEl("input", {
         type: "radio",
-        name: "improvement-type",
         value: type,
       });
+      radio.setAttribute("name", "improvement-type");
       if (type === "grammar") radio.checked = true;
       label.createEl("span", {
         text: type.charAt(0).toUpperCase() + type.slice(1),
@@ -446,6 +449,7 @@ class ImproveTextModal extends Modal {
 class AnalyzeContentModal extends Modal {
   private aiFeatures: AIFeatures;
   private content: string;
+  contentEl!: HTMLElement;
 
   constructor(app: App, aiFeatures: AIFeatures, content: string) {
     super(app);
@@ -499,8 +503,9 @@ class AnalyzeContentModal extends Modal {
  */
 class GenerateIdeasModal extends Modal {
   private aiFeatures: AIFeatures;
-  private topicInput: HTMLInputElement;
-  private countInput: HTMLInputElement;
+  private topicInput!: HTMLInputElement;
+  private countInput!: HTMLInputElement;
+  contentEl!: HTMLElement;
 
   constructor(app: App, aiFeatures: AIFeatures) {
     super(app);
@@ -526,10 +531,10 @@ class GenerateIdeasModal extends Modal {
     this.countInput = contentEl.createEl("input", {
       type: "number",
       value: "5",
-      min: "1",
-      max: "20",
       cls: "count-input",
     });
+    this.countInput.setAttribute("min", "1");
+    this.countInput.setAttribute("max", "20");
 
     // Generate button
     const generateBtn = contentEl.createEl("button", {
@@ -571,7 +576,8 @@ class GenerateIdeasModal extends Modal {
 class ExplainCodeModal extends Modal {
   private aiFeatures: AIFeatures;
   private code: string;
-  private languageInput: HTMLInputElement;
+  private languageInput!: HTMLInputElement;
+  contentEl!: HTMLElement;
 
   constructor(app: App, aiFeatures: AIFeatures, code: string) {
     super(app);
@@ -633,7 +639,8 @@ class ExplainCodeModal extends Modal {
 class DebugCodeModal extends Modal {
   private aiFeatures: AIFeatures;
   private code: string;
-  private languageInput: HTMLInputElement;
+  private languageInput!: HTMLInputElement;
+  contentEl!: HTMLElement;
 
   constructor(app: App, aiFeatures: AIFeatures, code: string) {
     super(app);
@@ -695,7 +702,8 @@ class DebugCodeModal extends Modal {
 class RefactorCodeModal extends Modal {
   private aiFeatures: AIFeatures;
   private code: string;
-  private languageInput: HTMLInputElement;
+  private languageInput!: HTMLInputElement;
+  contentEl!: HTMLElement;
 
   constructor(app: App, aiFeatures: AIFeatures, code: string) {
     super(app);
@@ -759,7 +767,8 @@ class RefactorCodeModal extends Modal {
 class GenerateTestsModal extends Modal {
   private aiFeatures: AIFeatures;
   private code: string;
-  private languageInput: HTMLInputElement;
+  private languageInput!: HTMLInputElement;
+  contentEl!: HTMLElement;
 
   constructor(app: App, aiFeatures: AIFeatures, code: string) {
     super(app);
@@ -820,7 +829,8 @@ class GenerateTestsModal extends Modal {
  */
 class CodeCompletionModal extends Modal {
   private aiFeatures: AIFeatures;
-  private contextInput: HTMLTextAreaElement;
+  private contextInput!: HTMLTextAreaElement;
+  contentEl!: HTMLElement;
 
   constructor(app: App, aiFeatures: AIFeatures) {
     super(app);
@@ -880,6 +890,7 @@ class CodeCompletionModal extends Modal {
 class ResultModal extends Modal {
   private title: string;
   private content: string;
+  contentEl!: HTMLElement;
 
   constructor(app: App, title: string, content: string) {
     super(app);

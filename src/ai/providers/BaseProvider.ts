@@ -1,6 +1,21 @@
 import { Logger } from "../../services/Logger";
 
 /**
+ * AI Error Class
+ */
+export class AIError extends Error {
+  public readonly code?: string;
+  public readonly details?: any;
+
+  constructor(message: string, details?: any, code?: string) {
+    super(message);
+    this.name = "AIError";
+    this.details = details;
+    this.code = code;
+  }
+}
+
+/**
  * 🤖 Base AI Provider
  * Abstract class สำหรับ AI providers ทั้งหมด
  */
@@ -24,11 +39,16 @@ export interface AIRequest {
   systemPrompt?: string;
   context?: string;
   attachments?: string[];
+  topP?: number;
+  frequencyPenalty?: number;
+  presencePenalty?: number;
 }
 
 export interface AIResponse {
   content: string;
+  text?: string; // For backward compatibility
   model: string;
+  provider?: string;
   usage?: {
     promptTokens: number;
     completionTokens: number;

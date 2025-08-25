@@ -4,7 +4,6 @@ import { UltimaOrbSettings } from "../../settings";
 import { FeatureManager } from "../../core/FeatureManager";
 
 export class SettingsPanel extends PluginSettingTab {
-  private app: App;
   private featureManager: FeatureManager;
   private plugin: UltimaOrbPlugin;
 
@@ -14,7 +13,6 @@ export class SettingsPanel extends PluginSettingTab {
     plugin: UltimaOrbPlugin
   ) {
     super(app, plugin);
-    this.app = app;
     this.featureManager = featureManager;
     this.plugin = plugin;
   }
@@ -98,9 +96,9 @@ export class SettingsPanel extends PluginSettingTab {
           .addOption("gpt-3.5-turbo", "GPT-3.5 Turbo")
           .addOption("claude-3", "Claude 3")
           .addOption("gemini-pro", "Gemini Pro")
-          .setValue(this.plugin.settings.defaultAIModel)
+          .setValue(this.plugin.settings.defaultModel)
           .onChange(async (value) => {
-            this.plugin.settings.defaultAIModel = value;
+            this.plugin.settings.defaultModel = value;
             await this.plugin.saveSettings();
           })
       );
@@ -233,9 +231,9 @@ export class SettingsPanel extends PluginSettingTab {
       .addText((text) =>
         text
           .setPlaceholder("secret_...")
-          .setValue(this.plugin.settings.notionApiKey)
+          .setValue(this.plugin.settings.notionToken)
           .onChange(async (value) => {
-            this.plugin.settings.notionApiKey = value;
+            this.plugin.settings.notionToken = value;
             await this.plugin.saveSettings();
           })
       );

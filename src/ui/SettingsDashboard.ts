@@ -5,12 +5,10 @@ import { UltimaOrbPlugin } from "../UltimaOrbPlugin";
  * 📊 Settings Dashboard - แบบ Cursor
  */
 export class SettingsDashboard extends PluginSettingTab {
-  private app: App;
   private plugin: UltimaOrbPlugin;
 
   constructor(app: App, plugin: UltimaOrbPlugin) {
     super(app, plugin);
-    this.app = app;
     this.plugin = plugin;
   }
 

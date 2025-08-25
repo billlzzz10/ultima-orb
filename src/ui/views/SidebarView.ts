@@ -1,23 +1,13 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
 import { UltimaOrbPlugin } from "../../UltimaOrbPlugin";
-import { FeatureManager } from "../../core/FeatureManager";
 
 export const SIDEBAR_VIEW_TYPE = "ultima-orb-sidebar";
 
 export class SidebarView extends ItemView {
-  private app: App;
-  private featureManager: FeatureManager;
-  private plugin: UltimaOrbPlugin;
+  plugin: UltimaOrbPlugin;
 
-  constructor(
-    app: App,
-    featureManager: FeatureManager,
-    plugin: UltimaOrbPlugin,
-    leaf?: WorkspaceLeaf
-  ) {
+  constructor(leaf: WorkspaceLeaf, plugin: UltimaOrbPlugin) {
     super(leaf);
-    this.app = app;
-    this.featureManager = featureManager;
     this.plugin = plugin;
   }
 
@@ -30,70 +20,60 @@ export class SidebarView extends ItemView {
   }
 
   getIcon(): string {
-    return "settings";
+    return "brain";
   }
 
-  async onOpen() {
+  async onOpen(): Promise<void> {
     const container = this.containerEl.children[1];
     container.empty();
     container.createEl("h4", { text: "Ultima-Orb Sidebar" });
-    this.createSidebarInterface(container);
+
+    // Create sidebar content
+    this.createSidebarContent(container as HTMLElement);
   }
 
-  private createSidebarInterface(container: HTMLElement) {
+  private createSidebarContent(container: HTMLElement): void {
+    // AI Status
+    const statusSection = container.createEl("div", { cls: "sidebar-section" });
+    statusSection.createEl("h5", { text: "AI Status" });
+    
+    const statusItem = statusSection.createEl("div", { cls: "status-item" });
+    statusItem.createEl("span", { text: "AI Orchestrator: " });
+    statusItem.createEl("span", { text: "✅ Active", cls: "status-active" });
+
     // Quick Actions
-    const quickActions = container.createDiv("ultima-orb-quick-actions");
-    quickActions.createEl("h5", { text: "Quick Actions" });
+    const actionsSection = container.createEl("div", { cls: "sidebar-section" });
+    actionsSection.createEl("h5", { text: "Quick Actions" });
 
-    const chatButton = quickActions.createEl("button", {
-      text: "Open Chat",
-      cls: "ultima-orb-sidebar-button",
-    });
-    chatButton.addEventListener("click", () => this.plugin.openChatView());
-
-    const settingsButton = quickActions.createEl("button", {
-      text: "Settings",
-      cls: "ultima-orb-sidebar-button",
-    });
-    settingsButton.addEventListener("click", () => this.app.settings.open());
-
-    // Feature Status
-    const featureStatus = container.createDiv("ultima-orb-feature-status");
-    featureStatus.createEl("h5", { text: "Feature Status" });
-
-    const statusList = featureStatus.createEl("ul", {
-      cls: "ultima-orb-status-list",
+    const chatButton = actionsSection.createEl("button", { text: "Open Chat" });
+    chatButton.addEventListener("click", () => {
+      this.plugin.openChatView();
     });
 
-    const features = [
-      { name: "AI Chat", enabled: this.plugin.settings.enableChatView },
-      {
-        name: "Advanced Features",
-        enabled: this.plugin.settings.enableAdvancedFeatures,
-      },
-      {
-        name: "GitHub Integration",
-        enabled: this.plugin.settings.enableGitHub,
-      },
-      {
-        name: "Notion Integration",
-        enabled: this.plugin.settings.enableNotion,
-      },
-      { name: "Ollama", enabled: this.plugin.settings.enableOllama },
-      { name: "RAG", enabled: this.plugin.settings.enableRAG },
-    ];
-
-    features.forEach((feature) => {
-      const li = statusList.createEl("li");
-      li.createEl("span", { text: feature.name });
-      li.createEl("span", {
-        text: feature.enabled ? "✅" : "❌",
-        cls: "ultima-orb-status-indicator",
-      });
+    const settingsButton = actionsSection.createEl("button", { text: "Settings" });
+    settingsButton.addEventListener("click", () => {
+      this.plugin.openSettings();
     });
+
+    // Mode Info
+    const modeSection = container.createEl("div", { cls: "sidebar-section" });
+    modeSection.createEl("h5", { text: "Current Mode" });
+    
+    const modeInfo = modeSection.createEl("div", { cls: "mode-info" });
+    const currentMode = this.plugin.getModeSystem().getActiveMode();
+    modeInfo.createEl("span", { text: currentMode?.name || "Default" });
+
+    // Tools Status
+    const toolsSection = container.createEl("div", { cls: "sidebar-section" });
+    toolsSection.createEl("h5", { text: "Available Tools" });
+    
+    const toolsList = toolsSection.createEl("div", { cls: "tools-list" });
+    toolsList.createEl("div", { text: "• AI Features", cls: "tool-item" });
+    toolsList.createEl("div", { text: "• Agent Mode", cls: "tool-item" });
+    toolsList.createEl("div", { text: "• Cursor Features", cls: "tool-item" });
   }
 
-  async onClose() {
-    // Cleanup
+  async onClose(): Promise<void> {
+    // Cleanup if needed
   }
 }

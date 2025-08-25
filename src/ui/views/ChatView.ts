@@ -7,12 +7,8 @@ export const CHAT_VIEW_TYPE = "ultima-orb-chat";
 export class ChatView extends ItemView {
   private aiOrchestrator: AIOrchestrator;
   private modeSystem: ModeSystem;
-  private chatContainer!: HTMLElement;
-  private messageContainer!: HTMLElement;
-  private inputContainer!: HTMLElement;
   private messageInput!: HTMLTextAreaElement;
-  private sendButton!: HTMLButtonElement;
-  private modeSelector!: HTMLSelectElement;
+  private chatContainer!: HTMLDivElement;
 
   constructor(leaf: WorkspaceLeaf, aiOrchestrator: AIOrchestrator) {
     super(leaf);
@@ -28,6 +24,10 @@ export class ChatView extends ItemView {
     return "Ultima-Orb Chat";
   }
 
+  getIcon(): string {
+    return "message-circle";
+  }
+
   async onOpen(): Promise<void> {
     const container = this.containerEl.children[1];
     container.empty();
@@ -36,164 +36,91 @@ export class ChatView extends ItemView {
     this.createChatInterface(container as HTMLElement);
   }
 
-  async onClose(): Promise<void> {
-    // Cleanup if needed
-  }
-
   private createChatInterface(container: HTMLElement): void {
-    // Create mode selector
-    this.createModeSelector(container);
-
-    // Create chat container
-    this.chatContainer = container.createEl("div", {
-      cls: "ultima-orb-chat-container",
-    });
-
-    // Create message container
-    this.messageContainer = this.chatContainer.createEl("div", {
-      cls: "ultima-orb-message-container",
-    });
-
-    // Create input container
-    this.inputContainer = this.chatContainer.createEl("div", {
-      cls: "ultima-orb-input-container",
-    });
-
-    // Create message input
-    this.messageInput = this.inputContainer.createEl("textarea", {
-      cls: "ultima-orb-message-input",
-      placeholder: "Type your message here...",
-    });
-
-    // Create send button
-    this.sendButton = this.inputContainer.createEl("button", {
-      cls: "ultima-orb-send-button",
-      text: "Send",
-    });
-
-    // Add event listeners
-    this.sendButton.addEventListener("click", () => this.sendMessage());
-    this.messageInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        this.sendMessage();
-      }
-    });
-
-    // Set initial welcome message
-    this.updateWelcomeMessage();
-  }
-
-  private createModeSelector(container: HTMLElement): void {
-    const modeContainer = container.createEl("div", {
-      cls: "ultima-orb-mode-container",
-    });
-
-    modeContainer.createEl("label", {
-      cls: "ultima-orb-mode-label",
-      text: "AI Mode:",
-    });
-
-    this.modeSelector = modeContainer.createEl("select", {
-      cls: "ultima-orb-mode-selector",
-    });
-
-    this.populateModeSelector();
-
-    this.modeSelector.addEventListener("change", (e) => {
-      const target = e.target as HTMLSelectElement;
-      this.switchMode(target.value);
-    });
-  }
-
-  private populateModeSelector(): void {
-    this.modeSelector.empty();
-
+    // Mode selector
+    const modeSelector = container.createEl("select", { cls: "mode-selector" });
     const modes = this.modeSystem.getAllModes();
-    const activeMode = this.modeSystem.getActiveMode();
 
     modes.forEach((mode) => {
-      const option = this.modeSelector.createEl("option", {
-        value: mode.id,
-        text: mode.label,
-      });
-
-      if (mode.id === activeMode?.id) {
+      const option = modeSelector.createEl("option", { text: mode.name });
+      option.value = mode.id;
+      if (mode.id === this.modeSystem.getActiveMode()?.id) {
         option.selected = true;
       }
     });
-  }
 
-  private switchMode(modeId: string): void {
-    this.modeSystem.setActiveMode(modeId);
-    this.updateWelcomeMessage();
-    new Notice(`Switched to ${this.modeSystem.getActiveMode()?.label} mode`);
-  }
+    modeSelector.addEventListener("change", (e) => {
+      const target = e.target as HTMLSelectElement;
+      this.modeSystem.setActiveMode(target.value);
+      new Notice(`Switched to ${this.modeSystem.getActiveMode()?.name} mode`);
+    });
 
-  private updateWelcomeMessage(): void {
-    const activeMode = this.modeSystem.getActiveMode();
-    const welcomeMessage =
-      activeMode?.description || "How can I help you today?";
+    // Chat container
+    this.chatContainer = container.createEl("div", { cls: "chat-container" });
 
-    this.messageContainer.empty();
-    this.addMessage("assistant", welcomeMessage);
+    // Message input
+    const inputContainer = container.createEl("div", {
+      cls: "input-container",
+    });
+    this.messageInput = inputContainer.createEl("textarea", {
+      placeholder: "Type your message...",
+      cls: "message-input",
+    });
+
+    // Send button
+    const sendButton = inputContainer.createEl("button", { text: "Send" });
+    sendButton.addEventListener("click", () => this.sendMessage());
   }
 
   private async sendMessage(): Promise<void> {
     const message = this.messageInput.value.trim();
     if (!message) return;
 
-    // Add user message
-    this.addMessage("user", message);
+    // Add user message to chat
+    this.addMessageToChat("user", message);
     this.messageInput.value = "";
-
-    // Show loading
-    const loadingId = this.addMessage("assistant", "Thinking...");
 
     try {
       // Get AI response
       const response = await this.aiOrchestrator.generateResponse(message);
-
-      // Update loading message with response
-      this.updateMessage(loadingId, "assistant", response);
+      this.addMessageToChat("ai", response);
     } catch (error) {
-      this.updateMessage(
-        loadingId,
-        "assistant",
+      this.addMessageToChat(
+        "error",
         "Sorry, I encountered an error. Please try again."
       );
-      console.error("Chat error:", error);
     }
   }
 
-  private addMessage(role: "user" | "assistant", content: string): string {
-    const messageId = `msg-${Date.now()}`;
-    const messageEl = this.messageContainer.createEl("div", {
-      cls: `ultima-orb-message ultima-orb-message-${role}`,
-      attr: { "data-message-id": messageId },
-    });
-
-    messageEl.createEl("div", {
-      cls: "ultima-orb-message-content",
-      text: content,
-    });
-
-    return messageId;
-  }
-
-  private updateMessage(
-    messageId: string,
-    role: "user" | "assistant",
-    content: string
+  private addMessageToChat(
+    sender: "user" | "ai" | "error",
+    message: string
   ): void {
-    const messageEl = this.messageContainer.querySelector(
-      `[data-message-id="${messageId}"]`
-    );
-    if (messageEl) {
-      const contentEl = messageEl.querySelector(".ultima-orb-message-content");
-      if (contentEl) {
-        contentEl.textContent = content;
-      }
+    const messageEl = this.chatContainer.createEl("div", {
+      cls: `chat-message ${sender}-message`,
+    });
+
+    const senderEl = messageEl.createEl("div", {
+      text: sender === "user" ? "You" : sender === "ai" ? "AI" : "Error",
+      cls: "message-sender",
+    });
+
+    const contentEl = messageEl.createEl("div", {
+      text: message,
+      cls: "message-content",
+    });
+  }
+
+  public open(): void {
+    // Open chat view
+    const leaf = this.app.workspace.getRightLeaf(false);
+    if (leaf) {
+      leaf.setViewState({ type: CHAT_VIEW_TYPE, active: true });
+      this.app.workspace.revealLeaf(leaf);
     }
+  }
+
+  async onClose(): Promise<void> {
+    // Cleanup if needed
   }
 }

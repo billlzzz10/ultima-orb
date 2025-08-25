@@ -1,12 +1,13 @@
-import { App, Modal, Editor, MarkdownView } from "obsidian";
+import { App, Modal, Editor, MarkdownView, Notice } from "obsidian";
 import { UltimaOrbPlugin } from "../UltimaOrbPlugin";
 import { AICommands, AICommand } from "../automation/AICommands";
 
 export class CommandPalette extends Modal {
   plugin: UltimaOrbPlugin;
   aiCommands: AICommands;
-  searchInput: HTMLInputElement;
-  resultsContainer: HTMLElement;
+  searchInput!: HTMLInputElement;
+  resultsContainer!: HTMLElement;
+  contentEl!: HTMLElement;
   commands: AICommand[] = [];
   filteredCommands: AICommand[] = [];
   selectedIndex: number = 0;
@@ -198,13 +199,17 @@ export class CommandPalette extends Modal {
 
   private async executeCommand(command: AICommand): Promise<void> {
     try {
-      const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+      const activeView = this.app.workspace.getActiveViewOfType("markdown");
       if (!activeView) {
         new Notice("Please open a markdown file to use this command");
         return;
       }
 
       const editor = activeView.editor;
+      if (!editor) {
+        new Notice("No active editor found");
+        return;
+      }
 
       // Show loading state
       new Notice(`Executing: ${command.name}...`);
@@ -215,7 +220,9 @@ export class CommandPalette extends Modal {
       // Close palette
       this.close();
     } catch (error) {
-      new Notice(`Failed to execute command: ${error.message}`);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      new Notice(`Failed to execute command: ${errorMessage}`);
     }
   }
 

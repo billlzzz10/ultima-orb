@@ -7,8 +7,9 @@ import { AIFeatures } from "../ai/AIFeatures";
 export class EnhancedCommandPalette extends Modal {
   private plugin: Plugin;
   private aiFeatures: AIFeatures;
-  private searchInput: HTMLInputElement;
-  private resultsContainer: HTMLDivElement;
+  private searchInput!: HTMLInputElement;
+  private resultsContainer!: HTMLDivElement;
+  contentEl!: HTMLElement;
   private commands: CommandItem[];
 
   constructor(app: App, plugin: Plugin, aiFeatures: AIFeatures) {
@@ -168,7 +169,7 @@ export class EnhancedCommandPalette extends Modal {
           const language = await this.promptUser("Language (optional):");
           const result = await this.aiFeatures.explainCode(
             selectedText,
-            language
+            language || undefined
           );
           this.showResult("Code Explanation", result);
         },
@@ -187,7 +188,7 @@ export class EnhancedCommandPalette extends Modal {
           const language = await this.promptUser("Language (optional):");
           const result = await this.aiFeatures.debugCode(
             selectedText,
-            language
+            language || undefined
           );
           this.showResult("Code Debug", result);
         },
@@ -206,7 +207,7 @@ export class EnhancedCommandPalette extends Modal {
           const language = await this.promptUser("Language (optional):");
           const result = await this.aiFeatures.refactorCode(
             selectedText,
-            language
+            language || undefined
           );
           this.aiFeatures.replaceSelectedText(result);
           new Notice("✅ Code refactored successfully");
@@ -226,7 +227,7 @@ export class EnhancedCommandPalette extends Modal {
           const language = await this.promptUser("Language (optional):");
           const result = await this.aiFeatures.generateTests(
             selectedText,
-            language
+            language || undefined
           );
           this.showResult("Generated Tests", result);
         },
@@ -435,6 +436,8 @@ export class EnhancedCommandPalette extends Modal {
  * Result Modal for showing AI responses
  */
 class ResultModal extends Modal {
+  contentEl!: HTMLElement;
+  
   constructor(app: App, private title: string, private content: string) {
     super(app);
   }

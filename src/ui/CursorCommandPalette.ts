@@ -8,8 +8,9 @@ export class CursorCommandPalette extends Modal {
   private cursorFeatures: CursorFeatures;
 
   // UI Elements
-  private searchInput: HTMLInputElement;
-  private commandList: HTMLDivElement;
+  private searchInput!: HTMLInputElement;
+  private commandList!: HTMLDivElement;
+  contentEl!: HTMLElement;
   private selectedIndex: number = 0;
   private filteredCommands: CommandItem[] = [];
 
@@ -519,6 +520,7 @@ export class CursorCommandPalette extends Modal {
 class ResultModal extends Modal {
   private title: string;
   private content: string;
+  contentEl!: HTMLElement;
 
   constructor(app: App, title: string, content: string) {
     super(app);
