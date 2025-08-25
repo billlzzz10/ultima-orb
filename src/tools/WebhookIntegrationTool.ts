@@ -634,12 +634,14 @@ export class WebhookIntegrationTool extends ToolBase {
         success: true,
         data: webhooks,
         message: `Found ${webhooks.length} webhooks`,
+        timestamp: new Date(),
       };
     } catch (error) {
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),
         message: "Failed to list webhooks",
+        timestamp: new Date(),
       };
     }
   }

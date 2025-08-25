@@ -224,6 +224,7 @@ export class AIOrchestrationTool extends ToolBase {
       success: true,
       data: report,
       message: "Usage report generated successfully",
+      timestamp: new Date(),
     };
   }
 
