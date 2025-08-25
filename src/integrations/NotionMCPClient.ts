@@ -34,7 +34,7 @@ export class NotionMCPClient {
           throw new Error(`Unsupported connection type: ${this.config.type}`);
       }
     } catch (error) {
-      this.logger.error("Failed to initialize Notion MCP client:", error);
+      this.logger.error("Failed to initialize Notion MCP client:", error as Error);
       return false;
     }
   }
@@ -56,7 +56,7 @@ export class NotionMCPClient {
       this.logger.info("✅ Notion MCP Streamable HTTP connected");
       return true;
     } catch (error) {
-      this.logger.error("Failed to initialize Streamable HTTP:", error);
+      this.logger.error("Failed to initialize Streamable HTTP:", error as Error);
       return false;
     }
   }
@@ -78,7 +78,7 @@ export class NotionMCPClient {
       this.logger.info("✅ Notion MCP SSE connected");
       return true;
     } catch (error) {
-      this.logger.error("Failed to initialize SSE:", error);
+      this.logger.error("Failed to initialize SSE:", error as Error);
       return false;
     }
   }
@@ -105,7 +105,7 @@ export class NotionMCPClient {
       this.logger.info("✅ Notion MCP STDIO connected");
       return true;
     } catch (error) {
-      this.logger.error("Failed to initialize STDIO:", error);
+      this.logger.error("Failed to initialize STDIO:", error as Error);
       return false;
     }
   }
@@ -126,7 +126,7 @@ export class NotionMCPClient {
       this.logger.info("✅ Notion MCP connection test successful");
       return true;
     } catch (error) {
-      this.logger.error("Notion MCP connection test failed:", error);
+      this.logger.error("Notion MCP connection test failed:", error as Error);
       return false;
     }
   }

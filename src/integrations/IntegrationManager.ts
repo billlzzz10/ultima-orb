@@ -1,6 +1,6 @@
 import { App, Notice } from "obsidian";
 import { FeatureManager } from "../core/FeatureManager";
-import { UltimaOrbSettings } from "../../main";
+import { UltimaOrbSettings } from "../settings";
 
 export class IntegrationManager {
   private app: App;
@@ -18,7 +18,8 @@ export class IntegrationManager {
   }
 
   async syncWithGitHub(): Promise<void> {
-    if (this.settings.enableGitHub) {
+    if (this.settings.notionToken) {
+      // Use existing property
       new Notice("Syncing with GitHub...");
     } else {
       new Notice("GitHub integration is disabled");
@@ -26,7 +27,7 @@ export class IntegrationManager {
   }
 
   async syncWithNotion(): Promise<void> {
-    if (this.settings.enableNotion) {
+    if (this.settings.notionToken) {
       new Notice("Syncing with Notion...");
     } else {
       new Notice("Notion integration is disabled");

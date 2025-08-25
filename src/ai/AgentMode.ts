@@ -24,35 +24,36 @@ export class AgentMode {
    * 🚀 เริ่ม Agent Mode
    */
   async startAgentMode(task: string): Promise<void> {
-    this.isActive = true;
-    this.currentTask = task;
-
-    new Notice("🤖 Agent Mode Started: " + task);
-
     try {
+      this.isActive = true;
+      this.currentTask = task;
+      this.taskHistory = [];
+
+      new Notice("🤖 Agent Mode Started!");
+
       // วิเคราะห์งาน
       const analysis = await this.analyzeTask(task);
+      new Notice("📊 Task Analysis Complete");
 
       // แบ่งงานเป็นขั้นตอน
       const steps = await this.breakDownTask(analysis);
+      new Notice(`🔧 Task broken into ${steps.length} steps`);
 
-      // ทำงานทีละขั้นตอน
+      // ทำแต่ละขั้นตอน
       for (const step of steps) {
-        if (!this.isActive) break; // หยุดถ้าถูกยกเลิก
+        if (!this.isActive) break; // ตรวจสอบว่ายัง active อยู่หรือไม่
 
         const result = await this.executeStep(step);
-        this.taskHistory.push({
-          task: step,
-          result: result,
-          timestamp: new Date(),
-        });
+        this.taskHistory.push({ task: step, result, timestamp: new Date() });
+
+        new Notice(`✅ Step completed: ${step.substring(0, 30)}...`);
       }
 
       // สรุปผลงาน
       const summary = await this.generateSummary();
       new Notice("✅ Agent Mode Completed!");
 
-      return summary;
+      // ไม่ return อะไร เพราะเป็น void
     } catch (error) {
       new Notice("❌ Agent Mode Error: " + error);
       this.stopAgentMode();

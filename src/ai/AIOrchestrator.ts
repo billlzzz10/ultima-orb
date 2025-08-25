@@ -1,6 +1,6 @@
 import { App, Notice } from "obsidian";
 import { FeatureManager } from "../core/FeatureManager";
-import { UltimaOrbSettings } from "../../main";
+import { UltimaOrbSettings } from "../settings";
 import { OpenAIProvider } from "./providers/OpenAIProvider";
 import { OllamaIntegration } from "./local/OllamaIntegration";
 import { ModeSystem } from "./ModeSystem";
@@ -32,16 +32,16 @@ export class AIOrchestrator {
       if (this.settings.openaiApiKey) {
         this.openAIProvider = new OpenAIProvider(this.app, this.featureManager);
         this.openAIProvider.setApiKey(this.settings.openaiApiKey);
-        this.openAIProvider.setDefaultModel(this.settings.defaultAIModel);
+        this.openAIProvider.setDefaultModel(this.settings.defaultModel);
       }
 
       // Initialize Ollama Integration
-      if (this.settings.enableOllama) {
+      if (this.settings.ollamaEndpoint) {
         this.ollamaIntegration = new OllamaIntegration(
           this.app,
           this.featureManager
         );
-        this.ollamaIntegration.setBaseUrl(this.settings.ollamaBaseUrl);
+        this.ollamaIntegration.setBaseUrl(this.settings.ollamaEndpoint);
       }
 
       console.log("✅ AI Providers initialized successfully");
@@ -96,7 +96,7 @@ export class AIOrchestrator {
 
       // Use mode-specific AI settings
       const provider = aiSettings.provider || this.activeProvider;
-      const model = aiSettings.model || this.settings.defaultAIModel;
+      const model = aiSettings.model || this.settings.defaultModel;
 
       const fullPrompt = `${context}\n\nUser: ${message}`;
 
@@ -130,7 +130,7 @@ export class AIOrchestrator {
 
       if (this.activeProvider === "openai" && this.openAIProvider) {
         const response = await this.openAIProvider.chatCompletion({
-          model: this.settings.defaultAIModel,
+          model: this.settings.defaultModel,
           messages: [{ role: "user", content: prompt }],
         });
         return response.choices[0]?.message?.content || "";
@@ -154,7 +154,7 @@ export class AIOrchestrator {
 
       if (this.activeProvider === "openai" && this.openAIProvider) {
         const response = await this.openAIProvider.chatCompletion({
-          model: this.settings.defaultAIModel,
+          model: this.settings.defaultModel,
           messages: [{ role: "user", content: prompt }],
         });
         return response.choices[0]?.message?.content || "";
@@ -181,7 +181,7 @@ export class AIOrchestrator {
 
       if (this.activeProvider === "openai" && this.openAIProvider) {
         const response = await this.openAIProvider.chatCompletion({
-          model: this.settings.defaultAIModel,
+          model: this.settings.defaultModel,
           messages: [{ role: "user", content: prompt }],
         });
         return response.choices[0]?.message?.content || "";

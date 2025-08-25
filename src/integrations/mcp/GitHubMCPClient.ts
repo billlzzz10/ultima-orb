@@ -91,76 +91,144 @@ export class GitHubMCPClient {
       listRepositories: async (username: string) => {
         return await this.makeRequest(`/users/${username}/repos`);
       },
-      
+
       getRepository: async (owner: string, repo: string) => {
         return await this.makeRequest(`/repos/${owner}/${repo}`);
       },
-      
-      createRepository: async (name: string, description: string, private: boolean = false) => {
+
+      createRepository: async (
+        name: string,
+        description: string,
+        isPrivate: boolean = false
+      ) => {
         return await this.makeRequest("/user/repos", {
           method: "POST",
-          body: JSON.stringify({ name, description, private })
+          body: JSON.stringify({ name, description, private: isPrivate }),
         });
       },
-      
+
       // Issue operations
-      listIssues: async (owner: string, repo: string, state: string = "open") => {
-        return await this.makeRequest(`/repos/${owner}/${repo}/issues?state=${state}`);
+      listIssues: async (
+        owner: string,
+        repo: string,
+        state: string = "open"
+      ) => {
+        return await this.makeRequest(
+          `/repos/${owner}/${repo}/issues?state=${state}`
+        );
       },
-      
-      createIssue: async (owner: string, repo: string, title: string, body: string) => {
+
+      createIssue: async (
+        owner: string,
+        repo: string,
+        title: string,
+        body: string
+      ) => {
         return await this.makeRequest(`/repos/${owner}/${repo}/issues`, {
           method: "POST",
-          body: JSON.stringify({ title, body })
+          body: JSON.stringify({ title, body }),
         });
       },
-      
+
       // Pull Request operations
-      listPullRequests: async (owner: string, repo: string, state: string = "open") => {
-        return await this.makeRequest(`/repos/${owner}/${repo}/pulls?state=${state}`);
+      listPullRequests: async (
+        owner: string,
+        repo: string,
+        state: string = "open"
+      ) => {
+        return await this.makeRequest(
+          `/repos/${owner}/${repo}/pulls?state=${state}`
+        );
       },
-      
-      createPullRequest: async (owner: string, repo: string, title: string, body: string, head: string, base: string) => {
+
+      createPullRequest: async (
+        owner: string,
+        repo: string,
+        title: string,
+        body: string,
+        head: string,
+        base: string
+      ) => {
         return await this.makeRequest(`/repos/${owner}/${repo}/pulls`, {
           method: "POST",
-          body: JSON.stringify({ title, body, head, base })
+          body: JSON.stringify({ title, body, head, base }),
         });
       },
-      
+
       // File operations
       getFile: async (owner: string, repo: string, path: string) => {
-        return await this.makeRequest(`/repos/${owner}/${repo}/contents/${path}`);
+        return await this.makeRequest(
+          `/repos/${owner}/${repo}/contents/${path}`
+        );
       },
-      
-      createFile: async (owner: string, repo: string, path: string, content: string, message: string) => {
-        return await this.makeRequest(`/repos/${owner}/${repo}/contents/${path}`, {
-          method: "PUT",
-          body: JSON.stringify({ message, content: Buffer.from(content).toString('base64') })
-        });
+
+      createFile: async (
+        owner: string,
+        repo: string,
+        path: string,
+        content: string,
+        message: string
+      ) => {
+        return await this.makeRequest(
+          `/repos/${owner}/${repo}/contents/${path}`,
+          {
+            method: "PUT",
+            body: JSON.stringify({
+              message,
+              content: Buffer.from(content).toString("base64"),
+            }),
+          }
+        );
       },
-      
-      updateFile: async (owner: string, repo: string, path: string, content: string, message: string, sha: string) => {
-        return await this.makeRequest(`/repos/${owner}/${repo}/contents/${path}`, {
-          method: "PUT",
-          body: JSON.stringify({ message, content: Buffer.from(content).toString('base64'), sha })
-        });
+
+      updateFile: async (
+        owner: string,
+        repo: string,
+        path: string,
+        content: string,
+        message: string,
+        sha: string
+      ) => {
+        return await this.makeRequest(
+          `/repos/${owner}/${repo}/contents/${path}`,
+          {
+            method: "PUT",
+            body: JSON.stringify({
+              message,
+              content: Buffer.from(content).toString("base64"),
+              sha,
+            }),
+          }
+        );
       },
-      
-      deleteFile: async (owner: string, repo: string, path: string, message: string, sha: string) => {
-        return await this.makeRequest(`/repos/${owner}/${repo}/contents/${path}`, {
-          method: "DELETE",
-          body: JSON.stringify({ message, sha })
-        });
-      }
+
+      deleteFile: async (
+        owner: string,
+        repo: string,
+        path: string,
+        message: string,
+        sha: string
+      ) => {
+        return await this.makeRequest(
+          `/repos/${owner}/${repo}/contents/${path}`,
+          {
+            method: "DELETE",
+            body: JSON.stringify({ message, sha }),
+          }
+        );
+      },
     };
   }
 
-  private async makeRequest(endpoint: string, options: RequestInit = {}): Promise<any> {
+  private async makeRequest(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<any> {
     const url = `${this.baseUrl}${endpoint}`;
     const headers: HeadersInit = {
-      "Accept": "application/vnd.github.v3+json",
+      Accept: "application/vnd.github.v3+json",
       "Content-Type": "application/json",
-      ...options.headers
+      ...options.headers,
     };
 
     if (this.apiKey) {
@@ -169,11 +237,13 @@ export class GitHubMCPClient {
 
     const response = await fetch(url, {
       ...options,
-      headers
+      headers,
     });
 
     if (!response.ok) {
-      throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `GitHub API error: ${response.status} ${response.statusText}`
+      );
     }
 
     return await response.json();
@@ -194,22 +264,39 @@ export class GitHubMCPClient {
     return await this.mcpConnection.getRepository(owner, repo);
   }
 
-  async createRepository(name: string, description: string, private: boolean = false): Promise<GitHubRepository> {
+  async createRepository(
+    name: string,
+    description: string,
+    isPrivate: boolean = false
+  ): Promise<GitHubRepository> {
     if (!this.mcpConnection) {
       throw new Error("MCP connection not initialized");
     }
-    return await this.mcpConnection.createRepository(name, description, private);
+    return await this.mcpConnection.createRepository(
+      name,
+      description,
+      isPrivate
+    );
   }
 
   // Issue methods
-  async listIssues(owner: string, repo: string, state: string = "open"): Promise<GitHubIssue[]> {
+  async listIssues(
+    owner: string,
+    repo: string,
+    state: string = "open"
+  ): Promise<GitHubIssue[]> {
     if (!this.mcpConnection) {
       throw new Error("MCP connection not initialized");
     }
     return await this.mcpConnection.listIssues(owner, repo, state);
   }
 
-  async createIssue(owner: string, repo: string, title: string, body: string): Promise<GitHubIssue> {
+  async createIssue(
+    owner: string,
+    repo: string,
+    title: string,
+    body: string
+  ): Promise<GitHubIssue> {
     if (!this.mcpConnection) {
       throw new Error("MCP connection not initialized");
     }
@@ -217,18 +304,36 @@ export class GitHubMCPClient {
   }
 
   // Pull Request methods
-  async listPullRequests(owner: string, repo: string, state: string = "open"): Promise<GitHubPullRequest[]> {
+  async listPullRequests(
+    owner: string,
+    repo: string,
+    state: string = "open"
+  ): Promise<GitHubPullRequest[]> {
     if (!this.mcpConnection) {
       throw new Error("MCP connection not initialized");
     }
     return await this.mcpConnection.listPullRequests(owner, repo, state);
   }
 
-  async createPullRequest(owner: string, repo: string, title: string, body: string, head: string, base: string): Promise<GitHubPullRequest> {
+  async createPullRequest(
+    owner: string,
+    repo: string,
+    title: string,
+    body: string,
+    head: string,
+    base: string
+  ): Promise<GitHubPullRequest> {
     if (!this.mcpConnection) {
       throw new Error("MCP connection not initialized");
     }
-    return await this.mcpConnection.createPullRequest(owner, repo, title, body, head, base);
+    return await this.mcpConnection.createPullRequest(
+      owner,
+      repo,
+      title,
+      body,
+      head,
+      base
+    );
   }
 
   // File methods
@@ -239,21 +344,53 @@ export class GitHubMCPClient {
     return await this.mcpConnection.getFile(owner, repo, path);
   }
 
-  async createFile(owner: string, repo: string, path: string, content: string, message: string): Promise<any> {
+  async createFile(
+    owner: string,
+    repo: string,
+    path: string,
+    content: string,
+    message: string
+  ): Promise<any> {
     if (!this.mcpConnection) {
       throw new Error("MCP connection not initialized");
     }
-    return await this.mcpConnection.createFile(owner, repo, path, content, message);
+    return await this.mcpConnection.createFile(
+      owner,
+      repo,
+      path,
+      content,
+      message
+    );
   }
 
-  async updateFile(owner: string, repo: string, path: string, content: string, message: string, sha: string): Promise<any> {
+  async updateFile(
+    owner: string,
+    repo: string,
+    path: string,
+    content: string,
+    message: string,
+    sha: string
+  ): Promise<any> {
     if (!this.mcpConnection) {
       throw new Error("MCP connection not initialized");
     }
-    return await this.mcpConnection.updateFile(owner, repo, path, content, message, sha);
+    return await this.mcpConnection.updateFile(
+      owner,
+      repo,
+      path,
+      content,
+      message,
+      sha
+    );
   }
 
-  async deleteFile(owner: string, repo: string, path: string, message: string, sha: string): Promise<any> {
+  async deleteFile(
+    owner: string,
+    repo: string,
+    path: string,
+    message: string,
+    sha: string
+  ): Promise<any> {
     if (!this.mcpConnection) {
       throw new Error("MCP connection not initialized");
     }

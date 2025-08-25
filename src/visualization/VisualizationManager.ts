@@ -1,6 +1,6 @@
 import { App, Notice } from "obsidian";
 import { FeatureManager } from "../core/FeatureManager";
-import { UltimaOrbSettings } from "../../main";
+import { UltimaOrbSettings } from "../settings";
 
 export class VisualizationManager {
   private app: App;

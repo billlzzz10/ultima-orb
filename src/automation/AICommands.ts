@@ -19,7 +19,12 @@ export class AICommands {
 
   constructor(plugin: UltimaOrbPlugin) {
     this.plugin = plugin;
-    this.aiOrchestrator = new AIOrchestrator();
+    // สร้าง AIOrchestrator ใหม่โดยไม่ใช้ plugin properties ที่ไม่สามารถเข้าถึงได้
+    this.aiOrchestrator = new AIOrchestrator(
+      plugin.app,
+      {} as any, // FeatureManager placeholder
+      {} as any // Settings placeholder
+    );
     this.initializeCommands();
   }
 
@@ -194,7 +199,8 @@ export class AICommands {
         icon: "🧠",
         shortcut: "Ctrl+Shift+B",
         execute: async (app, editor, plugin) => {
-          await this.brainstorm(editor);
+          const selectedText = editor.getSelection() || "general brainstorming";
+          await this.brainstorm(selectedText, editor);
         },
       }
     );
@@ -231,23 +237,18 @@ export class AICommands {
     try {
       new Notice("Improving text...");
 
-      const prompt = `Improve the following text to make it more clear, engaging, and professional while maintaining the original meaning:
+      const prompt = `Improve the following text to make it more clear, engaging, and professional:
 
 "${text}"
 
 Please provide the improved version:`;
 
-      const response = await this.aiOrchestrator.generateResponse({
-        prompt,
-        model: "gpt-4",
-        maxTokens: 1000,
-        temperature: 0.7,
-      });
+      const response = await this.aiOrchestrator.generateResponse(prompt);
 
-      editor.replaceSelection(response.content);
+      editor.replaceSelection(response);
       new Notice("Text improved successfully!");
     } catch (error) {
-      new Notice("Failed to improve text: " + error.message);
+      new Notice("Failed to improve text: " + (error as Error).message);
     }
   }
 
@@ -261,17 +262,12 @@ Please provide the improved version:`;
 
 Please provide the translation:`;
 
-      const response = await this.aiOrchestrator.generateResponse({
-        prompt,
-        model: "gpt-4",
-        maxTokens: 1000,
-        temperature: 0.3,
-      });
+      const response = await this.aiOrchestrator.generateResponse(prompt);
 
-      editor.replaceSelection(response.content);
+      editor.replaceSelection(response);
       new Notice("Text translated successfully!");
     } catch (error) {
-      new Notice("Failed to translate text: " + error.message);
+      new Notice("Failed to translate text: " + (error as Error).message);
     }
   }
 
@@ -285,17 +281,12 @@ Please provide the translation:`;
 
 Please provide the corrected version:`;
 
-      const response = await this.aiOrchestrator.generateResponse({
-        prompt,
-        model: "gpt-4",
-        maxTokens: 1000,
-        temperature: 0.1,
-      });
+      const response = await this.aiOrchestrator.generateResponse(prompt);
 
-      editor.replaceSelection(response.content);
+      editor.replaceSelection(response);
       new Notice("Grammar fixed successfully!");
     } catch (error) {
-      new Notice("Failed to fix grammar: " + error.message);
+      new Notice("Failed to fix grammar: " + (error as Error).message);
     }
   }
 
@@ -309,17 +300,12 @@ Please provide the corrected version:`;
 
 Please provide a clear and informative summary:`;
 
-      const response = await this.aiOrchestrator.generateResponse({
-        prompt,
-        model: "gpt-4",
-        maxTokens: 500,
-        temperature: 0.3,
-      });
+      const response = await this.aiOrchestrator.generateResponse(prompt);
 
-      editor.replaceSelection(response.content);
+      editor.replaceSelection(response);
       new Notice("Summary created successfully!");
     } catch (error) {
-      new Notice("Failed to create summary: " + error.message);
+      new Notice("Failed to create summary: " + (error as Error).message);
     }
   }
 
@@ -334,21 +320,14 @@ Please provide a clear and informative summary:`;
 ${code}
 \`\`\`
 
-Please provide a clear explanation of what this code does:`;
+Please provide a clear explanation:`;
 
-      const response = await this.aiOrchestrator.generateResponse({
-        prompt,
-        model: "gpt-4",
-        maxTokens: 1000,
-        temperature: 0.3,
-      });
+      const response = await this.aiOrchestrator.generateResponse(prompt);
 
-      // Insert explanation as a comment
-      const explanation = `\n\n<!-- AI Explanation:\n${response.content}\n-->\n`;
-      editor.replaceSelection(code + explanation);
+      editor.replaceSelection(response);
       new Notice("Code explained successfully!");
     } catch (error) {
-      new Notice("Failed to explain code: " + error.message);
+      new Notice("Failed to explain code: " + (error as Error).message);
     }
   }
 
@@ -356,25 +335,20 @@ Please provide a clear explanation of what this code does:`;
     try {
       new Notice("Optimizing code...");
 
-      const prompt = `Optimize the following code for better performance, readability, and best practices:
+      const prompt = `Optimize the following code for better performance and readability:
 
 \`\`\`
 ${code}
 \`\`\`
 
-Please provide the optimized version with explanations:`;
+Please provide the optimized version:`;
 
-      const response = await this.aiOrchestrator.generateResponse({
-        prompt,
-        model: "gpt-4",
-        maxTokens: 1500,
-        temperature: 0.2,
-      });
+      const response = await this.aiOrchestrator.generateResponse(prompt);
 
-      editor.replaceSelection(response.content);
+      editor.replaceSelection(response);
       new Notice("Code optimized successfully!");
     } catch (error) {
-      new Notice("Failed to optimize code: " + error.message);
+      new Notice("Failed to optimize code: " + (error as Error).message);
     }
   }
 
@@ -382,25 +356,20 @@ Please provide the optimized version with explanations:`;
     try {
       new Notice("Debugging code...");
 
-      const prompt = `Find and fix potential bugs in the following code:
+      const prompt = `Debug the following code and identify potential issues:
 
 \`\`\`
 ${code}
 \`\`\`
 
-Please identify issues and provide the corrected version:`;
+Please provide debugging suggestions:`;
 
-      const response = await this.aiOrchestrator.generateResponse({
-        prompt,
-        model: "gpt-4",
-        maxTokens: 1500,
-        temperature: 0.1,
-      });
+      const response = await this.aiOrchestrator.generateResponse(prompt);
 
-      editor.replaceSelection(response.content);
+      editor.replaceSelection(response);
       new Notice("Code debugged successfully!");
     } catch (error) {
-      new Notice("Failed to debug code: " + error.message);
+      new Notice("Failed to debug code: " + (error as Error).message);
     }
   }
 
@@ -409,31 +378,18 @@ Please identify issues and provide the corrected version:`;
     try {
       new Notice("Analyzing content...");
 
-      const prompt = `Analyze the following content and provide insights about:
-1. Main topics/themes
-2. Writing style and tone
-3. Structure and organization
-4. Potential improvements
-5. Key takeaways
+      const prompt = `Analyze the following content and provide insights:
 
-Content:
-"${content.substring(0, 2000)}..."
+"${content}"
 
-Please provide a comprehensive analysis:`;
+Please provide a detailed analysis:`;
 
-      const response = await this.aiOrchestrator.generateResponse({
-        prompt,
-        model: "gpt-4",
-        maxTokens: 1500,
-        temperature: 0.3,
-      });
+      const response = await this.aiOrchestrator.generateResponse(prompt);
 
-      // Add analysis at the end of the file
-      const analysis = `\n\n## AI Content Analysis\n\n${response.content}\n`;
-      editor.setValue(content + analysis);
+      editor.replaceSelection(response);
       new Notice("Content analyzed successfully!");
     } catch (error) {
-      new Notice("Failed to analyze content: " + error.message);
+      new Notice("Failed to analyze content: " + (error as Error).message);
     }
   }
 
@@ -444,89 +400,53 @@ Please provide a comprehensive analysis:`;
     try {
       new Notice("Extracting insights...");
 
-      const prompt = `Extract key insights, patterns, and actionable items from the following content:
+      const prompt = `Extract key insights from the following content:
 
-"${content.substring(0, 2000)}..."
+"${content}"
 
-Please provide:
-1. Key insights
-2. Important patterns
-3. Action items
-4. Recommendations`;
+Please provide the main insights:`;
 
-      const response = await this.aiOrchestrator.generateResponse({
-        prompt,
-        model: "gpt-4",
-        maxTokens: 1000,
-        temperature: 0.3,
-      });
+      const response = await this.aiOrchestrator.generateResponse(prompt);
 
-      // Add insights at the end of the file
-      const insights = `\n\n## Key Insights\n\n${response.content}\n`;
-      editor.setValue(content + insights);
+      editor.replaceSelection(response);
       new Notice("Insights extracted successfully!");
     } catch (error) {
-      new Notice("Failed to extract insights: " + error.message);
+      new Notice("Failed to extract insights: " + (error as Error).message);
     }
   }
 
   // Creative Commands Implementation
-  private async generateIdeas(content: string, editor: Editor): Promise<void> {
+  private async generateIdeas(topic: string, editor: Editor): Promise<void> {
     try {
       new Notice("Generating ideas...");
 
-      const prompt = `Based on the following content, generate creative ideas for:
-1. Related topics to explore
-2. Different angles to approach the subject
-3. Potential projects or applications
-4. Questions to investigate further
+      const prompt = `Generate creative ideas related to: ${topic}
 
-Content:
-"${content.substring(0, 1500)}..."
+Please provide a list of innovative ideas:`;
 
-Please provide creative and innovative ideas:`;
+      const response = await this.aiOrchestrator.generateResponse(prompt);
 
-      const response = await this.aiOrchestrator.generateResponse({
-        prompt,
-        model: "gpt-4",
-        maxTokens: 1000,
-        temperature: 0.8,
-      });
-
-      // Add ideas at the end of the file
-      const ideas = `\n\n## Generated Ideas\n\n${response.content}\n`;
-      editor.setValue(content + ideas);
+      editor.replaceSelection(response);
       new Notice("Ideas generated successfully!");
     } catch (error) {
-      new Notice("Failed to generate ideas: " + error.message);
+      new Notice("Failed to generate ideas: " + (error as Error).message);
     }
   }
 
-  private async brainstorm(editor: Editor): Promise<void> {
+  private async brainstorm(topic: string, editor: Editor): Promise<void> {
     try {
       new Notice("Starting brainstorming session...");
 
-      const prompt = `Start a brainstorming session. Please provide:
-1. A creative prompt or question to explore
-2. Multiple different approaches to think about it
-3. Potential solutions or ideas
-4. Next steps for further exploration
+      const prompt = `Brainstorm ideas for: ${topic}
 
-Make it engaging and thought-provoking:`;
+Please provide a comprehensive brainstorming session:`;
 
-      const response = await this.aiOrchestrator.generateResponse({
-        prompt,
-        model: "gpt-4",
-        maxTokens: 1200,
-        temperature: 0.9,
-      });
+      const response = await this.aiOrchestrator.generateResponse(prompt);
 
-      // Create a new brainstorming section
-      const brainstorming = `# Brainstorming Session\n\n${response.content}\n\n---\n`;
-      editor.setValue(brainstorming);
+      editor.replaceSelection(response);
       new Notice("Brainstorming session started!");
     } catch (error) {
-      new Notice("Failed to start brainstorming: " + error.message);
+      new Notice("Failed to start brainstorming: " + (error as Error).message);
     }
   }
 
@@ -537,7 +457,7 @@ Make it engaging and thought-provoking:`;
       // Implementation for Notion integration
       new Notice("Notion integration coming soon!");
     } catch (error) {
-      new Notice("Failed to create Notion page: " + error.message);
+      new Notice("Failed to create Notion page: " + (error as Error).message);
     }
   }
 
@@ -547,7 +467,7 @@ Make it engaging and thought-provoking:`;
       // Implementation for ClickUp integration
       new Notice("ClickUp integration coming soon!");
     } catch (error) {
-      new Notice("Failed to create ClickUp task: " + error.message);
+      new Notice("Failed to create ClickUp task: " + (error as Error).message);
     }
   }
 

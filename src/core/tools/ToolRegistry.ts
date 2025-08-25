@@ -7,6 +7,7 @@ import {
   ValidationResult,
   AuditHook,
 } from "../interfaces";
+import { TFile } from "obsidian";
 
 /**
  * 🛠️ Tool Registry - จัดการ tools แบบ declarative
@@ -55,8 +56,8 @@ export class ToolRegistry {
       execute: async ({ path }) => {
         try {
           const file = this.app.vault.getAbstractFileByPath(path);
-          if (!file) {
-            throw new Error(`File not found: ${path}`);
+          if (!file || !(file instanceof TFile)) {
+            throw new Error("File not found or not a text file");
           }
 
           const content = await this.app.vault.read(file);
@@ -166,7 +167,7 @@ export class ToolRegistry {
       },
       execute: async ({ query, folder, limit = 10 }) => {
         try {
-          const files = this.app.vault.getFiles();
+          const files = this.app.vault.getMarkdownFiles();
           let filteredFiles = files;
 
           if (folder) {
@@ -175,7 +176,13 @@ export class ToolRegistry {
             );
           }
 
-          const results = [];
+          const results: Array<{
+            path: string;
+            name: string;
+            size: number;
+            snippet: string;
+          }> = [];
+
           for (const file of filteredFiles.slice(0, limit)) {
             const content = await this.app.vault.read(file);
             if (content.toLowerCase().includes(query.toLowerCase())) {

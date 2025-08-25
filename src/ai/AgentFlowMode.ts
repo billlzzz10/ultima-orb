@@ -198,7 +198,7 @@ export class AgentFlowMode {
 
       for (const step of flow.steps) {
         // Update step status
-        const stepExecution = {
+        const stepExecution: StepExecution = {
           id: step.id,
           name: step.name,
           status: "running",
@@ -409,8 +409,8 @@ interface StepExecution {
   status: "running" | "completed" | "failed";
   startTime: Date;
   endTime?: Date;
-  result?: string;
-  error?: string;
+  result?: string | null;
+  error?: string | null;
 }
 
 /**

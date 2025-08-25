@@ -73,7 +73,10 @@ export class MCPManager {
       this.logger.info("🎯 MCP initialization completed");
       return results;
     } catch (error) {
-      this.logger.error("Failed to initialize MCP connections:", error);
+      this.logger.error(
+        "Failed to initialize MCP connections:",
+        error as Error
+      );
       return results;
     }
   }
@@ -95,7 +98,7 @@ export class MCPManager {
       this.logger.info("✅ ClickUp MCP connected");
       return true;
     } catch (error) {
-      this.logger.error("Failed to initialize ClickUp MCP:", error);
+      this.logger.error("Failed to initialize ClickUp MCP:", error as Error);
       return false;
     }
   }
@@ -117,7 +120,7 @@ export class MCPManager {
       this.logger.info("✅ Airtable MCP connected");
       return true;
     } catch (error) {
-      this.logger.error("Failed to initialize Airtable MCP:", error);
+      this.logger.error("Failed to initialize Airtable MCP:", error as Error);
       return false;
     }
   }
@@ -157,7 +160,7 @@ export class MCPManager {
       this.logger.info("🎯 MCP connection tests completed");
       return results;
     } catch (error) {
-      this.logger.error("Failed to test MCP connections:", error);
+      this.logger.error("Failed to test MCP connections:", error as Error);
       return results;
     }
   }
@@ -172,7 +175,7 @@ export class MCPManager {
       this.logger.info("✅ ClickUp MCP connection test successful");
       return true;
     } catch (error) {
-      this.logger.error("ClickUp MCP connection test failed:", error);
+      this.logger.error("ClickUp MCP connection test failed:", error as Error);
       return false;
     }
   }
@@ -187,7 +190,7 @@ export class MCPManager {
       this.logger.info("✅ Airtable MCP connection test successful");
       return true;
     } catch (error) {
-      this.logger.error("Airtable MCP connection test failed:", error);
+      this.logger.error("Airtable MCP connection test failed:", error as Error);
       return false;
     }
   }
@@ -243,7 +246,7 @@ export class MCPManager {
 
       this.logger.info("✅ All MCP connections closed");
     } catch (error) {
-      this.logger.error("Error closing MCP connections:", error);
+      this.logger.error("Error closing MCP connections:", error as Error);
     }
   }
 

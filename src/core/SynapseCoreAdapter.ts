@@ -1,11 +1,11 @@
 import { App, Notice } from "obsidian";
-import { 
-  SynapseCoreAPI, 
-  PluginState, 
-  Tool, 
+import {
+  SynapseCoreAPI,
+  PluginState,
+  Tool,
   ToolDatabase,
   EventCallback,
-  AsyncResult 
+  AsyncResult,
 } from "../types/api";
 
 /**
@@ -274,6 +274,7 @@ export class SynapseCoreAdapter {
           gemini: { connected: false, apiKey: "", model: "gemini-pro" },
           ollama: {
             connected: false,
+            apiKey: "", // Add missing apiKey
             url: "http://localhost:11434",
             model: "llama2",
           },
@@ -380,7 +381,17 @@ export class SynapseCoreAdapter {
   private getFallbackToolDatabase(): ToolDatabase {
     return {
       tools: [],
-      categories: ["ai", "file", "data", "code", "integration", "productivity", "visualization", "automation", "custom"],
+      categories: [
+        "ai",
+        "file",
+        "data",
+        "code",
+        "integration",
+        "productivity",
+        "visualization",
+        "automation",
+        "custom",
+      ],
       totalTools: 0,
       lastUpdated: new Date(),
     };
@@ -389,7 +400,11 @@ export class SynapseCoreAdapter {
   /**
    * 🔧 Get connection status
    */
-  getConnectionStatus(): { connected: boolean; retries: number; maxRetries: number } {
+  getConnectionStatus(): {
+    connected: boolean;
+    retries: number;
+    maxRetries: number;
+  } {
     return {
       connected: this.isConnected,
       retries: this.connectionRetries,
