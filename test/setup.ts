@@ -1,6 +1,6 @@
 // 🧪 Test Setup for Ultima-Orb
 
-import { vi } from "vitest";
+import { beforeEach, afterEach, expect, vi } from "vitest";
 
 // ===== GLOBAL MOCKS =====
 

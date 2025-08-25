@@ -1,4 +1,4 @@
-import { App, Editor, MarkdownView, Notice } from "obsidian";
+import { App, Notice, MarkdownView } from "obsidian";
 import { AIOrchestrator } from "./AIOrchestrator";
 import { ModeSystem } from "./ModeSystem";
 
@@ -279,7 +279,7 @@ Please provide:
    * Get current editor content
    */
   getCurrentEditorContent(): string {
-    const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+    const activeView = this.app.workspace.getActiveViewOfType("markdown");
     if (activeView && activeView.editor) {
       return activeView.editor.getValue();
     }
@@ -290,7 +290,7 @@ Please provide:
    * Get selected text from editor
    */
   getSelectedText(): string {
-    const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+    const activeView = this.app.workspace.getActiveViewOfType("markdown");
     if (activeView && activeView.editor) {
       const selection = activeView.editor.getSelection();
       return selection || "";
@@ -302,7 +302,7 @@ Please provide:
    * Replace selected text in editor
    */
   replaceSelectedText(newText: string): void {
-    const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+    const activeView = this.app.workspace.getActiveViewOfType("markdown");
     if (activeView && activeView.editor) {
       const selection = activeView.editor.getSelection();
       if (selection) {
@@ -315,7 +315,7 @@ Please provide:
    * Insert text at cursor position
    */
   insertTextAtCursor(text: string): void {
-    const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+    const activeView = this.app.workspace.getActiveViewOfType("markdown");
     if (activeView && activeView.editor) {
       const cursor = activeView.editor.getCursor();
       activeView.editor.replaceRange(text, cursor);
