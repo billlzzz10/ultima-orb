@@ -5,7 +5,6 @@ import { CursorFeatures } from "../ai/CursorFeatures";
  * 🚀 Cursor Command Palette - ฟีเจอร์ขั้นสูงจาก Cursor
  */
 export class CursorCommandPalette extends Modal {
-  private app: App;
   private cursorFeatures: CursorFeatures;
 
   // UI Elements
@@ -16,7 +15,6 @@ export class CursorCommandPalette extends Modal {
 
   constructor(app: App, cursorFeatures: CursorFeatures) {
     super(app);
-    this.app = app;
     this.cursorFeatures = cursorFeatures;
   }
 

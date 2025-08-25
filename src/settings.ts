@@ -7,7 +7,9 @@ export interface UltimaOrbSettings {
   // AI Provider Settings
   openaiApiKey: string;
   anthropicApiKey: string;
+  claudeApiKey: string;
   googleApiKey: string;
+  geminiApiKey: string;
   ollamaEndpoint: string;
   anythingLLMEndpoint: string;
 
@@ -60,7 +62,9 @@ export const DEFAULT_SETTINGS: UltimaOrbSettings = {
   // AI Provider Settings
   openaiApiKey: "",
   anthropicApiKey: "",
+  claudeApiKey: "",
   googleApiKey: "",
+  geminiApiKey: "",
   ollamaEndpoint: "http://localhost:11434",
   anythingLLMEndpoint: "http://localhost:3001",
 
