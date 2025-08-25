@@ -1,10 +1,7 @@
-name: New MCP server
-version: 0.0.1
+name: Notion MCP
+version: 0.0.2
 schema: v1
 mcpServers:
-  - name: New MCP server
-    command: npx
-    args:
-      - -y
-      - <your-mcp-server>
-    env: {}
+  - name: Notion MCP
+    type: streamable-http
+    url: https://mcp.notion.com/mcp

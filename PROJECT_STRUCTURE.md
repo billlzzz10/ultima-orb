@@ -25,7 +25,7 @@ Ultima-Orb/
 │   │       ├── 📄 ClaudeProvider.ts
 │   │       ├── 📄 GeminiProvider.ts
 │   │       ├── 📄 OllamaProvider.ts
-│   │       └── 📄 AnythingLLMProvider.ts
+│   │      
 │   │
 │   ├── 📁 Core System
 │   │   ├── 📄 ContextManager.ts    # Context management

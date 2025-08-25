@@ -1,30 +1,23 @@
-import { App, ItemView, WorkspaceLeaf, Notice } from "obsidian";
-import { FeatureManager } from "../../core/FeatureManager";
+import { ItemView, WorkspaceLeaf, Notice } from "obsidian";
 import { AIOrchestrator } from "../../ai/AIOrchestrator";
+import { ModeSystem } from "../../ai/ModeSystem";
 
 export const CHAT_VIEW_TYPE = "ultima-orb-chat";
 
 export class ChatView extends ItemView {
-  private app: App;
-  private featureManager: FeatureManager;
   private aiOrchestrator: AIOrchestrator;
-  private chatContainer: HTMLElement;
-  private messageContainer: HTMLElement;
-  private inputContainer: HTMLElement;
-  private messageInput: HTMLTextAreaElement;
-  private sendButton: HTMLButtonElement;
-  private messages: Array<{ role: "user" | "assistant"; content: string; timestamp: Date }> = [];
+  private modeSystem: ModeSystem;
+  private chatContainer!: HTMLElement;
+  private messageContainer!: HTMLElement;
+  private inputContainer!: HTMLElement;
+  private messageInput!: HTMLTextAreaElement;
+  private sendButton!: HTMLButtonElement;
+  private modeSelector!: HTMLSelectElement;
 
-  constructor(
-    app: App,
-    featureManager: FeatureManager,
-    aiOrchestrator: AIOrchestrator,
-    leaf?: WorkspaceLeaf
-  ) {
+  constructor(leaf: WorkspaceLeaf, aiOrchestrator: AIOrchestrator) {
     super(leaf);
-    this.app = app;
-    this.featureManager = featureManager;
     this.aiOrchestrator = aiOrchestrator;
+    this.modeSystem = aiOrchestrator.getModeSystem();
   }
 
   getViewType(): string {
@@ -35,175 +28,172 @@ export class ChatView extends ItemView {
     return "Ultima-Orb Chat";
   }
 
-  getIcon(): string {
-    return "message-circle";
-  }
-
-  async onOpen() {
+  async onOpen(): Promise<void> {
     const container = this.containerEl.children[1];
     container.empty();
     container.createEl("h4", { text: "Ultima-Orb AI Chat" });
 
-    this.createChatInterface(container);
-    this.loadChatHistory();
+    this.createChatInterface(container as HTMLElement);
   }
 
-  private createChatInterface(container: HTMLElement) {
-    // Create main chat container
-    this.chatContainer = container.createDiv("ultima-orb-chat-container");
-    
+  async onClose(): Promise<void> {
+    // Cleanup if needed
+  }
+
+  private createChatInterface(container: HTMLElement): void {
+    // Create mode selector
+    this.createModeSelector(container);
+
+    // Create chat container
+    this.chatContainer = container.createEl("div", {
+      cls: "ultima-orb-chat-container",
+    });
+
     // Create message container
-    this.messageContainer = this.chatContainer.createDiv("ultima-orb-message-container");
-    
+    this.messageContainer = this.chatContainer.createEl("div", {
+      cls: "ultima-orb-message-container",
+    });
+
     // Create input container
-    this.inputContainer = this.chatContainer.createDiv("ultima-orb-input-container");
-    
+    this.inputContainer = this.chatContainer.createEl("div", {
+      cls: "ultima-orb-input-container",
+    });
+
     // Create message input
     this.messageInput = this.inputContainer.createEl("textarea", {
+      cls: "ultima-orb-message-input",
       placeholder: "Type your message here...",
-      cls: "ultima-orb-message-input"
     });
-    
+
     // Create send button
     this.sendButton = this.inputContainer.createEl("button", {
+      cls: "ultima-orb-send-button",
       text: "Send",
-      cls: "ultima-orb-send-button"
     });
-    
+
     // Add event listeners
+    this.sendButton.addEventListener("click", () => this.sendMessage());
     this.messageInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         this.sendMessage();
       }
     });
-    
-    this.sendButton.addEventListener("click", () => {
-      this.sendMessage();
-    });
-    
-    // Add welcome message
-    this.addMessage("assistant", "Hello! I'm Ultima-Orb AI Assistant. How can I help you today?");
+
+    // Set initial welcome message
+    this.updateWelcomeMessage();
   }
 
-  private async sendMessage() {
+  private createModeSelector(container: HTMLElement): void {
+    const modeContainer = container.createEl("div", {
+      cls: "ultima-orb-mode-container",
+    });
+
+    modeContainer.createEl("label", {
+      cls: "ultima-orb-mode-label",
+      text: "AI Mode:",
+    });
+
+    this.modeSelector = modeContainer.createEl("select", {
+      cls: "ultima-orb-mode-selector",
+    });
+
+    this.populateModeSelector();
+
+    this.modeSelector.addEventListener("change", (e) => {
+      const target = e.target as HTMLSelectElement;
+      this.switchMode(target.value);
+    });
+  }
+
+  private populateModeSelector(): void {
+    this.modeSelector.empty();
+
+    const modes = this.modeSystem.getAllModes();
+    const activeMode = this.modeSystem.getActiveMode();
+
+    modes.forEach((mode) => {
+      const option = this.modeSelector.createEl("option", {
+        value: mode.id,
+        text: mode.label,
+      });
+
+      if (mode.id === activeMode?.id) {
+        option.selected = true;
+      }
+    });
+  }
+
+  private switchMode(modeId: string): void {
+    this.modeSystem.setActiveMode(modeId);
+    this.updateWelcomeMessage();
+    new Notice(`Switched to ${this.modeSystem.getActiveMode()?.label} mode`);
+  }
+
+  private updateWelcomeMessage(): void {
+    const activeMode = this.modeSystem.getActiveMode();
+    const welcomeMessage =
+      activeMode?.description || "How can I help you today?";
+
+    this.messageContainer.empty();
+    this.addMessage("assistant", welcomeMessage);
+  }
+
+  private async sendMessage(): Promise<void> {
     const message = this.messageInput.value.trim();
     if (!message) return;
-    
+
     // Add user message
     this.addMessage("user", message);
     this.messageInput.value = "";
-    
-    // Show typing indicator
-    const typingIndicator = this.addTypingIndicator();
-    
+
+    // Show loading
+    const loadingId = this.addMessage("assistant", "Thinking...");
+
     try {
       // Get AI response
-      const response = await this.aiOrchestrator.chat(message);
-      
-      // Remove typing indicator
-      typingIndicator.remove();
-      
-      // Add AI response
-      this.addMessage("assistant", response);
-      
+      const response = await this.aiOrchestrator.generateResponse(message);
+
+      // Update loading message with response
+      this.updateMessage(loadingId, "assistant", response);
     } catch (error) {
-      // Remove typing indicator
-      typingIndicator.remove();
-      
-      // Show error message
-      this.addMessage("assistant", "Sorry, I encountered an error. Please try again.");
-      new Notice(`Chat error: ${error}`);
+      this.updateMessage(
+        loadingId,
+        "assistant",
+        "Sorry, I encountered an error. Please try again."
+      );
+      console.error("Chat error:", error);
     }
   }
 
-  private addMessage(role: "user" | "assistant", content: string) {
-    const message = {
-      role,
-      content,
-      timestamp: new Date()
-    };
-    
-    this.messages.push(message);
-    this.renderMessage(message);
-    this.saveChatHistory();
+  private addMessage(role: "user" | "assistant", content: string): string {
+    const messageId = `msg-${Date.now()}`;
+    const messageEl = this.messageContainer.createEl("div", {
+      cls: `ultima-orb-message ultima-orb-message-${role}`,
+      attr: { "data-message-id": messageId },
+    });
+
+    messageEl.createEl("div", {
+      cls: "ultima-orb-message-content",
+      text: content,
+    });
+
+    return messageId;
   }
 
-  private renderMessage(message: { role: "user" | "assistant"; content: string; timestamp: Date }) {
-    const messageEl = this.messageContainer.createDiv(`ultima-orb-message ultima-orb-message-${message.role}`);
-    
-    // Create message header
-    const headerEl = messageEl.createDiv("ultima-orb-message-header");
-    headerEl.createEl("span", {
-      text: message.role === "user" ? "You" : "Ultima-Orb AI",
-      cls: "ultima-orb-message-author"
-    });
-    headerEl.createEl("span", {
-      text: message.timestamp.toLocaleTimeString(),
-      cls: "ultima-orb-message-time"
-    });
-    
-    // Create message content
-    const contentEl = messageEl.createDiv("ultima-orb-message-content");
-    contentEl.createEl("div", {
-      text: message.content,
-      cls: "ultima-orb-message-text"
-    });
-    
-    // Scroll to bottom
-    this.messageContainer.scrollTop = this.messageContainer.scrollHeight;
-  }
-
-  private addTypingIndicator(): HTMLElement {
-    const typingEl = this.messageContainer.createDiv("ultima-orb-message ultima-orb-message-assistant ultima-orb-typing");
-    
-    const headerEl = typingEl.createDiv("ultima-orb-message-header");
-    headerEl.createEl("span", {
-      text: "Ultima-Orb AI",
-      cls: "ultima-orb-message-author"
-    });
-    
-    const contentEl = typingEl.createDiv("ultima-orb-message-content");
-    const typingText = contentEl.createEl("div", {
-      text: "Typing",
-      cls: "ultima-orb-typing-text"
-    });
-    
-    // Add animated dots
-    let dots = 0;
-    const interval = setInterval(() => {
-      dots = (dots + 1) % 4;
-      typingText.setText("Typing" + ".".repeat(dots));
-    }, 500);
-    
-    // Store interval for cleanup
-    (typingEl as any).interval = interval;
-    
-    return typingEl;
-  }
-
-  private loadChatHistory() {
-    try {
-      const history = localStorage.getItem("ultima-orb-chat-history");
-      if (history) {
-        this.messages = JSON.parse(history);
-        this.messages.forEach(message => this.renderMessage(message));
+  private updateMessage(
+    messageId: string,
+    role: "user" | "assistant",
+    content: string
+  ): void {
+    const messageEl = this.messageContainer.querySelector(
+      `[data-message-id="${messageId}"]`
+    );
+    if (messageEl) {
+      const contentEl = messageEl.querySelector(".ultima-orb-message-content");
+      if (contentEl) {
+        contentEl.textContent = content;
       }
-    } catch (error) {
-      console.error("Failed to load chat history:", error);
     }
-  }
-
-  private saveChatHistory() {
-    try {
-      localStorage.setItem("ultima-orb-chat-history", JSON.stringify(this.messages));
-    } catch (error) {
-      console.error("Failed to save chat history:", error);
-    }
-  }
-
-  async onClose() {
-    // Cleanup
-    this.messages = [];
   }
 }

@@ -1,0 +1,395 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2024-01-01T00:00:00Z",
+  "tools": [
+    {
+      "id": "read_file",
+      "type": "utility",
+      "label": "Read File",
+      "description": "Read content from a file in the vault",
+      "version": "1.0.0",
+      "inputs": {
+        "filePath": {
+          "type": "string",
+          "required": true,
+          "description": "Path to the file to read",
+          "validation": {
+            "pattern": "^[^<>:\"/\\\\|?*]+$"
+          }
+        }
+      },
+      "outputs": {
+        "content": {
+          "type": "string",
+          "description": "File content"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "File metadata (size, modified date, etc.)"
+        }
+      },
+      "tags": ["file", "read", "utility"],
+      "enabled": true,
+      "mobileOptimized": true,
+      "requiresAuth": false,
+      "rateLimit": {
+        "requests": 100,
+        "window": 60
+      }
+    },
+    {
+      "id": "write_file",
+      "type": "utility",
+      "label": "Write File",
+      "description": "Write content to a file in the vault",
+      "version": "1.0.0",
+      "inputs": {
+        "filePath": {
+          "type": "string",
+          "required": true,
+          "description": "Path to the file to write",
+          "validation": {
+            "pattern": "^[^<>:\"/\\\\|?*]+$"
+          }
+        },
+        "content": {
+          "type": "string",
+          "required": true,
+          "description": "Content to write to the file"
+        },
+        "overwrite": {
+          "type": "boolean",
+          "required": false,
+          "description": "Whether to overwrite existing file",
+          "defaultValue": false
+        }
+      },
+      "outputs": {
+        "success": {
+          "type": "boolean",
+          "description": "Whether the write operation was successful"
+        },
+        "filePath": {
+          "type": "string",
+          "description": "Path of the written file"
+        }
+      },
+      "tags": ["file", "write", "utility"],
+      "enabled": true,
+      "mobileOptimized": true,
+      "requiresAuth": false,
+      "rateLimit": {
+        "requests": 50,
+        "window": 60
+      }
+    },
+    {
+      "id": "search_files",
+      "type": "utility",
+      "label": "Search Files",
+      "description": "Search for files in the vault",
+      "version": "1.0.0",
+      "inputs": {
+        "query": {
+          "type": "string",
+          "required": true,
+          "description": "Search query"
+        },
+        "fileTypes": {
+          "type": "array",
+          "required": false,
+          "description": "File types to search in",
+          "defaultValue": ["md", "txt"]
+        },
+        "limit": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of results",
+          "defaultValue": 10,
+          "validation": {
+            "min": 1,
+            "max": 100
+          }
+        }
+      },
+      "outputs": {
+        "results": {
+          "type": "array",
+          "description": "Search results"
+        },
+        "totalCount": {
+          "type": "number",
+          "description": "Total number of matching files"
+        }
+      },
+      "tags": ["search", "file", "utility"],
+      "enabled": true,
+      "mobileOptimized": true,
+      "requiresAuth": false,
+      "rateLimit": {
+        "requests": 200,
+        "window": 60
+      }
+    },
+    {
+      "id": "analyze_content",
+      "type": "utility",
+      "label": "Analyze Content",
+      "description": "Analyze text content for topics, readability, and structure",
+      "version": "1.0.0",
+      "inputs": {
+        "content": {
+          "type": "string",
+          "required": true,
+          "description": "Content to analyze"
+        },
+        "analysisType": {
+          "type": "string",
+          "required": false,
+          "description": "Type of analysis to perform",
+          "defaultValue": "full",
+          "validation": {
+            "enum": ["full", "topics", "readability", "structure"]
+          }
+        }
+      },
+      "outputs": {
+        "topics": {
+          "type": "array",
+          "description": "Extracted topics"
+        },
+        "readability": {
+          "type": "object",
+          "description": "Readability metrics"
+        },
+        "structure": {
+          "type": "object",
+          "description": "Document structure analysis"
+        }
+      },
+      "tags": ["analysis", "content", "utility"],
+      "enabled": true,
+      "mobileOptimized": true,
+      "requiresAuth": false,
+      "rateLimit": {
+        "requests": 100,
+        "window": 60
+      }
+    },
+    {
+      "id": "mcp_notion_sync",
+      "type": "mcp",
+      "label": "Notion Sync",
+      "description": "Sync content with Notion via MCP",
+      "version": "1.0.0",
+      "inputs": {
+        "databaseId": {
+          "type": "string",
+          "required": true,
+          "description": "Notion database ID"
+        },
+        "token": {
+          "type": "string",
+          "required": true,
+          "description": "Notion integration token"
+        },
+        "content": {
+          "type": "string",
+          "required": true,
+          "description": "Content to sync"
+        },
+        "syncType": {
+          "type": "string",
+          "required": false,
+          "description": "Type of sync operation",
+          "defaultValue": "create",
+          "validation": {
+            "enum": ["create", "update", "delete"]
+          }
+        }
+      },
+      "outputs": {
+        "syncedPages": {
+          "type": "array",
+          "description": "List of synced pages"
+        },
+        "syncStatus": {
+          "type": "string",
+          "description": "Sync operation status"
+        }
+      },
+      "tags": ["notion", "sync", "mcp", "integration"],
+      "enabled": true,
+      "mobileOptimized": false,
+      "requiresAuth": true,
+      "rateLimit": {
+        "requests": 10,
+        "window": 60
+      }
+    },
+    {
+      "id": "web_search",
+      "type": "integration",
+      "label": "Web Search",
+      "description": "Search the web for information",
+      "version": "1.0.0",
+      "inputs": {
+        "query": {
+          "type": "string",
+          "required": true,
+          "description": "Search query"
+        },
+        "searchEngine": {
+          "type": "string",
+          "required": false,
+          "description": "Search engine to use",
+          "defaultValue": "google",
+          "validation": {
+            "enum": ["google", "bing", "duckduckgo"]
+          }
+        },
+        "maxResults": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of results",
+          "defaultValue": 5,
+          "validation": {
+            "min": 1,
+            "max": 20
+          }
+        }
+      },
+      "outputs": {
+        "results": {
+          "type": "array",
+          "description": "Search results"
+        },
+        "totalResults": {
+          "type": "number",
+          "description": "Total number of results found"
+        }
+      },
+      "tags": ["web", "search", "integration"],
+      "enabled": true,
+      "mobileOptimized": true,
+      "requiresAuth": false,
+      "rateLimit": {
+        "requests": 20,
+        "window": 60
+      }
+    },
+    {
+      "id": "summarizer",
+      "type": "utility",
+      "label": "Content Summarizer",
+      "description": "Summarize long content",
+      "version": "1.0.0",
+      "inputs": {
+        "content": {
+          "type": "string",
+          "required": true,
+          "description": "Content to summarize"
+        },
+        "maxLength": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum length of summary",
+          "defaultValue": 200,
+          "validation": {
+            "min": 50,
+            "max": 1000
+          }
+        },
+        "style": {
+          "type": "string",
+          "required": false,
+          "description": "Summary style",
+          "defaultValue": "concise",
+          "validation": {
+            "enum": ["concise", "detailed", "bullet_points"]
+          }
+        }
+      },
+      "outputs": {
+        "summary": {
+          "type": "string",
+          "description": "Generated summary"
+        },
+        "originalLength": {
+          "type": "number",
+          "description": "Length of original content"
+        },
+        "summaryLength": {
+          "type": "number",
+          "description": "Length of generated summary"
+        }
+      },
+      "tags": ["summary", "content", "utility"],
+      "enabled": true,
+      "mobileOptimized": true,
+      "requiresAuth": false,
+      "rateLimit": {
+        "requests": 50,
+        "window": 60
+      }
+    },
+    {
+      "id": "code_analyzer",
+      "type": "utility",
+      "label": "Code Analyzer",
+      "description": "Analyze code for quality, complexity, and potential issues",
+      "version": "1.0.0",
+      "inputs": {
+        "code": {
+          "type": "string",
+          "required": true,
+          "description": "Code to analyze"
+        },
+        "language": {
+          "type": "string",
+          "required": false,
+          "description": "Programming language",
+          "defaultValue": "typescript",
+          "validation": {
+            "enum": ["typescript", "javascript", "python", "java", "cpp", "csharp"]
+          }
+        },
+        "analysisType": {
+          "type": "string",
+          "required": false,
+          "description": "Type of analysis",
+          "defaultValue": "full",
+          "validation": {
+            "enum": ["full", "complexity", "quality", "security"]
+          }
+        }
+      },
+      "outputs": {
+        "complexity": {
+          "type": "object",
+          "description": "Code complexity metrics"
+        },
+        "quality": {
+          "type": "object",
+          "description": "Code quality assessment"
+        },
+        "issues": {
+          "type": "array",
+          "description": "Potential issues found"
+        },
+        "suggestions": {
+          "type": "array",
+          "description": "Improvement suggestions"
+        }
+      },
+      "tags": ["code", "analysis", "utility"],
+      "enabled": true,
+      "mobileOptimized": false,
+      "requiresAuth": false,
+      "rateLimit": {
+        "requests": 30,
+        "window": 60
+      }
+    }
+  ]
+}

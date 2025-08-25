@@ -1,6 +1,6 @@
-import { App, ItemView, WorkspaceLeaf } from "obsidian";
+import { ItemView, WorkspaceLeaf } from "obsidian";
+import { UltimaOrbPlugin } from "../../UltimaOrbPlugin";
 import { FeatureManager } from "../../core/FeatureManager";
-import { UltimaOrbPlugin } from "../../../main";
 
 export const SIDEBAR_VIEW_TYPE = "ultima-orb-sidebar";
 

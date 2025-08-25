@@ -1,0 +1,383 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2024-01-01T00:00:00Z",
+  "integrations": [
+    {
+      "id": "notion",
+      "name": "Notion",
+      "description": "Sync content with Notion databases and pages",
+      "version": "1.0.0",
+      "type": "mcp",
+      "category": "productivity",
+      "icon": "notion",
+      "author": "Ultima-Orb Team",
+      "website": "https://notion.so",
+      "capabilities": [
+        "database-sync",
+        "page-creation",
+        "content-import",
+        "real-time-updates",
+        "bi-directional-sync"
+      ],
+      "authentication": {
+        "type": "oauth2",
+        "scopes": ["read", "write"],
+        "required": true
+      },
+      "endpoints": {
+        "baseUrl": "https://api.notion.com/v1",
+        "version": "2022-06-28"
+      },
+      "settings": {
+        "autoSync": false,
+        "syncInterval": 300,
+        "maxRetries": 3,
+        "batchSize": 100
+      },
+      "mobileOptimized": true,
+      "enabled": true,
+      "dependencies": ["mcp-server"],
+      "tags": ["notion", "sync", "productivity", "mcp"]
+    },
+    {
+      "id": "github",
+      "name": "GitHub",
+      "description": "Integrate with GitHub repositories and workflows",
+      "version": "1.0.0",
+      "type": "api",
+      "category": "development",
+      "icon": "github",
+      "author": "Ultima-Orb Team",
+      "website": "https://github.com",
+      "capabilities": [
+        "repo-access",
+        "issue-management",
+        "pull-requests",
+        "workflow-triggers",
+        "code-analysis"
+      ],
+      "authentication": {
+        "type": "oauth2",
+        "scopes": ["repo", "workflow"],
+        "required": true
+      },
+      "endpoints": {
+        "baseUrl": "https://api.github.com",
+        "version": "2022-11-28"
+      },
+      "settings": {
+        "autoSync": false,
+        "syncInterval": 600,
+        "maxRetries": 5,
+        "webhookSupport": true
+      },
+      "mobileOptimized": false,
+      "enabled": true,
+      "dependencies": [],
+      "tags": ["github", "development", "git", "api"]
+    },
+    {
+      "id": "openai",
+      "name": "OpenAI",
+      "description": "Access OpenAI's GPT models and APIs",
+      "version": "1.0.0",
+      "type": "ai-provider",
+      "category": "ai",
+      "icon": "openai",
+      "author": "OpenAI",
+      "website": "https://openai.com",
+      "capabilities": [
+        "chat-completion",
+        "text-generation",
+        "embeddings",
+        "image-generation",
+        "fine-tuning"
+      ],
+      "authentication": {
+        "type": "api-key",
+        "scopes": ["chat", "embeddings"],
+        "required": true
+      },
+      "endpoints": {
+        "baseUrl": "https://api.openai.com/v1",
+        "version": "2024-01-01"
+      },
+      "settings": {
+        "defaultModel": "gpt-3.5-turbo",
+        "maxTokens": 4096,
+        "temperature": 0.7,
+        "rateLimit": 3000
+      },
+      "mobileOptimized": true,
+      "enabled": true,
+      "dependencies": [],
+      "tags": ["openai", "ai", "gpt", "chat"]
+    },
+    {
+      "id": "anthropic",
+      "name": "Anthropic",
+      "description": "Access Anthropic's Claude models",
+      "version": "1.0.0",
+      "type": "ai-provider",
+      "category": "ai",
+      "icon": "anthropic",
+      "author": "Anthropic",
+      "website": "https://anthropic.com",
+      "capabilities": [
+        "chat-completion",
+        "text-generation",
+        "conversation-memory",
+        "safety-filters"
+      ],
+      "authentication": {
+        "type": "api-key",
+        "scopes": ["chat"],
+        "required": true
+      },
+      "endpoints": {
+        "baseUrl": "https://api.anthropic.com/v1",
+        "version": "2023-06-01"
+      },
+      "settings": {
+        "defaultModel": "claude-3-sonnet",
+        "maxTokens": 4096,
+        "temperature": 0.7,
+        "rateLimit": 1000
+      },
+      "mobileOptimized": true,
+      "enabled": true,
+      "dependencies": [],
+      "tags": ["anthropic", "ai", "claude", "chat"]
+    },
+    {
+      "id": "ollama",
+      "name": "Ollama",
+      "description": "Local AI models via Ollama",
+      "version": "1.0.0",
+      "type": "local-ai",
+      "category": "ai",
+      "icon": "ollama",
+      "author": "Ollama Team",
+      "website": "https://ollama.ai",
+      "capabilities": [
+        "local-models",
+        "chat-completion",
+        "text-generation",
+        "model-management",
+        "offline-capability"
+      ],
+      "authentication": {
+        "type": "none",
+        "scopes": [],
+        "required": false
+      },
+      "endpoints": {
+        "baseUrl": "http://localhost:11434",
+        "version": "v1"
+      },
+      "settings": {
+        "defaultModel": "llama2",
+        "maxTokens": 2048,
+        "temperature": 0.7,
+        "autoStart": true
+      },
+      "mobileOptimized": false,
+      "enabled": true,
+      "dependencies": ["ollama-server"],
+      "tags": ["ollama", "local", "ai", "offline"]
+    },
+    {
+      "id": "groq",
+      "name": "Groq",
+      "description": "Fast AI inference with Groq",
+      "version": "1.0.0",
+      "type": "ai-provider",
+      "category": "ai",
+      "icon": "groq",
+      "author": "Groq",
+      "website": "https://groq.com",
+      "capabilities": [
+        "fast-inference",
+        "chat-completion",
+        "text-generation",
+        "low-latency"
+      ],
+      "authentication": {
+        "type": "api-key",
+        "scopes": ["chat"],
+        "required": true
+      },
+      "endpoints": {
+        "baseUrl": "https://api.groq.com/openai/v1",
+        "version": "2024-01-01"
+      },
+      "settings": {
+        "defaultModel": "llama3-8b-8192",
+        "maxTokens": 8192,
+        "temperature": 0.7,
+        "rateLimit": 5000
+      },
+      "mobileOptimized": true,
+      "enabled": true,
+      "dependencies": [],
+      "tags": ["groq", "ai", "fast", "inference"]
+    },
+    {
+      "id": "anything-llm",
+      "name": "AnythingLLM",
+      "description": "Self-hosted AI platform",
+      "version": "1.0.0",
+      "type": "self-hosted",
+      "category": "ai",
+      "icon": "anything-llm",
+      "author": "AnythingLLM Team",
+      "website": "https://anythingllm.com",
+      "capabilities": [
+        "rag-capabilities",
+        "document-processing",
+        "chat-completion",
+        "knowledge-base",
+        "custom-models"
+      ],
+      "authentication": {
+        "type": "api-key",
+        "scopes": ["chat", "documents"],
+        "required": true
+      },
+      "endpoints": {
+        "baseUrl": "http://localhost:3001",
+        "version": "v1"
+      },
+      "settings": {
+        "autoSync": true,
+        "syncInterval": 300,
+        "maxDocuments": 10000,
+        "enableRAG": true
+      },
+      "mobileOptimized": false,
+      "enabled": true,
+      "dependencies": ["anything-llm-server"],
+      "tags": ["anything-llm", "self-hosted", "rag", "ai"]
+    },
+    {
+      "id": "google-ai",
+      "name": "Google AI",
+      "description": "Google's AI models and APIs",
+      "version": "1.0.0",
+      "type": "ai-provider",
+      "category": "ai",
+      "icon": "google",
+      "author": "Google",
+      "website": "https://ai.google.dev",
+      "capabilities": [
+        "chat-completion",
+        "text-generation",
+        "embeddings",
+        "multimodal",
+        "code-generation"
+      ],
+      "authentication": {
+        "type": "api-key",
+        "scopes": ["chat", "embeddings"],
+        "required": true
+      },
+      "endpoints": {
+        "baseUrl": "https://generativelanguage.googleapis.com",
+        "version": "v1"
+      },
+      "settings": {
+        "defaultModel": "gemini-pro",
+        "maxTokens": 8192,
+        "temperature": 0.7,
+        "rateLimit": 2000
+      },
+      "mobileOptimized": true,
+      "enabled": true,
+      "dependencies": [],
+      "tags": ["google", "ai", "gemini", "chat"]
+    },
+    {
+      "id": "mcp-server",
+      "name": "MCP Server",
+      "description": "Model Context Protocol server for tool integration",
+      "version": "1.0.0",
+      "type": "protocol",
+      "category": "development",
+      "icon": "mcp",
+      "author": "MCP Community",
+      "website": "https://modelcontextprotocol.io",
+      "capabilities": [
+        "tool-registration",
+        "resource-management",
+        "prompt-management",
+        "extensibility",
+        "standardization"
+      ],
+      "authentication": {
+        "type": "none",
+        "scopes": [],
+        "required": false
+      },
+      "endpoints": {
+        "baseUrl": "ws://localhost:3000",
+        "version": "1.0"
+      },
+      "settings": {
+        "autoConnect": true,
+        "reconnectInterval": 5000,
+        "maxRetries": 3,
+        "enableLogging": true
+      },
+      "mobileOptimized": false,
+      "enabled": true,
+      "dependencies": [],
+      "tags": ["mcp", "protocol", "tools", "standardization"]
+    }
+  ],
+  "categories": {
+    "ai": {
+      "label": "AI Providers",
+      "description": "Artificial Intelligence model providers",
+      "icon": "brain"
+    },
+    "productivity": {
+      "label": "Productivity",
+      "description": "Productivity and collaboration tools",
+      "icon": "briefcase"
+    },
+    "development": {
+      "label": "Development",
+      "description": "Development and coding tools",
+      "icon": "code"
+    },
+    "self-hosted": {
+      "label": "Self-Hosted",
+      "description": "Self-hosted services and platforms",
+      "icon": "server"
+    },
+    "protocol": {
+      "label": "Protocols",
+      "description": "Communication protocols and standards",
+      "icon": "network"
+    }
+  },
+  "settings": {
+    "global": {
+      "autoSync": false,
+      "syncInterval": 300,
+      "maxRetries": 3,
+      "timeout": 30000,
+      "enableLogging": true
+    },
+    "mobile": {
+      "enableOffline": true,
+      "syncOnConnect": true,
+      "batteryOptimization": true
+    },
+    "security": {
+      "encryptSecrets": true,
+      "validateCertificates": true,
+      "enableAudit": true
+    }
+  }
+}

@@ -1,6 +1,7 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
+import { UltimaOrbPlugin } from "../../UltimaOrbPlugin";
+import { UltimaOrbSettings } from "../../settings";
 import { FeatureManager } from "../../core/FeatureManager";
-import { UltimaOrbPlugin, UltimaOrbSettings } from "../../../main";
 
 export class SettingsPanel extends PluginSettingTab {
   private app: App;

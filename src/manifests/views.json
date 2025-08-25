@@ -1,0 +1,335 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2024-01-01T00:00:00Z",
+  "views": [
+    {
+      "id": "chat",
+      "type": "main",
+      "label": "AI Chat",
+      "description": "Main AI chat interface for interacting with AI models",
+      "version": "1.0.0",
+      "component": "ChatView",
+      "icon": "message-circle",
+      "category": "communication",
+      "features": [
+        "real-time-chat",
+        "mode-selection",
+        "context-awareness",
+        "streaming-responses",
+        "message-history"
+      ],
+      "dependencies": [
+        "AIOrchestrator",
+        "ModeSystem",
+        "ContextStore"
+      ],
+      "mobileOptimized": true,
+      "enabled": true,
+      "settings": {
+        "maxMessages": 100,
+        "autoScroll": true,
+        "showTimestamps": true,
+        "enableMarkdown": true
+      }
+    },
+    {
+      "id": "flow-debugger",
+      "type": "debug",
+      "label": "Flow Debugger",
+      "description": "Visualize agent orchestration and context propagation",
+      "version": "1.0.0",
+      "component": "FlowDebuggerView",
+      "icon": "bug",
+      "category": "development",
+      "features": [
+        "flow-diagrams",
+        "context-mapping",
+        "tool-stats",
+        "audit-trail",
+        "real-time-updates"
+      ],
+      "dependencies": [
+        "ContextStore",
+        "ToolRegistry",
+        "ModeSystem"
+      ],
+      "mobileOptimized": false,
+      "enabled": true,
+      "settings": {
+        "autoRefresh": true,
+        "refreshInterval": 5000,
+        "showMermaidDiagrams": true,
+        "maxAuditEntries": 1000
+      }
+    },
+    {
+      "id": "knowledge",
+      "type": "main",
+      "label": "Knowledge Base",
+      "description": "Manage and search knowledge base with RAG capabilities",
+      "version": "1.0.0",
+      "component": "KnowledgeView",
+      "icon": "book-open",
+      "category": "knowledge",
+      "features": [
+        "document-management",
+        "semantic-search",
+        "rag-integration",
+        "knowledge-graph",
+        "document-import"
+      ],
+      "dependencies": [
+        "MobileRAGModel",
+        "ContextStore",
+        "ToolRegistry"
+      ],
+      "mobileOptimized": true,
+      "enabled": true,
+      "settings": {
+        "maxDocuments": 10000,
+        "searchResults": 20,
+        "enableRAG": true,
+        "autoIndex": true
+      }
+    },
+    {
+      "id": "tool-template",
+      "type": "management",
+      "label": "Tool Templates",
+      "description": "Create and manage custom tool templates",
+      "version": "1.0.0",
+      "component": "ToolTemplateView",
+      "icon": "wrench",
+      "category": "development",
+      "features": [
+        "template-editor",
+        "tool-builder",
+        "validation",
+        "preview",
+        "export-import"
+      ],
+      "dependencies": [
+        "ToolRegistry",
+        "CoreValidators"
+      ],
+      "mobileOptimized": false,
+      "enabled": true,
+      "settings": {
+        "autoSave": true,
+        "showValidation": true,
+        "enablePreview": true
+      }
+    },
+    {
+      "id": "settings-dashboard",
+      "type": "management",
+      "label": "Settings Dashboard",
+      "description": "Comprehensive settings and configuration management",
+      "version": "1.0.0",
+      "component": "SettingsDashboardView",
+      "icon": "settings",
+      "category": "configuration",
+      "features": [
+        "provider-config",
+        "mode-settings",
+        "tool-management",
+        "mobile-config",
+        "audit-settings"
+      ],
+      "dependencies": [
+        "ProviderRegistry",
+        "ModeSystem",
+        "ToolRegistry",
+        "ContextStore"
+      ],
+      "mobileOptimized": true,
+      "enabled": true,
+      "settings": {
+        "showAdvanced": false,
+        "autoSave": true,
+        "showValidation": true
+      }
+    },
+    {
+      "id": "command-palette",
+      "type": "utility",
+      "label": "Enhanced Command Palette",
+      "description": "Advanced command palette with AI assistance",
+      "version": "1.0.0",
+      "component": "EnhancedCommandPaletteView",
+      "icon": "command",
+      "category": "utility",
+      "features": [
+        "ai-suggestions",
+        "context-aware",
+        "quick-actions",
+        "command-history",
+        "fuzzy-search"
+      ],
+      "dependencies": [
+        "AIOrchestrator",
+        "ContextStore",
+        "ToolRegistry"
+      ],
+      "mobileOptimized": true,
+      "enabled": true,
+      "settings": {
+        "maxSuggestions": 10,
+        "showAI": true,
+        "enableHistory": true
+      }
+    },
+    {
+      "id": "advanced-chat",
+      "type": "main",
+      "label": "Advanced Chat",
+      "description": "Advanced chat interface with multiple AI providers",
+      "version": "1.0.0",
+      "component": "AdvancedChatView",
+      "icon": "message-square",
+      "category": "communication",
+      "features": [
+        "multi-provider",
+        "conversation-threads",
+        "file-attachments",
+        "voice-input",
+        "collaboration"
+      ],
+      "dependencies": [
+        "ProviderRegistry",
+        "ContextStore",
+        "ToolRegistry"
+      ],
+      "mobileOptimized": true,
+      "enabled": true,
+      "settings": {
+        "maxThreads": 50,
+        "enableVoice": false,
+        "enableCollaboration": false
+      }
+    },
+    {
+      "id": "agent-builder",
+      "type": "development",
+      "label": "Agent Builder",
+      "description": "Build and configure custom AI agents",
+      "version": "1.0.0",
+      "component": "AgentBuilderView",
+      "icon": "bot",
+      "category": "development",
+      "features": [
+        "agent-templates",
+        "flow-builder",
+        "tool-assignment",
+        "testing",
+        "deployment"
+      ],
+      "dependencies": [
+        "ToolRegistry",
+        "ModeSystem",
+        "ContextStore"
+      ],
+      "mobileOptimized": false,
+      "enabled": true,
+      "settings": {
+        "showTemplates": true,
+        "enableTesting": true,
+        "autoValidate": true
+      }
+    },
+    {
+      "id": "analytics",
+      "type": "monitoring",
+      "label": "Analytics Dashboard",
+      "description": "Usage analytics and performance monitoring",
+      "version": "1.0.0",
+      "component": "AnalyticsView",
+      "icon": "bar-chart-3",
+      "category": "monitoring",
+      "features": [
+        "usage-stats",
+        "performance-metrics",
+        "error-tracking",
+        "user-behavior",
+        "export-reports"
+      ],
+      "dependencies": [
+        "ContextStore",
+        "ToolRegistry",
+        "ProviderRegistry"
+      ],
+      "mobileOptimized": true,
+      "enabled": true,
+      "settings": {
+        "trackUsage": true,
+        "trackPerformance": true,
+        "retentionDays": 30
+      }
+    },
+    {
+      "id": "mobile-optimizer",
+      "type": "utility",
+      "label": "Mobile Optimizer",
+      "description": "Optimize settings for mobile devices",
+      "version": "1.0.0",
+      "component": "MobileOptimizerView",
+      "icon": "smartphone",
+      "category": "utility",
+      "features": [
+        "performance-tuning",
+        "storage-optimization",
+        "offline-config",
+        "battery-optimization",
+        "network-optimization"
+      ],
+      "dependencies": [
+        "MobileRAGModel",
+        "CoreUtils"
+      ],
+      "mobileOptimized": true,
+      "enabled": true,
+      "settings": {
+        "autoOptimize": true,
+        "showRecommendations": true,
+        "enableOffline": true
+      }
+    }
+  ],
+  "categories": {
+    "communication": {
+      "label": "Communication",
+      "description": "Chat and messaging interfaces",
+      "icon": "message-circle"
+    },
+    "knowledge": {
+      "label": "Knowledge",
+      "description": "Knowledge management and search",
+      "icon": "book-open"
+    },
+    "development": {
+      "label": "Development",
+      "description": "Development and debugging tools",
+      "icon": "code"
+    },
+    "management": {
+      "label": "Management",
+      "description": "Configuration and management tools",
+      "icon": "settings"
+    },
+    "utility": {
+      "label": "Utility",
+      "description": "Utility and helper tools",
+      "icon": "tool"
+    },
+    "monitoring": {
+      "label": "Monitoring",
+      "description": "Analytics and monitoring tools",
+      "icon": "bar-chart-3"
+    },
+    "debug": {
+      "label": "Debug",
+      "description": "Debugging and diagnostic tools",
+      "icon": "bug"
+    }
+  }
+}

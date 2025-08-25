@@ -19,6 +19,7 @@ import { CursorFeatures } from "./ai/CursorFeatures";
 import { AdvancedChatInterface } from "./ui/AdvancedChatInterface";
 import { CursorCommandPalette } from "./ui/CursorCommandPalette";
 import { ModeSystem } from "./ai/ModeSystem";
+import { ToolManager } from "./tools/ToolManager";
 
 /**
  * 🔮 Ultima-Orb Plugin
@@ -27,7 +28,7 @@ import { ModeSystem } from "./ai/ModeSystem";
  * ใช้ Synapse-Core API สำหรับ core features และจัดการเฉพาะ AI features
  */
 
-export default class UltimaOrbPlugin extends Plugin {
+export class UltimaOrbPlugin extends Plugin {
   private settingsManager!: SettingsManager;
   private synapseCoreAdapter!: SynapseCoreAdapter;
   private contextManager!: ContextManager;
@@ -377,6 +378,45 @@ export default class UltimaOrbPlugin extends Plugin {
    */
   getModeSystem(): ModeSystem {
     return this.modeSystem;
+  }
+
+  /**
+   * 🎯 Show Mode Selector
+   */
+  private showModeSelector(): void {
+    const modes = this.modeSystem.getAllModes();
+    const activeMode = this.modeSystem.getActiveMode();
+
+    const modeList = modes
+      .map(
+        (mode) =>
+          `${mode.id === activeMode?.id ? "✅" : "⭕"} ${mode.name}: ${
+            mode.description
+          }`
+      )
+      .join("\n");
+
+    new Notice(
+      `🎯 Current Mode: ${
+        activeMode?.name || "None"
+      }\n\nAvailable Modes:\n${modeList}`
+    );
+  }
+
+  /**
+   * ⚙️ Open Mode Settings
+   */
+  private openModeSettings(): void {
+    const modes = this.modeSystem.getAllModes();
+    const toolGroups = this.modeSystem.getAllToolGroups();
+
+    const settingsInfo =
+      `🎯 Mode System Settings\n\n` +
+      `Modes: ${modes.length}\n` +
+      `Tool Groups: ${toolGroups.length}\n` +
+      `Active Mode: ${this.modeSystem.getActiveMode()?.name || "None"}`;
+
+    new Notice(settingsInfo);
   }
 
   /**

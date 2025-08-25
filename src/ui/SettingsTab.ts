@@ -1,5 +1,5 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
-import UltimaOrbPlugin from "../UltimaOrbPlugin";
+import { UltimaOrbPlugin } from "../UltimaOrbPlugin";
 import { Logger } from "../services/Logger";
 
 /**
