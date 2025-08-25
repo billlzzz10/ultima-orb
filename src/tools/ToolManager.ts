@@ -1,4 +1,4 @@
-import { App, Notice } from "obsidian";
+import { App, Notice, TFile } from "obsidian";
 import { ModeSystem } from "../ai/ModeSystem";
 
 /**
@@ -47,7 +47,7 @@ export class ToolManager {
       execute: async (args: { path: string }) => {
         try {
           const file = this.app.vault.getAbstractFileByPath(args.path);
-          if (file && file instanceof this.app.vault.adapter.getResourcePath) {
+          if (file && file instanceof TFile) {
             return await this.app.vault.read(file);
           }
           throw new Error("File not found");
@@ -66,7 +66,7 @@ export class ToolManager {
       execute: async (args: { folder?: string }) => {
         try {
           const folder = args.folder || "";
-          const files = this.app.vault.getFiles();
+          const files = this.app.vault.getMarkdownFiles();
           if (folder) {
             return files.filter((file) => file.path.startsWith(folder));
           }
@@ -121,10 +121,15 @@ export class ToolManager {
       enabled: true,
       execute: async (args: { query: string }) => {
         try {
-          const results =
-            (await this.app.internalPlugins.plugins.global) -
-            search.instance.search(args.query);
-          return results;
+          // Use the search API properly
+          const searchResults = this.app.vault.getMarkdownFiles().filter(file =>
+            file.name.toLowerCase().includes(args.query.toLowerCase()) ||
+            file.path.toLowerCase().includes(args.query.toLowerCase())
+          );
+          return searchResults.map(file => ({
+            path: file.path,
+            name: file.name
+          }));
         } catch (error) {
           throw new Error(`Failed to search files: ${error}`);
         }
@@ -140,8 +145,8 @@ export class ToolManager {
       execute: async (args: { query: string }) => {
         try {
           // ใช้ AI เพื่อค้นหาเชิงความหมาย
-          const files = this.app.vault.getFiles();
-          const results = [];
+          const files = this.app.vault.getMarkdownFiles();
+          const results: Array<{file: string, content: string}> = [];
 
           for (const file of files.slice(0, 10)) {
             // จำกัดจำนวนไฟล์เพื่อประสิทธิภาพ
