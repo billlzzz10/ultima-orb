@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.1] - 2025-01-25
+## [1.0.1] - 2025-08-26
 
 ### 🔒 Security
 - **BREAKING:** Remove hardcoded API keys from test files
@@ -55,7 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Added:** CHANGELOG.md for version tracking
 - **Updated:** Project structure documentation
 
-## [1.0.0] - 2025-01-24
+## [1.0.0] - 2025-08-25
 
 ### 🚀 Initial Release
 - **Added:** AI Orchestrator system
