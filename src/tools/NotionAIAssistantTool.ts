@@ -598,7 +598,11 @@ export class NotionAIAssistantTool extends ToolBase {
     database: any,
     optimizationType?: string
   ): Promise<any> {
-    const recommendations = {
+    const recommendations: {
+      structure: string[];
+      performance: string[];
+      usability: string[];
+    } = {
       structure: [],
       performance: [],
       usability: [],

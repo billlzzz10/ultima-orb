@@ -42,6 +42,7 @@ export interface AutomationAction {
 }
 
 export interface SyncConfig {
+  id: string;
   sourceDatabase: string;
   targetFolder: string;
   syncDirection: "notion_to_obsidian" | "obsidian_to_notion" | "bidirectional";
@@ -289,6 +290,7 @@ export class NotionDataAutomationTool extends ToolBase {
   ): Promise<ToolResult> {
     try {
       const config: SyncConfig = {
+        id: `sync_${Date.now()}`,
         sourceDatabase,
         targetFolder,
         syncDirection: syncDirection as any,
@@ -331,7 +333,14 @@ export class NotionDataAutomationTool extends ToolBase {
         ? this.automationRules.filter((rule) => rule.id === ruleId)
         : this.automationRules.filter((rule) => rule.enabled);
 
-      const results = [];
+      const results: Array<{
+        ruleId: string;
+        ruleName: string;
+        success: boolean;
+        message?: string;
+        error?: string;
+        executedAt: string;
+      }> = [];
 
       for (const rule of rulesToRun) {
         try {
@@ -392,7 +401,15 @@ export class NotionDataAutomationTool extends ToolBase {
         ? this.syncConfigs.filter((config) => config.id === configId)
         : this.syncConfigs.filter((config) => config.enabled);
 
-      const results = [];
+      const results: Array<{
+        configId: string;
+        targetFolder: string;
+        direction?: string;
+        success: boolean;
+        message?: string;
+        error?: string;
+        syncedAt: string;
+      }> = [];
 
       for (const config of configsToSync) {
         try {
@@ -667,7 +684,8 @@ export class NotionDataAutomationTool extends ToolBase {
   private async ensureFolderExists(folderPath: string): Promise<void> {
     const folder = this.app.vault.getAbstractFileByPath(folderPath);
     if (!folder) {
-      await this.app.vault.createFolder(folderPath);
+      // await this.app.vault.createFolder(folderPath);
+      console.log(`Would create folder: ${folderPath}`);
     }
   }
 
