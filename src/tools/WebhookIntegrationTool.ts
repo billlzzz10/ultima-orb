@@ -673,6 +673,7 @@ export class WebhookIntegrationTool extends ToolBase {
    */
   getMetadata(): ToolMetadata {
     return {
+      id: "webhook-integration",
       name: "Webhook & Integration Hub",
       description: "จัดการ webhooks และ integrations กับบริการภายนอก",
       version: "1.0.0",

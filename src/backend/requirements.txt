@@ -1,0 +1,15 @@
+aiohttp==3.9.1
+pandas==2.1.4
+schedule==1.2.0
+asyncio-mqtt==0.16.1
+python-dotenv==1.0.0
+sqlite3
+logging
+datetime
+typing
+dataclasses
+enum
+json
+os
+time
+threading

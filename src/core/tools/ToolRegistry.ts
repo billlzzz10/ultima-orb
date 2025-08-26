@@ -6,6 +6,13 @@ import { LocalModelsTool } from "../../tools/LocalModelsTool";
 import { NotionDatabaseTool } from "../../tools/NotionDatabaseTool";
 import { AIOrchestrationTool } from "../../tools/AIOrchestrationTool";
 import { WebhookIntegrationTool } from "../../tools/WebhookIntegrationTool";
+import { NotionAnalysisTool } from "../../tools/NotionAnalysisTool";
+import { ObsidianBasesTool } from "../../tools/ObsidianBasesTool";
+import { APIManagerTool } from "../../tools/APIManagerTool";
+import { NotionAIAssistantTool } from "../../tools/NotionAIAssistantTool";
+import { NotionDataAutomationTool } from "../../tools/NotionDataAutomationTool";
+import { FileImportTool } from "../../tools/FileImportTool";
+import { AirtableIntegrationTool } from "../../tools/AirtableIntegrationTool";
 import { App } from "obsidian";
 
 export interface ToolRegistration {
@@ -39,8 +46,15 @@ export class ToolRegistry {
       autoInitialize: true,
       enableLogging: true,
       maxTools: 100,
-      categories: ["AI", "Development", "Integration", "Visualization", "Productivity", "Data"],
-      ...config
+      categories: [
+        "AI",
+        "Development",
+        "Integration",
+        "Visualization",
+        "Productivity",
+        "Data",
+      ],
+      ...config,
     };
   }
 
@@ -53,7 +67,7 @@ export class ToolRegistry {
     try {
       // Register default tools
       await this.registerDefaultTools();
-      
+
       if (this.config.autoInitialize) {
         await this.initializeAllTools();
       }
@@ -67,17 +81,23 @@ export class ToolRegistry {
   }
 
   // Register a new tool
-  async registerTool(tool: ToolBase, enabled: boolean = true): Promise<boolean> {
+  async registerTool(
+    tool: ToolBase,
+    enabled: boolean = true
+  ): Promise<boolean> {
     try {
       const metadata = tool.getMetadata();
-      
+
       if (this.tools.has(metadata.id)) {
         this.log(`Tool with ID ${metadata.id} already exists`, "warn");
         return false;
       }
 
       if (this.tools.size >= this.config.maxTools) {
-        this.log(`Maximum number of tools (${this.config.maxTools}) reached`, "warn");
+        this.log(
+          `Maximum number of tools (${this.config.maxTools}) reached`,
+          "warn"
+        );
         return false;
       }
 
@@ -89,7 +109,7 @@ export class ToolRegistry {
         metadata,
         category: metadata.category,
         tags: metadata.tags,
-        usageCount: 0
+        usageCount: 0,
       };
 
       this.tools.set(metadata.id, registration);
@@ -142,35 +162,35 @@ export class ToolRegistry {
 
   // Get all tools
   getAllTools(): ToolBase[] {
-    return Array.from(this.tools.values()).map(reg => reg.tool);
+    return Array.from(this.tools.values()).map((reg) => reg.tool);
   }
 
   // Get enabled tools
   getEnabledTools(): ToolBase[] {
     return Array.from(this.tools.values())
-      .filter(reg => reg.enabled)
-      .map(reg => reg.tool);
+      .filter((reg) => reg.enabled)
+      .map((reg) => reg.tool);
   }
 
   // Get initialized tools
   getInitializedTools(): ToolBase[] {
     return Array.from(this.tools.values())
-      .filter(reg => reg.initialized)
-      .map(reg => reg.tool);
+      .filter((reg) => reg.initialized)
+      .map((reg) => reg.tool);
   }
 
   // Get tools by category
   getToolsByCategory(category: string): ToolBase[] {
     return Array.from(this.tools.values())
-      .filter(reg => reg.category === category)
-      .map(reg => reg.tool);
+      .filter((reg) => reg.category === category)
+      .map((reg) => reg.tool);
   }
 
   // Get tools by tag
   getToolsByTag(tag: string): ToolBase[] {
     return Array.from(this.tools.values())
-      .filter(reg => reg.tags.includes(tag))
-      .map(reg => reg.tool);
+      .filter((reg) => reg.tags.includes(tag))
+      .map((reg) => reg.tool);
   }
 
   // Enable a tool
@@ -262,7 +282,7 @@ export class ToolRegistry {
       registration.lastUsed = new Date();
 
       const result = await registration.tool.execute(params);
-      
+
       this.log(`Tool ${registration.metadata.name} executed successfully`);
       return result;
     } catch (error) {
@@ -297,7 +317,7 @@ export class ToolRegistry {
       byCategory: {} as Record<string, number>,
       byTag: {} as Record<string, number>,
       mostUsed: [] as any[],
-      recentlyUsed: [] as any[]
+      recentlyUsed: [] as any[],
     };
 
     for (const registration of this.tools.values()) {
@@ -305,7 +325,8 @@ export class ToolRegistry {
       if (registration.initialized) stats.initialized++;
 
       // Category stats
-      stats.byCategory[registration.category] = (stats.byCategory[registration.category] || 0) + 1;
+      stats.byCategory[registration.category] =
+        (stats.byCategory[registration.category] || 0) + 1;
 
       // Tag stats
       for (const tag of registration.tags) {
@@ -317,7 +338,7 @@ export class ToolRegistry {
         stats.mostUsed.push({
           id: registration.id,
           name: registration.metadata.name,
-          usageCount: registration.usageCount
+          usageCount: registration.usageCount,
         });
       }
 
@@ -325,14 +346,16 @@ export class ToolRegistry {
         stats.recentlyUsed.push({
           id: registration.id,
           name: registration.metadata.name,
-          lastUsed: registration.lastUsed
+          lastUsed: registration.lastUsed,
         });
       }
     }
 
     // Sort by usage
     stats.mostUsed.sort((a, b) => b.usageCount - a.usageCount);
-    stats.recentlyUsed.sort((a, b) => b.lastUsed.getTime() - a.lastUsed.getTime());
+    stats.recentlyUsed.sort(
+      (a, b) => b.lastUsed.getTime() - a.lastUsed.getTime()
+    );
 
     return stats;
   }
@@ -344,12 +367,12 @@ export class ToolRegistry {
 
     for (const registration of this.tools.values()) {
       const { metadata, tags } = registration;
-      
+
       if (
         metadata.name.toLowerCase().includes(lowerQuery) ||
         metadata.description.toLowerCase().includes(lowerQuery) ||
         metadata.category.toLowerCase().includes(lowerQuery) ||
-        tags.some(tag => tag.toLowerCase().includes(lowerQuery))
+        tags.some((tag) => tag.toLowerCase().includes(lowerQuery))
       ) {
         results.push(registration.tool);
       }
@@ -361,7 +384,7 @@ export class ToolRegistry {
   // Export registry configuration
   exportConfig(): any {
     const config = {
-      tools: Array.from(this.tools.values()).map(reg => ({
+      tools: Array.from(this.tools.values()).map((reg) => ({
         id: reg.id,
         enabled: reg.enabled,
         initialized: reg.initialized,
@@ -369,10 +392,10 @@ export class ToolRegistry {
         category: reg.category,
         tags: reg.tags,
         lastUsed: reg.lastUsed,
-        usageCount: reg.usageCount
+        usageCount: reg.usageCount,
       })),
       config: this.config,
-      stats: this.getToolStats()
+      stats: this.getToolStats(),
     };
 
     return config;
@@ -423,14 +446,23 @@ export class ToolRegistry {
 
   // Private methods
   private async registerDefaultTools(): Promise<void> {
+    const aiOrchestration = new AIOrchestrationTool(this.app);
+    const apiManager = new APIManagerTool(this.app);
     const defaultTools = [
       new AdvancedScriptingTool(this.app),
       new ExcalidrawFeaturesTool(),
       new RAGFeaturesTool(),
       new LocalModelsTool(),
       new NotionDatabaseTool(),
-      new AIOrchestrationTool(this.app),
-      new WebhookIntegrationTool(this.app)
+      aiOrchestration,
+      new WebhookIntegrationTool(this.app),
+      new NotionAnalysisTool(this.app, aiOrchestration),
+      new ObsidianBasesTool(this.app),
+      apiManager,
+      new NotionAIAssistantTool(this.app, apiManager, aiOrchestration),
+      new NotionDataAutomationTool(this.app, apiManager),
+      new FileImportTool(this.app, apiManager),
+      new AirtableIntegrationTool(this.app, apiManager),
     ];
 
     for (const tool of defaultTools) {
@@ -439,15 +471,19 @@ export class ToolRegistry {
   }
 
   private async initializeAllTools(): Promise<void> {
-    const enabledTools = Array.from(this.tools.values())
-      .filter(reg => reg.enabled && !reg.initialized);
+    const enabledTools = Array.from(this.tools.values()).filter(
+      (reg) => reg.enabled && !reg.initialized
+    );
 
     for (const registration of enabledTools) {
       await this.initializeTool(registration.id);
     }
   }
 
-  private log(message: string, level: "info" | "warn" | "error" = "info"): void {
+  private log(
+    message: string,
+    level: "info" | "warn" | "error" = "info"
+  ): void {
     if (!this.config.enableLogging) return;
 
     const timestamp = new Date().toISOString();

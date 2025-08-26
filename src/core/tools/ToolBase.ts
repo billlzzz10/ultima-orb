@@ -7,6 +7,18 @@ export interface ToolMetadata {
   version: string;
   author: string;
   tags: string[];
+  commands?: Array<{
+    name: string;
+    description: string;
+    parameters: Record<
+      string,
+      {
+        type: string;
+        required: boolean;
+        description: string;
+      }
+    >;
+  }>;
 }
 
 export interface ToolResult {

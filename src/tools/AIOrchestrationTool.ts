@@ -261,12 +261,14 @@ export class AIOrchestrationTool extends ToolBase {
         success: true,
         data: { defaultProvider: provider },
         message: `Default provider changed to ${provider}`,
+        timestamp: new Date(),
       };
     } else {
       return {
         success: false,
         error: `Provider '${provider}' not found`,
         message: "Failed to change default provider",
+        timestamp: new Date(),
       };
     }
   }
@@ -287,6 +289,7 @@ export class AIOrchestrationTool extends ToolBase {
       success: true,
       data: available,
       message: `Found ${available.length} available providers`,
+      timestamp: new Date(),
     };
   }
 
@@ -326,6 +329,7 @@ export class AIOrchestrationTool extends ToolBase {
             metadata: response.metadata,
           },
           message: `Image generated using ${provider}`,
+          timestamp: new Date(),
         };
       } else {
         throw new Error(
@@ -337,6 +341,7 @@ export class AIOrchestrationTool extends ToolBase {
         success: false,
         error: error instanceof Error ? error.message : String(error),
         message: "Failed to generate image",
+        timestamp: new Date(),
       };
     }
   }
@@ -367,6 +372,7 @@ export class AIOrchestrationTool extends ToolBase {
             metadata: response.metadata,
           },
           message: `Image analyzed using ${selectedProvider.getName()}`,
+          timestamp: new Date(),
         };
       } else {
         throw new Error(
@@ -378,6 +384,7 @@ export class AIOrchestrationTool extends ToolBase {
         success: false,
         error: error instanceof Error ? error.message : String(error),
         message: "Failed to analyze image",
+        timestamp: new Date(),
       };
     }
   }
@@ -387,6 +394,7 @@ export class AIOrchestrationTool extends ToolBase {
    */
   getMetadata(): ToolMetadata {
     return {
+      id: "ai-orchestration",
       name: "AI Orchestration",
       description:
         "จัดการ AI providers หลายตัว พร้อม fallback และ cost tracking",

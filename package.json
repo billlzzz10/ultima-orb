@@ -1,6 +1,6 @@
 {
   "name": "ultima-orb",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "The Ultimate Hybrid AI Command Center for Obsidian.",
   "main": "main.js",
   "scripts": {
