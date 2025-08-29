@@ -14,7 +14,7 @@
     "test:watch": "vitest --watch",
     "test:all": "node scripts/test-all.js",
     "type-check": "tsc --noEmit",
-    "clean": "rimraf main.js dist",
+    "clean": "node scripts/clean.mjs",
     "prebuild": "npm run clean",
     "predev": "npm run type-check",
     "version": "node version-bump.mjs && git add manifest.json versions.json"
