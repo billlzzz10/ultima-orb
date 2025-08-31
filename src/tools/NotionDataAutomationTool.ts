@@ -182,18 +182,18 @@ export class NotionDataAutomationTool extends ToolBase {
   async execute(params: {
     action: string;
     name?: string;
-    trigger?: string;
+    trigger?: AutomationRule["trigger"];
     conditions?: AutomationCondition[];
     actions?: AutomationAction[];
     sourceDatabase?: string;
     targetFolder?: string;
-    syncDirection?: string;
+    syncDirection?: SyncConfig["syncDirection"];
     propertyMapping?: Record<string, string>;
     ruleId?: string;
     force?: boolean;
     configId?: string;
-    direction?: string;
-    format?: string;
+    direction?: SyncConfig["syncDirection"];
+    format?: "json" | "csv" | "markdown";
     includeHistory?: boolean;
   }): Promise<ToolResult> {
     try {
@@ -246,7 +246,7 @@ export class NotionDataAutomationTool extends ToolBase {
 
   private async createAutomationRule(
     name: string,
-    trigger: string,
+    trigger: AutomationRule["trigger"],
     conditions?: AutomationCondition[],
     actions?: AutomationAction[]
   ): Promise<ToolResult> {
@@ -255,12 +255,12 @@ export class NotionDataAutomationTool extends ToolBase {
         id: this.generateId(),
         name,
         description: `กฎการทำงานอัตโนมัติสำหรับ ${name}`,
-        trigger: trigger as any,
+        trigger,
         conditions: conditions || [],
         actions: actions || [],
         enabled: true,
         lastRun: undefined,
-        nextRun: this.calculateNextRun(trigger as any),
+        nextRun: this.calculateNextRun(trigger),
       };
 
       this.automationRules.push(rule);
@@ -285,7 +285,7 @@ export class NotionDataAutomationTool extends ToolBase {
   private async setupSync(
     sourceDatabase: string,
     targetFolder: string,
-    syncDirection: string,
+    syncDirection: SyncConfig["syncDirection"],
     propertyMapping?: Record<string, string>
   ): Promise<ToolResult> {
     try {
@@ -293,7 +293,7 @@ export class NotionDataAutomationTool extends ToolBase {
         id: `sync_${Date.now()}`,
         sourceDatabase,
         targetFolder,
-        syncDirection: syncDirection as any,
+        syncDirection,
         propertyMapping: propertyMapping || {
           title: "title",
           status: "status",
@@ -394,7 +394,7 @@ export class NotionDataAutomationTool extends ToolBase {
 
   private async syncData(
     configId?: string,
-    direction?: string
+    direction?: SyncConfig["syncDirection"]
   ): Promise<ToolResult> {
     try {
       const configsToSync = configId
@@ -404,7 +404,7 @@ export class NotionDataAutomationTool extends ToolBase {
       const results: Array<{
         configId: string;
         targetFolder: string;
-        direction?: string;
+        direction?: SyncConfig["syncDirection"];
         success: boolean;
         message?: string;
         error?: string;
@@ -414,7 +414,7 @@ export class NotionDataAutomationTool extends ToolBase {
       for (const config of configsToSync) {
         try {
           const syncDirection = direction || config.syncDirection;
-          const result = await this.performSync(config, syncDirection as any);
+          const result = await this.performSync(config, syncDirection);
 
           results.push({
             configId: config.sourceDatabase,
@@ -460,7 +460,7 @@ export class NotionDataAutomationTool extends ToolBase {
   }
 
   private async exportAutomationData(
-    format?: string,
+    format?: "json" | "csv" | "markdown",
     includeHistory?: boolean
   ): Promise<ToolResult> {
     try {
@@ -526,7 +526,9 @@ export class NotionDataAutomationTool extends ToolBase {
       .substr(2, 9)}`;
   }
 
-  private calculateNextRun(trigger: string): string | undefined {
+  private calculateNextRun(
+    trigger: AutomationRule["trigger"]
+  ): string | undefined {
     if (trigger === "on_schedule") {
       const nextRun = new Date();
       nextRun.setHours(nextRun.getHours() + 1);
@@ -605,7 +607,7 @@ export class NotionDataAutomationTool extends ToolBase {
 
   private async performSync(
     config: SyncConfig,
-    direction: string
+    direction: SyncConfig["syncDirection"]
   ): Promise<{ success: boolean; message: string }> {
     try {
       switch (direction) {
