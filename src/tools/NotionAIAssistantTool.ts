@@ -153,12 +153,13 @@ export class NotionAIAssistantTool extends ToolBase {
   async execute(params: {
     action: string;
     databaseId?: string;
-    analysisType?: string;
+    analysisType?: NotionAnalysisRequest["analysisType"];
     focusAreas?: string[];
-    outputFormat?: string;
-    optimizationType?: string;
+    outputFormat?: NotionAnalysisRequest["outputFormat"];
+    optimizationType?: "structure" | "performance" | "usability";
     useCase?: string;
-    complexity?: string;
+    complexity?: "simple" | "medium" | "advanced";
+    syncAction?: "create_notes" | "update_properties" | "generate_templates";
     targetFolder?: string;
   }): Promise<ToolResult> {
     try {
@@ -186,7 +187,7 @@ export class NotionAIAssistantTool extends ToolBase {
 
         case "sync_recommendations":
           return await this.syncRecommendations(
-            params.action,
+            params.syncAction!,
             params.targetFolder
           );
 
@@ -393,7 +394,7 @@ export class NotionAIAssistantTool extends ToolBase {
   }
 
   private async syncRecommendations(
-    action: string,
+    action: "create_notes" | "update_properties" | "generate_templates",
     targetFolder?: string
   ): Promise<ToolResult> {
     try {
