@@ -125,7 +125,7 @@ export async function testNotionConnection() {
       method: "POST",
       headers: {
         Authorization:
-          "Bearer patSAFehqyaDt50Lt.9323a998b3b0babe891fb0c0af5bbbc76e8ec4d0da33ef8b212745c8c3efc0bf",
+          `Bearer ${process.env.NOTION_API_KEY || ""}`,
         "Notion-Version": "2022-06-28",
         "Content-Type": "application/json",
       },

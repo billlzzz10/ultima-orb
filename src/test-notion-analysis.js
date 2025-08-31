@@ -127,8 +127,7 @@ async function testNotionConnection() {
     const response = await fetch("https://api.notion.com/v1/search", {
       method: "POST",
       headers: {
-        Authorization:
-          "Bearer patSAFehqyaDt50Lt.9323a998b3b0babe891fb0c0af5bbbc76e8ec4d0da33ef8b212745c8c3efc0bf",
+        Authorization: `Bearer ${process.env.NOTION_API_KEY || ""}`,
         "Notion-Version": "2022-06-28",
         "Content-Type": "application/json",
       },
