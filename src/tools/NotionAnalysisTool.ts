@@ -24,8 +24,7 @@ export class NotionAnalysisTool extends ToolBase {
     });
     this.app = app;
     this.aiOrchestration = aiOrchestration;
-    this.notionApiKey =
-      "patSAFehqyaDt50Lt.9323a998b3b0babe891fb0c0af5bbbc76e8ec4d0da33ef8b212745c8c3efc0bf";
+    this.notionApiKey = process.env.NOTION_API_KEY || "";
   }
 
   /**

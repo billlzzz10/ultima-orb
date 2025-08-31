@@ -10,8 +10,9 @@
 6. [การเชื่อมต่อกับบริการภายนอก (External Integrations)](#การเชื่อมต่อกับบริการภายนอก-external-integrations)
 7. [การจัดการความรู้ (Knowledge Management)](#การจัดการความรู้-knowledge-management)
 8. [การตั้งค่าขั้นสูง (Advanced Settings)](#การตั้งค่าขั้นสูง-advanced-settings)
-9. [การแก้ไขปัญหา (Troubleshooting)](#การแก้ไขปัญหา-troubleshooting)
-10. [คำถามที่พบบ่อย (FAQ)](#คำถามที่พบบ่อย-faq)
+9. [ตัวอย่างการใช้งาน Tools (Tool Usage Examples)](#ตัวอย่างการใช้งาน-tools-tool-usage-examples)
+10. [การแก้ไขปัญหา (Troubleshooting)](#การแก้ไขปัญหา-troubleshooting)
+11. [คำถามที่พบบ่อย (FAQ)](#คำถามที่พบบ่อย-faq)
 
 ---
 
@@ -40,8 +41,9 @@
 
 1. **ดาวน์โหลด** ไฟล์ `.zip` จาก GitHub releases
 2. **แตกไฟล์** ไปยัง `.obsidian/plugins/ultima-orb/`
-3. **รีสตาร์ท** Obsidian
-4. **เปิดใช้งาน** plugin
+3. **รัน** `npm install` **ในโฟลเดอร์ plugin** (ถ้าต้องการ build)
+4. **รีสตาร์ท** Obsidian
+5. **เปิดใช้งาน** plugin
 
 ---
 
@@ -356,6 +358,81 @@ Max Tokens: 1000
 - **Context Window**: ขนาดหน้าต่างบริบท
 - **Context Strategy**: กลยุทธ์การจัดการบริบท
 - **Memory Management**: การจัดการหน่วยความจำ
+
+---
+
+## 🛠️ ตัวอย่างการใช้งาน Tools (Tool Usage Examples)
+
+### APIManagerTool
+```ts
+const tool = new APIManagerTool(app);
+await tool.execute({
+  action: 'add_key',
+  provider: 'openai',
+  keyName: 'default',
+  apiKey: process.env.OPENAI_API_KEY || ''
+});
+```
+
+### NotionAIAssistantTool
+```ts
+const tool = new NotionAIAssistantTool(app, apiManager, ai);
+await tool.execute({ action: 'analyze_structure', databaseId: 'your-db-id' });
+```
+
+### NotionDataAutomationTool
+```ts
+await new NotionDataAutomationTool(app, apiManager).execute({
+  action: 'create_automation_rule',
+  name: 'Auto Tag',
+  trigger: 'on_create',
+  actions: [{ type: 'add_tag', target: 'status', value: 'new' }]
+});
+```
+
+### AirtableIntegrationTool
+```ts
+await new AirtableIntegrationTool(app, apiManager).execute({ action: 'list_bases' });
+```
+
+### FileImportTool
+```ts
+await new FileImportTool(app, apiManager).execute({
+  action: 'import_url',
+  url: 'https://example.com',
+  targetFolder: 'AI References'
+});
+```
+
+### ObsidianBasesTool
+```ts
+await new ObsidianBasesTool(app).execute({
+  action: 'create_base',
+  baseName: 'Projects',
+  properties: { title: { type: 'text' } }
+});
+```
+
+### WebhookIntegrationTool
+```ts
+await new WebhookIntegrationTool(app).execute({
+  action: 'registerWebhook',
+  integration: 'notion',
+  webhookUrl: 'https://example.com/webhook',
+  event: 'update'
+});
+```
+
+### NotionAnalysisTool
+```ts
+await new NotionAnalysisTool(app, ai).execute({ action: 'fetchAllDatabases' });
+```
+
+### NotionDataAnalyzer
+```ts
+const analyzer = new NotionDataAnalyzer();
+const report = await analyzer.analyze({ databaseId: 'your-db-id' });
+```
 
 ---
 

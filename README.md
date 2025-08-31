@@ -244,6 +244,12 @@ Ultima-Orb/
 4. Run tests and security checks
 5. Submit a pull request
 
+## 📚 Documentation
+
+- [API Reference](./docs/API.md)
+- [User Guide](./docs/USER_GUIDE.md)
+- [Developer Guide](./docs/DEVELOPER_GUIDE.md)
+
 ## 📄 License
 
 MIT License - see LICENSE file for details
