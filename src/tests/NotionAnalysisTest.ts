@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { NotionAnalysisTool } from "../tools/NotionAnalysisTool";
-import { AIOrchestrationTool } from "../tools/AIOrchestrationTool";
+// ใช้ mock สำหรับ AIOrchestrationTool เพื่อหลีกเลี่ยงการเรียก network จริง
+import type { AIOrchestrationTool } from "../tools/AIOrchestrationTool";
 import { App } from "obsidian";
 
 // Mock App
@@ -14,10 +15,25 @@ const mockApp = {
 describe("NotionAnalysisTool", () => {
   let notionAnalysis: NotionAnalysisTool;
   let aiOrchestration: AIOrchestrationTool;
+  const originalFetch = global.fetch;
 
-  beforeEach(async () => {
-    aiOrchestration = new AIOrchestrationTool(mockApp);
+  beforeEach(() => {
+    // mock fetch ให้คืนข้อมูลจำลองและไม่เรียก external APIs
+    global.fetch = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ results: [] }),
+    })) as any;
+
+    // mock AIOrchestrationTool ด้วย object ที่มี method execute เท่านั้น
+    aiOrchestration = {
+      execute: async () => ({ success: true, data: {}, timestamp: new Date() }),
+    } as unknown as AIOrchestrationTool;
+
     notionAnalysis = new NotionAnalysisTool(mockApp, aiOrchestration);
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
   });
 
   describe("Tool Metadata", () => {
