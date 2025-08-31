@@ -62,7 +62,7 @@ export class FlowDebuggerView extends ItemView {
 
   private async debugFlow(): Promise<void> {
     // Debug flow logic
-    console.log("Debugging AI flow...");
+    console.info("Debugging AI flow...");
   }
 
   async onClose(): Promise<void> {

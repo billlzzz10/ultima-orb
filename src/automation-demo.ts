@@ -5,25 +5,25 @@ import { APIManagerTool } from "./tools/APIManagerTool";
 const mockApp = {
   vault: {
     create: async (path: string, content: string) => {
-      console.log(`📄 Created file: ${path}`);
-      console.log(`📝 Content preview: ${content.substring(0, 100)}...`);
+      console.info(`📄 Created file: ${path}`);
+      console.info(`📝 Content preview: ${content.substring(0, 100)}...`);
     },
     createFolder: async (path: string) => {
-      console.log(`📁 Created folder: ${path}`);
+      console.info(`📁 Created folder: ${path}`);
     },
     getAbstractFileByPath: (path: string) => {
-      console.log(`🔍 Looking for file: ${path}`);
+      console.info(`🔍 Looking for file: ${path}`);
       return null; // ไม่มีไฟล์เดิม
     },
     read: async (file: any) => {
-      console.log(`📖 Reading file: ${file.path}`);
+      console.info(`📖 Reading file: ${file.path}`);
       return "{}"; // ข้อมูลเริ่มต้น
     },
   },
 } as any;
 
 async function demoNotionDataAutomation() {
-  console.log("🚀 Starting Notion Data Automation Demo...\n");
+  console.info("🚀 Starting Notion Data Automation Demo...\n");
 
   // สร้าง instances
   const apiManager = new APIManagerTool(mockApp);
@@ -31,7 +31,7 @@ async function demoNotionDataAutomation() {
 
   try {
     // 1. สร้างกฎการทำงานอัตโนมัติ
-    console.log("📋 1. Creating Automation Rules...");
+    console.info("📋 1. Creating Automation Rules...");
 
     const rule1 = await automationTool.execute({
       action: "create_automation_rule",
@@ -58,7 +58,7 @@ async function demoNotionDataAutomation() {
       ],
     });
 
-    console.log("✅ Rule 1 created:", rule1.data.name);
+    console.info("✅ Rule 1 created:", rule1.data.name);
 
     const rule2 = await automationTool.execute({
       action: "create_automation_rule",
@@ -84,10 +84,10 @@ async function demoNotionDataAutomation() {
       ],
     });
 
-    console.log("✅ Rule 2 created:", rule2.data.name);
+    console.info("✅ Rule 2 created:", rule2.data.name);
 
     // 2. ตั้งค่าการซิงค์
-    console.log("\n🔄 2. Setting up Sync Configurations...");
+    console.info("\n🔄 2. Setting up Sync Configurations...");
 
     const sync1 = await automationTool.execute({
       action: "setup_sync",
@@ -103,7 +103,7 @@ async function demoNotionDataAutomation() {
       },
     });
 
-    console.log(
+    console.info(
       "✅ Sync 1 configured:",
       sync1.data.sourceDatabase,
       "→",
@@ -123,7 +123,7 @@ async function demoNotionDataAutomation() {
       },
     });
 
-    console.log(
+    console.info(
       "✅ Sync 2 configured:",
       sync2.data.sourceDatabase,
       "→",
@@ -131,30 +131,30 @@ async function demoNotionDataAutomation() {
     );
 
     // 3. รันกฎการทำงานอัตโนมัติ
-    console.log("\n⚡ 3. Running Automation Rules...");
+    console.info("\n⚡ 3. Running Automation Rules...");
 
     const runResult = await automationTool.execute({
       action: "run_automation",
       force: true,
     });
 
-    console.log(
+    console.info(
       `✅ Executed ${runResult.data.executedRules} rules out of ${runResult.data.totalRules} total rules`
     );
 
     // 4. ซิงค์ข้อมูล
-    console.log("\n🔄 4. Syncing Data...");
+    console.info("\n🔄 4. Syncing Data...");
 
     const syncResult = await automationTool.execute({
       action: "sync_data",
     });
 
-    console.log(
+    console.info(
       `✅ Synced ${syncResult.data.syncedConfigs} configurations out of ${syncResult.data.totalConfigs} total configs`
     );
 
     // 5. ส่งออกข้อมูลการทำงานอัตโนมัติ
-    console.log("\n📤 5. Exporting Automation Data...");
+    console.info("\n📤 5. Exporting Automation Data...");
 
     const exportResult = await automationTool.execute({
       action: "export_automation_data",
@@ -162,20 +162,20 @@ async function demoNotionDataAutomation() {
       includeHistory: true,
     });
 
-    console.log(
+    console.info(
       `✅ Exported automation data to: ${exportResult.data.filename}`
     );
 
     // 6. แสดงสถิติ
-    console.log("\n📊 6. Automation Statistics:");
-    console.log(`- Total Rules: ${runResult.data.totalRules}`);
-    console.log(`- Executed Rules: ${runResult.data.executedRules}`);
-    console.log(`- Total Sync Configs: ${syncResult.data.totalConfigs}`);
-    console.log(`- Synced Configs: ${syncResult.data.syncedConfigs}`);
-    console.log(`- Export Format: ${exportResult.data.format}`);
+    console.info("\n📊 6. Automation Statistics:");
+    console.info(`- Total Rules: ${runResult.data.totalRules}`);
+    console.info(`- Executed Rules: ${runResult.data.executedRules}`);
+    console.info(`- Total Sync Configs: ${syncResult.data.totalConfigs}`);
+    console.info(`- Synced Configs: ${syncResult.data.syncedConfigs}`);
+    console.info(`- Export Format: ${exportResult.data.format}`);
 
     // 7. ตัวอย่างการใช้งานขั้นสูง
-    console.log("\n🎯 7. Advanced Usage Examples:");
+    console.info("\n🎯 7. Advanced Usage Examples:");
 
     // สร้างกฎสำหรับการจัดการงานที่เกินกำหนด
     const overdueRule = await automationTool.execute({
@@ -213,7 +213,7 @@ async function demoNotionDataAutomation() {
       ],
     });
 
-    console.log("✅ Overdue rule created:", overdueRule.data.name);
+    console.info("✅ Overdue rule created:", overdueRule.data.name);
 
     // สร้างกฎสำหรับการจัดการงานที่เสร็จสิ้น
     const completedRule = await automationTool.execute({
@@ -244,20 +244,20 @@ async function demoNotionDataAutomation() {
       ],
     });
 
-    console.log("✅ Completed rule created:", completedRule.data.name);
+    console.info("✅ Completed rule created:", completedRule.data.name);
 
-    console.log("\n🎉 Demo completed successfully!");
-    console.log("\n📝 Summary:");
-    console.log("- Created 4 automation rules");
-    console.log("- Set up 2 sync configurations");
-    console.log("- Executed automation rules");
-    console.log("- Synced data between Notion and Obsidian");
-    console.log("- Exported automation data");
-    console.log("\n💡 Next steps:");
-    console.log("- Configure real Notion API keys");
-    console.log("- Set up actual database IDs");
-    console.log("- Customize automation rules for your workflow");
-    console.log("- Monitor automation execution logs");
+    console.info("\n🎉 Demo completed successfully!");
+    console.info("\n📝 Summary:");
+    console.info("- Created 4 automation rules");
+    console.info("- Set up 2 sync configurations");
+    console.info("- Executed automation rules");
+    console.info("- Synced data between Notion and Obsidian");
+    console.info("- Exported automation data");
+    console.info("\n💡 Next steps:");
+    console.info("- Configure real Notion API keys");
+    console.info("- Set up actual database IDs");
+    console.info("- Customize automation rules for your workflow");
+    console.info("- Monitor automation execution logs");
   } catch (error) {
     console.error("❌ Demo failed:", error);
   }

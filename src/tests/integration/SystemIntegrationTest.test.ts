@@ -89,7 +89,7 @@ describe("Ultima-Orb System Integration Tests", () => {
 
   describe("Advanced Scripting System", () => {
     it("should execute basic JavaScript scripts", async () => {
-      const script = "console.log('Hello World'); return 'Test Output';";
+      const script = "console.info('Hello World'); return 'Test Output';";
       const context = {
         app: mockApp,
         file: {

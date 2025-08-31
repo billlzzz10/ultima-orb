@@ -16,7 +16,7 @@ class NotionDataAnalyzer {
   }
 
   async analyzeAllData() {
-    console.log("🔍 เริ่มวิเคราะห์ข้อมูล Notion...");
+    console.info("🔍 เริ่มวิเคราะห์ข้อมูล Notion...");
 
     const allData = await this.loadAllData();
     const analysis = await this.performAnalysis(allData);
@@ -33,7 +33,7 @@ class NotionDataAnalyzer {
       .filter((file) => file.endsWith(".json"))
       .filter((file) => file.includes("notion-query-database"));
 
-    console.log(`📁 พบไฟล์ข้อมูล ${files.length} ไฟล์`);
+    console.info(`📁 พบไฟล์ข้อมูล ${files.length} ไฟล์`);
 
     const allData = [];
 
@@ -51,12 +51,12 @@ class NotionDataAnalyzer {
       }
     }
 
-    console.log(`📊 โหลดข้อมูล ${allData.length} databases`);
+    console.info(`📊 โหลดข้อมูล ${allData.length} databases`);
     return allData;
   }
 
   async performAnalysis(databases) {
-    console.log("📈 วิเคราะห์ข้อมูล...");
+    console.info("📈 วิเคราะห์ข้อมูล...");
 
     const summary = this.analyzeSummary(databases);
     const patterns = this.analyzePatterns(databases);
@@ -309,7 +309,7 @@ class NotionDataAnalyzer {
       `notion-analysis-${timestamp}.json`
     );
     fs.writeFileSync(analysisFile, JSON.stringify(analysis, null, 2));
-    console.log(`💾 บันทึกผลการวิเคราะห์: ${analysisFile}`);
+    console.info(`💾 บันทึกผลการวิเคราะห์: ${analysisFile}`);
 
     // Save summary
     const summaryFile = path.join(
@@ -317,7 +317,7 @@ class NotionDataAnalyzer {
       `notion-summary-${timestamp}.json`
     );
     fs.writeFileSync(summaryFile, JSON.stringify(analysis.summary, null, 2));
-    console.log(`📊 บันทึกสรุป: ${summaryFile}`);
+    console.info(`📊 บันทึกสรุป: ${summaryFile}`);
   }
 
   async generateReports(analysis) {
@@ -330,7 +330,7 @@ class NotionDataAnalyzer {
       `notion-report-${timestamp}.md`
     );
     fs.writeFileSync(reportFile, markdownReport);
-    console.log(`📝 สร้างรายงาน Markdown: ${reportFile}`);
+    console.info(`📝 สร้างรายงาน Markdown: ${reportFile}`);
 
     // Generate CSV exports
     await this.generateCSVExports(analysis, timestamp);
@@ -413,7 +413,7 @@ ${insights.recommendations.map((rec) => `- ${rec}`).join("\n")}
       `databases-summary-${timestamp}.csv`
     );
     fs.writeFileSync(databasesFile, databasesCSV);
-    console.log(`📊 ส่งออก CSV databases: ${databasesFile}`);
+    console.info(`📊 ส่งออก CSV databases: ${databasesFile}`);
 
     // Export property usage
     const propertyUsage = Object.entries(analysis.patterns.propertyUsage).map(
@@ -425,7 +425,7 @@ ${insights.recommendations.map((rec) => `- ${rec}`).join("\n")}
       `property-usage-${timestamp}.csv`
     );
     fs.writeFileSync(propertiesFile, propertiesCSV);
-    console.log(`📊 ส่งออก CSV properties: ${propertiesFile}`);
+    console.info(`📊 ส่งออก CSV properties: ${propertiesFile}`);
   }
 
   convertToCSV(data, headers) {
@@ -446,7 +446,7 @@ ${insights.recommendations.map((rec) => `- ${rec}`).join("\n")}
   }
 
   async generateTrainingData() {
-    console.log("🤖 สร้าง Training Data สำหรับ AI...");
+    console.info("🤖 สร้าง Training Data สำหรับ AI...");
 
     const allData = await this.loadAllData();
     const trainingData = this.prepareTrainingData(allData);
@@ -458,7 +458,7 @@ ${insights.recommendations.map((rec) => `- ${rec}`).join("\n")}
     );
 
     fs.writeFileSync(trainingFile, JSON.stringify(trainingData, null, 2));
-    console.log(`🤖 บันทึก Training Data: ${trainingFile}`);
+    console.info(`🤖 บันทึก Training Data: ${trainingFile}`);
   }
 
   prepareTrainingData(databases) {
@@ -534,7 +534,7 @@ ${insights.recommendations.map((rec) => `- ${rec}`).join("\n")}
 
 // ฟังก์ชันสำหรับรันการวิเคราะห์
 async function runNotionAnalysis() {
-  console.log("🎯 เริ่มการวิเคราะห์ข้อมูล Notion");
+  console.info("🎯 เริ่มการวิเคราะห์ข้อมูล Notion");
 
   const analyzer = new NotionDataAnalyzer();
 
@@ -542,32 +542,32 @@ async function runNotionAnalysis() {
     const analysis = await analyzer.analyzeAllData();
     await analyzer.generateTrainingData();
 
-    console.log("✅ การวิเคราะห์เสร็จสิ้น!");
-    console.log(`📊 จำนวน Databases: ${analysis.summary.totalDatabases}`);
-    console.log(`📄 จำนวน Pages: ${analysis.summary.totalPages}`);
-    console.log(`🔧 จำนวน Blocks: ${analysis.summary.totalBlocks}`);
+    console.info("✅ การวิเคราะห์เสร็จสิ้น!");
+    console.info(`📊 จำนวน Databases: ${analysis.summary.totalDatabases}`);
+    console.info(`📄 จำนวน Pages: ${analysis.summary.totalPages}`);
+    console.info(`🔧 จำนวน Blocks: ${analysis.summary.totalBlocks}`);
 
     // แสดงผลสรุป
-    console.log("\n📋 ผลสรุปการวิเคราะห์:");
-    console.log("=".repeat(50));
-    console.log(
+    console.info("\n📋 ผลสรุปการวิเคราะห์:");
+    console.info("=".repeat(50));
+    console.info(
       `🏆 Database ที่ใหญ่ที่สุด: ${analysis.summary.largestDatabase.name} (${analysis.summary.largestDatabase.pageCount} pages)`
     );
-    console.log(
+    console.info(
       `📊 คุณภาพข้อมูล - ความสมบูรณ์: ${analysis.insights.dataQuality.completeness.toFixed(
         1
       )}%`
     );
-    console.log(
+    console.info(
       `📊 คุณภาพข้อมูล - ความสม่ำเสมอ: ${analysis.insights.dataQuality.consistency.toFixed(
         1
       )}%`
     );
 
     if (analysis.insights.recommendations.length > 0) {
-      console.log("\n💡 คำแนะนำ:");
+      console.info("\n💡 คำแนะนำ:");
       analysis.insights.recommendations.forEach((rec) =>
-        console.log(`- ${rec}`)
+        console.info(`- ${rec}`)
       );
     }
   } catch (error) {

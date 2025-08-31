@@ -635,20 +635,20 @@ export class NotionDataAutomationTool extends ToolBase {
 
   private async syncNotionToObsidian(config: SyncConfig): Promise<void> {
     // ดึงข้อมูลจาก Notion และสร้างไฟล์ใน Obsidian
-    console.log(`Syncing ${config.sourceDatabase} to ${config.targetFolder}`);
+    console.info(`Syncing ${config.sourceDatabase} to ${config.targetFolder}`);
   }
 
   private async syncObsidianToNotion(config: SyncConfig): Promise<void> {
     // อัปเดตข้อมูลใน Notion จากไฟล์ Obsidian
-    console.log(`Syncing ${config.targetFolder} to ${config.sourceDatabase}`);
+    console.info(`Syncing ${config.targetFolder} to ${config.sourceDatabase}`);
   }
 
   private async updateProperty(target: string, value: any): Promise<void> {
-    console.log(`Updating property ${target} with value ${value}`);
+    console.info(`Updating property ${target} with value ${value}`);
   }
 
   addTag(tag: string): void {
-    console.log(`Adding tag ${tag}`);
+    console.info(`Adding tag ${tag}`);
   }
 
   private async createPage(
@@ -656,21 +656,21 @@ export class NotionDataAutomationTool extends ToolBase {
     value: any,
     parameters?: Record<string, any>
   ): Promise<void> {
-    console.log(`Creating page in ${target} with value ${value}`);
+    console.info(`Creating page in ${target} with value ${value}`);
   }
 
   private async sendNotification(
     message: string,
     parameters?: Record<string, any>
   ): Promise<void> {
-    console.log(`🔔 Notification: ${message}`);
+    console.info(`🔔 Notification: ${message}`);
   }
 
   private async exportData(
     target: string,
     parameters?: Record<string, any>
   ): Promise<void> {
-    console.log(`Exporting data to ${target}`);
+    console.info(`Exporting data to ${target}`);
   }
 
   private async syncToObsidian(
@@ -678,14 +678,14 @@ export class NotionDataAutomationTool extends ToolBase {
     value: any,
     parameters?: Record<string, any>
   ): Promise<void> {
-    console.log(`Syncing ${target} to Obsidian`);
+    console.info(`Syncing ${target} to Obsidian`);
   }
 
   private async ensureFolderExists(folderPath: string): Promise<void> {
     const folder = this.app.vault.getAbstractFileByPath(folderPath);
     if (!folder) {
       // await this.app.vault.createFolder(folderPath);
-      console.log(`Would create folder: ${folderPath}`);
+      console.info(`Would create folder: ${folderPath}`);
     }
   }
 

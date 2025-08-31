@@ -9,7 +9,7 @@ const NOTION_TOKEN = "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";
  * ดึงรายการ databases ทั้งหมด
  */
 async function fetchAllDatabases() {
-  console.log("🔗 ดึงรายการ databases ทั้งหมด...");
+  console.info("🔗 ดึงรายการ databases ทั้งหมด...");
 
   try {
     const response = await fetch("https://api.notion.com/v1/search", {
@@ -29,10 +29,10 @@ async function fetchAllDatabases() {
 
     if (response.ok) {
       const data = await response.json();
-      console.log(`✅ พบ ${data.results.length} databases`);
+      console.info(`✅ พบ ${data.results.length} databases`);
       return data.results;
     } else {
-      console.log("❌ ดึงรายการ databases ไม่สำเร็จ:", response.status);
+      console.info("❌ ดึงรายการ databases ไม่สำเร็จ:", response.status);
       return [];
     }
   } catch (error) {
@@ -45,7 +45,7 @@ async function fetchAllDatabases() {
  * ดึงข้อมูล database เฉพาะ
  */
 async function fetchDatabaseContent(database) {
-  console.log(
+  console.info(
     `📄 ดึงข้อมูล database: ${database.title[0]?.plain_text || "Untitled"}`
   );
 
@@ -63,7 +63,7 @@ async function fetchDatabaseContent(database) {
     );
 
     if (!dbResponse.ok) {
-      console.log(
+      console.info(
         `❌ ดึงโครงสร้าง database ${database.id} ไม่สำเร็จ:`,
         dbResponse.status
       );
@@ -120,7 +120,7 @@ function saveToFile(data, filename) {
 
     const filepath = path.join(outputDir, filename);
     fs.writeFileSync(filepath, JSON.stringify(data, null, 2), "utf8");
-    console.log(`💾 บันทึกข้อมูลลงไฟล์: ${filepath}`);
+    console.info(`💾 บันทึกข้อมูลลงไฟล์: ${filepath}`);
     return filepath;
   } catch (error) {
     console.error("❌ เกิดข้อผิดพลาดในการบันทึกไฟล์:", error);
@@ -132,7 +132,7 @@ function saveToFile(data, filename) {
  * ดึงข้อมูลทั้งหมดและบันทึก
  */
 async function fetchAllData() {
-  console.log("🚀 เริ่มต้นดึงข้อมูล Notion ทั้งหมด...\n");
+  console.info("🚀 เริ่มต้นดึงข้อมูล Notion ทั้งหมด...\n");
 
   const startTime = Date.now();
   const allData = {
@@ -154,12 +154,12 @@ async function fetchAllData() {
   const databases = await fetchAllDatabases();
   allData.metadata.total_databases = databases.length;
 
-  console.log(`\n📊 เริ่มดึงข้อมูลจาก ${databases.length} databases...\n`);
+  console.info(`\n📊 เริ่มดึงข้อมูลจาก ${databases.length} databases...\n`);
 
   // ดึงข้อมูลแต่ละ database
   for (let i = 0; i < databases.length; i++) {
     const database = databases[i];
-    console.log(
+    console.info(
       `[${i + 1}/${databases.length}] กำลังดึงข้อมูล: ${
         database.title[0]?.plain_text || "Untitled"
       }`
@@ -170,13 +170,13 @@ async function fetchAllData() {
       allData.databases.push(dbContent);
       allData.metadata.total_pages += dbContent.total_pages;
 
-      console.log(`✅ ดึงข้อมูลสำเร็จ: ${dbContent.total_pages} pages`);
+      console.info(`✅ ดึงข้อมูลสำเร็จ: ${dbContent.total_pages} pages`);
 
       // บันทึกแต่ละ database แยกไฟล์
       const dbFilename = `notion-database-${database.id}-${Date.now()}.json`;
       saveToFile(dbContent, dbFilename);
     } else {
-      console.log(`❌ ดึงข้อมูลไม่สำเร็จ`);
+      console.info(`❌ ดึงข้อมูลไม่สำเร็จ`);
     }
 
     // รอสักครู่เพื่อไม่ให้ API rate limit
@@ -203,21 +203,21 @@ async function fetchAllData() {
   const filepath = saveToFile(allData, filename);
 
   // สรุปผล
-  console.log("\n🎉 ดึงข้อมูลเสร็จสิ้น!");
-  console.log(`📊 สรุปผล:`);
-  console.log(`   - Databases: ${allData.metadata.total_databases}`);
-  console.log(`   - Pages: ${allData.metadata.total_pages}`);
-  console.log(`   - Properties: ${allData.summary.total_properties}`);
-  console.log(
+  console.info("\n🎉 ดึงข้อมูลเสร็จสิ้น!");
+  console.info(`📊 สรุปผล:`);
+  console.info(`   - Databases: ${allData.metadata.total_databases}`);
+  console.info(`   - Pages: ${allData.metadata.total_pages}`);
+  console.info(`   - Properties: ${allData.summary.total_properties}`);
+  console.info(
     `   - เวลาที่ใช้: ${(allData.metadata.processing_time_ms / 1000).toFixed(
       2
     )} วินาที`
   );
-  console.log(`   - ไฟล์รวม: ${filepath}`);
+  console.info(`   - ไฟล์รวม: ${filepath}`);
 
-  console.log(`\n📋 รายชื่อ Databases:`);
+  console.info(`\n📋 รายชื่อ Databases:`);
   allData.databases.forEach((db, index) => {
-    console.log(
+    console.info(
       `   ${index + 1}. ${db.database.title[0]?.plain_text || "Untitled"} (${
         db.total_pages
       } pages)`

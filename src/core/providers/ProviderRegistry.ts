@@ -38,7 +38,7 @@ export class ProviderRegistry {
         this.defaultProvider = provider.id;
       }
 
-      console.log(`✅ Provider registered: ${provider.id}`);
+      console.info(`✅ Provider registered: ${provider.id}`);
       return true;
     } catch (error) {
       console.error(`❌ Failed to register provider ${provider.id}:`, error);
@@ -326,7 +326,7 @@ export class ProviderRegistry {
     }
 
     // Note: ไม่สามารถ import providers ได้โดยตรง ต้องลงทะเบียนใหม่
-    console.log(
+    console.info(
       "Provider configurations imported. Providers need to be re-registered."
     );
   }

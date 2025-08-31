@@ -32,7 +32,7 @@ export class SynapseCoreAdapter {
    * 🔗 Initialize connection to Synapse-Core
    */
   async initialize(): Promise<boolean> {
-    console.log("🔗 Initializing Synapse-Core connection...");
+    console.info("🔗 Initializing Synapse-Core connection...");
 
     try {
       await this.waitForSynapseCore();
@@ -40,7 +40,7 @@ export class SynapseCoreAdapter {
 
       if (this.api) {
         this.isConnected = true;
-        console.log("✅ Connected to Synapse-Core successfully");
+        console.info("✅ Connected to Synapse-Core successfully");
         return true;
       } else {
         console.warn("⚠️ Synapse-Core not available, using fallback mode");
@@ -62,7 +62,7 @@ export class SynapseCoreAdapter {
       }
 
       this.connectionRetries++;
-      console.log(
+      console.info(
         `⏳ Waiting for Synapse-Core... (${this.connectionRetries}/${this.maxRetries})`
       );
       await new Promise((resolve) => setTimeout(resolve, this.retryInterval));
@@ -416,7 +416,7 @@ export class SynapseCoreAdapter {
    * 🔄 Reconnect to Synapse-Core
    */
   async reconnect(): Promise<boolean> {
-    console.log("🔄 Attempting to reconnect to Synapse-Core...");
+    console.info("🔄 Attempting to reconnect to Synapse-Core...");
     this.isConnected = false;
     this.connectionRetries = 0;
     return await this.initialize();

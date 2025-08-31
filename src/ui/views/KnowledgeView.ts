@@ -70,12 +70,12 @@ export class KnowledgeView extends ItemView {
     if (!query) return;
 
     // Search logic here
-    console.log("Searching for:", query);
+    console.info("Searching for:", query);
   }
 
   private async viewKnowledge(title: string): Promise<void> {
     // View knowledge logic here
-    console.log("Viewing knowledge:", title);
+    console.info("Viewing knowledge:", title);
   }
 
   async onClose(): Promise<void> {

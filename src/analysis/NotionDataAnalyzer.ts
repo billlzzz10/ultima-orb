@@ -74,7 +74,7 @@ export class NotionDataAnalyzer {
   }
 
   async analyzeAllData(): Promise<NotionAnalysisResult> {
-    console.log("🔍 เริ่มวิเคราะห์ข้อมูล Notion...");
+    console.info("🔍 เริ่มวิเคราะห์ข้อมูล Notion...");
 
     const allData = await this.loadAllData();
     const analysis = await this.performAnalysis(allData);
@@ -91,7 +91,7 @@ export class NotionDataAnalyzer {
       .filter((file) => file.endsWith(".json"))
       .filter((file) => file.includes("notion-query-database"));
 
-    console.log(`📁 พบไฟล์ข้อมูล ${files.length} ไฟล์`);
+    console.info(`📁 พบไฟล์ข้อมูล ${files.length} ไฟล์`);
 
     const allData: any[] = [];
 
@@ -109,14 +109,14 @@ export class NotionDataAnalyzer {
       }
     }
 
-    console.log(`📊 โหลดข้อมูล ${allData.length} databases`);
+    console.info(`📊 โหลดข้อมูล ${allData.length} databases`);
     return allData;
   }
 
   private async performAnalysis(
     databases: any[]
   ): Promise<NotionAnalysisResult> {
-    console.log("📈 วิเคราะห์ข้อมูล...");
+    console.info("📈 วิเคราะห์ข้อมูล...");
 
     const summary = this.analyzeSummary(databases);
     const patterns = this.analyzePatterns(databases);
@@ -377,7 +377,7 @@ export class NotionDataAnalyzer {
       `notion-analysis-${timestamp}.json`
     );
     fs.writeFileSync(analysisFile, JSON.stringify(analysis, null, 2));
-    console.log(`💾 บันทึกผลการวิเคราะห์: ${analysisFile}`);
+    console.info(`💾 บันทึกผลการวิเคราะห์: ${analysisFile}`);
 
     // Save summary
     const summaryFile = path.join(
@@ -385,7 +385,7 @@ export class NotionDataAnalyzer {
       `notion-summary-${timestamp}.json`
     );
     fs.writeFileSync(summaryFile, JSON.stringify(analysis.summary, null, 2));
-    console.log(`📊 บันทึกสรุป: ${summaryFile}`);
+    console.info(`📊 บันทึกสรุป: ${summaryFile}`);
   }
 
   private async generateReports(analysis: NotionAnalysisResult): Promise<void> {
@@ -398,7 +398,7 @@ export class NotionDataAnalyzer {
       `notion-report-${timestamp}.md`
     );
     fs.writeFileSync(reportFile, markdownReport);
-    console.log(`📝 สร้างรายงาน Markdown: ${reportFile}`);
+    console.info(`📝 สร้างรายงาน Markdown: ${reportFile}`);
 
     // Generate CSV exports
     await this.generateCSVExports(analysis, timestamp);
@@ -484,7 +484,7 @@ ${insights.recommendations.map((rec) => `- ${rec}`).join("\n")}
       `databases-summary-${timestamp}.csv`
     );
     fs.writeFileSync(databasesFile, databasesCSV);
-    console.log(`📊 ส่งออก CSV databases: ${databasesFile}`);
+    console.info(`📊 ส่งออก CSV databases: ${databasesFile}`);
 
     // Export property usage
     const propertyUsage = Object.entries(analysis.patterns.propertyUsage).map(
@@ -496,7 +496,7 @@ ${insights.recommendations.map((rec) => `- ${rec}`).join("\n")}
       `property-usage-${timestamp}.csv`
     );
     fs.writeFileSync(propertiesFile, propertiesCSV);
-    console.log(`📊 ส่งออก CSV properties: ${propertiesFile}`);
+    console.info(`📊 ส่งออก CSV properties: ${propertiesFile}`);
   }
 
   private convertToCSV(data: any[], headers: string[]): string {
@@ -517,7 +517,7 @@ ${insights.recommendations.map((rec) => `- ${rec}`).join("\n")}
   }
 
   async generateTrainingData(): Promise<void> {
-    console.log("🤖 สร้าง Training Data สำหรับ AI...");
+    console.info("🤖 สร้าง Training Data สำหรับ AI...");
 
     const allData = await this.loadAllData();
     const trainingData = this.prepareTrainingData(allData);
@@ -529,7 +529,7 @@ ${insights.recommendations.map((rec) => `- ${rec}`).join("\n")}
     );
 
     fs.writeFileSync(trainingFile, JSON.stringify(trainingData, null, 2));
-    console.log(`🤖 บันทึก Training Data: ${trainingFile}`);
+    console.info(`🤖 บันทึก Training Data: ${trainingFile}`);
   }
 
   private prepareTrainingData(databases: any[]): any {
@@ -605,7 +605,7 @@ ${insights.recommendations.map((rec) => `- ${rec}`).join("\n")}
 
 // ฟังก์ชันสำหรับรันการวิเคราะห์
 export async function runNotionAnalysis(): Promise<void> {
-  console.log("🎯 เริ่มการวิเคราะห์ข้อมูล Notion");
+  console.info("🎯 เริ่มการวิเคราะห์ข้อมูล Notion");
 
   const analyzer = new NotionDataAnalyzer();
 
@@ -613,10 +613,10 @@ export async function runNotionAnalysis(): Promise<void> {
     const analysis = await analyzer.analyzeAllData();
     await analyzer.generateTrainingData();
 
-    console.log("✅ การวิเคราะห์เสร็จสิ้น!");
-    console.log(`📊 จำนวน Databases: ${analysis.summary.totalDatabases}`);
-    console.log(`📄 จำนวน Pages: ${analysis.summary.totalPages}`);
-    console.log(`🔧 จำนวน Blocks: ${analysis.summary.totalBlocks}`);
+    console.info("✅ การวิเคราะห์เสร็จสิ้น!");
+    console.info(`📊 จำนวน Databases: ${analysis.summary.totalDatabases}`);
+    console.info(`📄 จำนวน Pages: ${analysis.summary.totalPages}`);
+    console.info(`🔧 จำนวน Blocks: ${analysis.summary.totalBlocks}`);
   } catch (error) {
     console.error("❌ เกิดข้อผิดพลาดในการวิเคราะห์:", error);
   }

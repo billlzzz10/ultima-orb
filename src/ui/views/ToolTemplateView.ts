@@ -108,12 +108,12 @@ export class ToolTemplateView extends ItemView {
     if (!query && category === "all") return;
 
     // Search logic here
-    console.log("Searching tools:", { query, category });
+    console.info("Searching tools:", { query, category });
   }
 
   private async useToolTemplate(name: string): Promise<void> {
     // Use template logic here
-    console.log("Using tool template:", name);
+    console.info("Using tool template:", name);
   }
 
   async onClose(): Promise<void> {

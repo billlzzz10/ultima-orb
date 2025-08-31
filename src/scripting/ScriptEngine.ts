@@ -170,7 +170,7 @@ export class ScriptEngine {
       ...context.variables,
 
       // Utility functions
-      log: (message: any) => console.log(message),
+      log: (message: any) => console.info(message),
       notice: (message: string) => new Notice(message),
 
       // Async support
@@ -194,9 +194,9 @@ export class ScriptEngine {
       let output = "";
       let variables = {};
       
-      // Capture console.log output
-      const originalLog = console.log;
-      console.log = (...args) => {
+      // Capture console.info output
+      const originalLog = console.info;
+      console.info = (...args) => {
         output += args.join(" ") + "\\n";
         originalLog.apply(console, args);
       };

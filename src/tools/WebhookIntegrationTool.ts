@@ -75,7 +75,7 @@ export class WebhookIntegrationTool extends ToolBase {
       },
     });
 
-    console.log(
+    console.info(
       "Webhook Integration Tool initialized with integrations:",
       Array.from(this.integrations.keys())
     );

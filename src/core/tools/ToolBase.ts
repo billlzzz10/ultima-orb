@@ -155,7 +155,7 @@ export abstract class ToolBase {
 
   // Log tool execution
   protected logExecution(action: string, params: any, result: any): void {
-    console.log(`[${this.metadata.name}] ${action}:`, {
+    console.info(`[${this.metadata.name}] ${action}:`, {
       params,
       result,
       timestamp: new Date(),

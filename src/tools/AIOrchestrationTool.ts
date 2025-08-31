@@ -60,7 +60,7 @@ export class AIOrchestrationTool extends ToolBase {
     this.providers.set("ollama", ollamaProvider);
 
     // เพิ่ม providers อื่นๆ ตามต้องการ
-    console.log(
+    console.info(
       "AI Orchestration Tool initialized with providers:",
       Array.from(this.providers.keys())
     );
