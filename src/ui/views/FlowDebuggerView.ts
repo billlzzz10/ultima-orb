@@ -24,45 +24,72 @@ export class FlowDebuggerView extends ItemView {
   }
 
   async onOpen(): Promise<void> {
-    const container = this.containerEl.children[1];
-    container.empty();
-    container.createEl("h4", { text: "AI Flow Debugger" });
+    const container = this.containerEl.children[1] as HTMLElement;
+    container.innerHTML = "";
+    const heading = document.createElement("h4");
+    heading.textContent = "AI Flow Debugger";
+    container.appendChild(heading);
 
-    this.createFlowDebuggerInterface(container as HTMLElement);
+    this.createFlowDebuggerInterface(container);
   }
 
   private createFlowDebuggerInterface(container: HTMLElement): void {
     // Flow status
-    const statusSection = container.createEl("div", { cls: "status-section" });
-    statusSection.createEl("h5", { text: "Flow Status" });
+    const statusSection = document.createElement("div");
+    statusSection.className = "status-section";
+    container.appendChild(statusSection);
 
-    const statusItem = statusSection.createEl("div", { cls: "status-item" });
-    statusItem.createEl("span", { text: "AI Orchestrator: " });
-    statusItem.createEl("span", { text: "✅ Active", cls: "status-active" });
+    const statusHeading = document.createElement("h5");
+    statusHeading.textContent = "Flow Status";
+    statusSection.appendChild(statusHeading);
+
+    const statusItem = document.createElement("div");
+    statusItem.className = "status-item";
+    statusSection.appendChild(statusItem);
+
+    const statusLabel = document.createElement("span");
+    statusLabel.textContent = "AI Orchestrator: ";
+    statusItem.appendChild(statusLabel);
+
+    const statusValue = document.createElement("span");
+    statusValue.textContent = "✅ Active";
+    statusValue.className = "status-active";
+    statusItem.appendChild(statusValue);
 
     // Mode info
-    const modeSection = container.createEl("div", { cls: "mode-section" });
-    modeSection.createEl("h5", { text: "Current Mode" });
+    const modeSection = document.createElement("div");
+    modeSection.className = "mode-section";
+    container.appendChild(modeSection);
 
-    const modeInfo = modeSection.createEl("div", { cls: "mode-info" });
+    const modeHeading = document.createElement("h5");
+    modeHeading.textContent = "Current Mode";
+    modeSection.appendChild(modeHeading);
+
+    const modeInfo = document.createElement("div");
+    modeInfo.className = "mode-info";
+    modeSection.appendChild(modeInfo);
     const currentMode = this.aiOrchestrator.getModeSystem().getActiveMode();
-    modeInfo.createEl("span", { text: currentMode?.name || "Default" });
+    const modeName = document.createElement("span");
+    modeName.textContent = currentMode?.name || "Default";
+    modeInfo.appendChild(modeName);
 
     // Debug controls
-    const controlsSection = container.createEl("div", {
-      cls: "controls-section",
-    });
-    controlsSection.createEl("h5", { text: "Debug Controls" });
+    const controlsSection = document.createElement("div");
+    controlsSection.className = "controls-section";
+    container.appendChild(controlsSection);
 
-    const debugButton = controlsSection.createEl("button", {
-      text: "Debug Flow",
-    });
+    const controlsHeading = document.createElement("h5");
+    controlsHeading.textContent = "Debug Controls";
+    controlsSection.appendChild(controlsHeading);
+
+    const debugButton = document.createElement("button");
+    debugButton.textContent = "Debug Flow";
     debugButton.addEventListener("click", () => this.debugFlow());
+    controlsSection.appendChild(debugButton);
   }
 
   private async debugFlow(): Promise<void> {
-    // Debug flow logic
-    console.log("Debugging AI flow...");
+    // TODO: implement debug flow logic
   }
 
   async onClose(): Promise<void> {

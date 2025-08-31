@@ -27,48 +27,49 @@ export class ToolTemplateView extends ItemView {
   }
 
   async onOpen(): Promise<void> {
-    const container = this.containerEl.children[1];
-    container.empty();
-    container.createEl("h4", { text: "Tool Templates" });
+    const container = this.containerEl.children[1] as HTMLElement;
+    container.innerHTML = "";
+    const heading = document.createElement("h4");
+    heading.textContent = "Tool Templates";
+    container.appendChild(heading);
 
-    this.createToolTemplateInterface(container as HTMLElement);
+    this.createToolTemplateInterface(container);
   }
 
   private createToolTemplateInterface(container: HTMLElement): void {
     // Search and filter section
-    const filterSection = container.createEl("div", { cls: "filter-section" });
-    filterSection.createEl("h5", { text: "Search & Filter" });
+    const filterSection = document.createElement("div");
+    filterSection.className = "filter-section";
+    container.appendChild(filterSection);
 
-    this.searchInput = filterSection.createEl("input", {
-      type: "text",
-      placeholder: "Search tools...",
-      cls: "search-input",
-    });
+    const filterHeading = document.createElement("h5");
+    filterHeading.textContent = "Search & Filter";
+    filterSection.appendChild(filterHeading);
 
-    this.categoryFilter = filterSection.createEl("select", {
-      cls: "category-filter",
-    });
-    this.categoryFilter.createEl("option", {
-      text: "All Categories",
-      value: "all",
-    });
-    this.categoryFilter.createEl("option", { text: "AI Tools", value: "ai" });
-    this.categoryFilter.createEl("option", {
-      text: "Integration Tools",
-      value: "integration",
-    });
-    this.categoryFilter.createEl("option", {
-      text: "Utility Tools",
-      value: "utility",
-    });
+    this.searchInput = document.createElement("input");
+    this.searchInput.type = "text";
+    this.searchInput.placeholder = "Search tools...";
+    this.searchInput.className = "search-input";
+    filterSection.appendChild(this.searchInput);
 
-    const searchButton = filterSection.createEl("button", { text: "Search" });
+    this.categoryFilter = document.createElement("select");
+    this.categoryFilter.className = "category-filter";
+    filterSection.appendChild(this.categoryFilter);
+
+    this.addOption(this.categoryFilter, "All Categories", "all");
+    this.addOption(this.categoryFilter, "AI Tools", "ai");
+    this.addOption(this.categoryFilter, "Integration Tools", "integration");
+    this.addOption(this.categoryFilter, "Utility Tools", "utility");
+
+    const searchButton = document.createElement("button");
+    searchButton.textContent = "Search";
     searchButton.addEventListener("click", () => this.searchTools());
+    filterSection.appendChild(searchButton);
 
     // Template container
-    this.templateContainer = container.createEl("div", {
-      cls: "template-container",
-    });
+    this.templateContainer = document.createElement("div");
+    this.templateContainer.className = "template-container";
+    container.appendChild(this.templateContainer);
 
     // Add some sample tool templates
     this.addToolTemplate("AI Chat", "ai", "Interactive AI chat interface");
@@ -90,15 +91,27 @@ export class ToolTemplateView extends ItemView {
     category: string,
     description: string
   ): void {
-    const template = this.templateContainer.createEl("div", {
-      cls: "tool-template",
-    });
-    template.createEl("h6", { text: name });
-    template.createEl("span", { text: category, cls: "tool-category" });
-    template.createEl("p", { text: description });
+    const template = document.createElement("div");
+    template.className = "tool-template";
+    this.templateContainer.appendChild(template);
 
-    const useButton = template.createEl("button", { text: "Use Template" });
+    const nameEl = document.createElement("h6");
+    nameEl.textContent = name;
+    template.appendChild(nameEl);
+
+    const categoryEl = document.createElement("span");
+    categoryEl.textContent = category;
+    categoryEl.className = "tool-category";
+    template.appendChild(categoryEl);
+
+    const descriptionEl = document.createElement("p");
+    descriptionEl.textContent = description;
+    template.appendChild(descriptionEl);
+
+    const useButton = document.createElement("button");
+    useButton.textContent = "Use Template";
     useButton.addEventListener("click", () => this.useToolTemplate(name));
+    template.appendChild(useButton);
   }
 
   private async searchTools(): Promise<void> {
@@ -107,16 +120,21 @@ export class ToolTemplateView extends ItemView {
 
     if (!query && category === "all") return;
 
-    // Search logic here
-    console.log("Searching tools:", { query, category });
+    // TODO: implement search logic
   }
 
   private async useToolTemplate(name: string): Promise<void> {
-    // Use template logic here
-    console.log("Using tool template:", name);
+    // TODO: implement template usage logic
   }
 
   async onClose(): Promise<void> {
     // Cleanup if needed
+  }
+
+  private addOption(select: HTMLSelectElement, text: string, value: string): void {
+    const option = document.createElement("option");
+    option.text = text;
+    option.value = value;
+    select.appendChild(option);
   }
 }

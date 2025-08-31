@@ -29,24 +29,30 @@ export class ChatView extends ItemView {
   }
 
   async onOpen(): Promise<void> {
-    const container = this.containerEl.children[1];
-    container.empty();
-    container.createEl("h4", { text: "Ultima-Orb AI Chat" });
+    const container = this.containerEl.children[1] as HTMLElement;
+    container.innerHTML = "";
+    const heading = document.createElement("h4");
+    heading.textContent = "Ultima-Orb AI Chat";
+    container.appendChild(heading);
 
-    this.createChatInterface(container as HTMLElement);
+    this.createChatInterface(container);
   }
 
   private createChatInterface(container: HTMLElement): void {
     // Mode selector
-    const modeSelector = container.createEl("select", { cls: "mode-selector" });
+    const modeSelector = document.createElement("select");
+    modeSelector.className = "mode-selector";
+    container.appendChild(modeSelector);
     const modes = this.modeSystem.getAllModes();
 
     modes.forEach((mode) => {
-      const option = modeSelector.createEl("option", { text: mode.name });
+      const option = document.createElement("option");
+      option.text = mode.name;
       option.value = mode.id;
       if (mode.id === this.modeSystem.getActiveMode()?.id) {
         option.selected = true;
       }
+      modeSelector.appendChild(option);
     });
 
     modeSelector.addEventListener("change", (e) => {
@@ -56,20 +62,25 @@ export class ChatView extends ItemView {
     });
 
     // Chat container
-    this.chatContainer = container.createEl("div", { cls: "chat-container" });
+    this.chatContainer = document.createElement("div");
+    this.chatContainer.className = "chat-container";
+    container.appendChild(this.chatContainer);
 
     // Message input
-    const inputContainer = container.createEl("div", {
-      cls: "input-container",
-    });
-    this.messageInput = inputContainer.createEl("textarea", {
-      placeholder: "Type your message...",
-      cls: "message-input",
-    });
+    const inputContainer = document.createElement("div");
+    inputContainer.className = "input-container";
+    container.appendChild(inputContainer);
+
+    this.messageInput = document.createElement("textarea");
+    this.messageInput.placeholder = "Type your message...";
+    this.messageInput.className = "message-input";
+    inputContainer.appendChild(this.messageInput);
 
     // Send button
-    const sendButton = inputContainer.createEl("button", { text: "Send" });
+    const sendButton = document.createElement("button");
+    sendButton.textContent = "Send";
     sendButton.addEventListener("click", () => this.sendMessage());
+    inputContainer.appendChild(sendButton);
   }
 
   private async sendMessage(): Promise<void> {
@@ -96,19 +107,19 @@ export class ChatView extends ItemView {
     sender: "user" | "ai" | "error",
     message: string
   ): void {
-    const messageEl = this.chatContainer.createEl("div", {
-      cls: `chat-message ${sender}-message`,
-    });
+    const messageEl = document.createElement("div");
+    messageEl.className = `chat-message ${sender}-message`;
+    this.chatContainer.appendChild(messageEl);
 
-    const senderEl = messageEl.createEl("div", {
-      text: sender === "user" ? "You" : sender === "ai" ? "AI" : "Error",
-      cls: "message-sender",
-    });
+    const senderEl = document.createElement("div");
+    senderEl.textContent = sender === "user" ? "You" : sender === "ai" ? "AI" : "Error";
+    senderEl.className = "message-sender";
+    messageEl.appendChild(senderEl);
 
-    const contentEl = messageEl.createEl("div", {
-      text: message,
-      cls: "message-content",
-    });
+    const contentEl = document.createElement("div");
+    contentEl.textContent = message;
+    contentEl.className = "message-content";
+    messageEl.appendChild(contentEl);
   }
 
   public open(): void {

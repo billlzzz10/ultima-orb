@@ -8,12 +8,13 @@
     "allowJs": true,
     "noImplicitAny": false,
     "moduleResolution": "node",
-    "importHelpers": true,
+    "importHelpers": false,
     "lib": [ "DOM", "ES6", "ES2021" ],
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "esModuleInterop": true,
     "skipLibCheck": true,
     "strict": true
   },
-  "include": [ "**/*.ts", "src/types/*.d.ts" ]
+  "include": ["src/**/*.ts"],
+  "exclude": ["test", "tests", "node_modules"]
 }

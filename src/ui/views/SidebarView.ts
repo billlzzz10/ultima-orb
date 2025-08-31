@@ -24,53 +24,107 @@ export class SidebarView extends ItemView {
   }
 
   async onOpen(): Promise<void> {
-    const container = this.containerEl.children[1];
-    container.empty();
-    container.createEl("h4", { text: "Ultima-Orb Sidebar" });
+    const container = this.containerEl.children[1] as HTMLElement;
+    container.innerHTML = "";
+    const heading = document.createElement("h4");
+    heading.textContent = "Ultima-Orb Sidebar";
+    container.appendChild(heading);
 
     // Create sidebar content
-    this.createSidebarContent(container as HTMLElement);
+    this.createSidebarContent(container);
   }
 
   private createSidebarContent(container: HTMLElement): void {
     // AI Status
-    const statusSection = container.createEl("div", { cls: "sidebar-section" });
-    statusSection.createEl("h5", { text: "AI Status" });
-    
-    const statusItem = statusSection.createEl("div", { cls: "status-item" });
-    statusItem.createEl("span", { text: "AI Orchestrator: " });
-    statusItem.createEl("span", { text: "✅ Active", cls: "status-active" });
+    const statusSection = document.createElement("div");
+    statusSection.className = "sidebar-section";
+    container.appendChild(statusSection);
+
+    const statusHeading = document.createElement("h5");
+    statusHeading.textContent = "AI Status";
+    statusSection.appendChild(statusHeading);
+
+    const statusItem = document.createElement("div");
+    statusItem.className = "status-item";
+    statusSection.appendChild(statusItem);
+
+    const statusLabel = document.createElement("span");
+    statusLabel.textContent = "AI Orchestrator: ";
+    statusItem.appendChild(statusLabel);
+
+    const statusValue = document.createElement("span");
+    statusValue.textContent = "✅ Active";
+    statusValue.className = "status-active";
+    statusItem.appendChild(statusValue);
 
     // Quick Actions
-    const actionsSection = container.createEl("div", { cls: "sidebar-section" });
-    actionsSection.createEl("h5", { text: "Quick Actions" });
+    const actionsSection = document.createElement("div");
+    actionsSection.className = "sidebar-section";
+    container.appendChild(actionsSection);
 
-    const chatButton = actionsSection.createEl("button", { text: "Open Chat" });
+    const actionsHeading = document.createElement("h5");
+    actionsHeading.textContent = "Quick Actions";
+    actionsSection.appendChild(actionsHeading);
+
+    const chatButton = document.createElement("button");
+    chatButton.textContent = "Open Chat";
     chatButton.addEventListener("click", () => {
       this.plugin.openChatView();
     });
+    actionsSection.appendChild(chatButton);
 
-    const settingsButton = actionsSection.createEl("button", { text: "Settings" });
+    const settingsButton = document.createElement("button");
+    settingsButton.textContent = "Settings";
     settingsButton.addEventListener("click", () => {
       this.plugin.openSettings();
     });
+    actionsSection.appendChild(settingsButton);
 
     // Mode Info
-    const modeSection = container.createEl("div", { cls: "sidebar-section" });
-    modeSection.createEl("h5", { text: "Current Mode" });
-    
-    const modeInfo = modeSection.createEl("div", { cls: "mode-info" });
+    const modeSection = document.createElement("div");
+    modeSection.className = "sidebar-section";
+    container.appendChild(modeSection);
+
+    const modeHeading = document.createElement("h5");
+    modeHeading.textContent = "Current Mode";
+    modeSection.appendChild(modeHeading);
+
+    const modeInfo = document.createElement("div");
+    modeInfo.className = "mode-info";
+    modeSection.appendChild(modeInfo);
+
     const currentMode = this.plugin.getModeSystem().getActiveMode();
-    modeInfo.createEl("span", { text: currentMode?.name || "Default" });
+    const modeName = document.createElement("span");
+    modeName.textContent = currentMode?.name || "Default";
+    modeInfo.appendChild(modeName);
 
     // Tools Status
-    const toolsSection = container.createEl("div", { cls: "sidebar-section" });
-    toolsSection.createEl("h5", { text: "Available Tools" });
-    
-    const toolsList = toolsSection.createEl("div", { cls: "tools-list" });
-    toolsList.createEl("div", { text: "• AI Features", cls: "tool-item" });
-    toolsList.createEl("div", { text: "• Agent Mode", cls: "tool-item" });
-    toolsList.createEl("div", { text: "• Cursor Features", cls: "tool-item" });
+    const toolsSection = document.createElement("div");
+    toolsSection.className = "sidebar-section";
+    container.appendChild(toolsSection);
+
+    const toolsHeading = document.createElement("h5");
+    toolsHeading.textContent = "Available Tools";
+    toolsSection.appendChild(toolsHeading);
+
+    const toolsList = document.createElement("div");
+    toolsList.className = "tools-list";
+    toolsSection.appendChild(toolsList);
+
+    const feature1 = document.createElement("div");
+    feature1.textContent = "• AI Features";
+    feature1.className = "tool-item";
+    toolsList.appendChild(feature1);
+
+    const feature2 = document.createElement("div");
+    feature2.textContent = "• Agent Mode";
+    feature2.className = "tool-item";
+    toolsList.appendChild(feature2);
+
+    const feature3 = document.createElement("div");
+    feature3.textContent = "• Cursor Features";
+    feature3.className = "tool-item";
+    toolsList.appendChild(feature3);
   }
 
   async onClose(): Promise<void> {
