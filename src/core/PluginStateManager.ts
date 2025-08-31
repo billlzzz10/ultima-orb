@@ -410,7 +410,7 @@ export class PluginStateManager {
       const savedState = JSON.parse(data);
       this.state = { ...this.getInitialState(), ...savedState };
     } catch (error) {
-      console.log("No saved state found, using initial state");
+      console.info("No saved state found, using initial state");
     }
   }
 

@@ -44,7 +44,7 @@ export class AIOrchestrator {
         this.ollamaIntegration.setBaseUrl(this.settings.ollamaEndpoint);
       }
 
-      console.log("✅ AI Providers initialized successfully");
+      console.info("✅ AI Providers initialized successfully");
     } catch (error) {
       console.error("❌ Failed to initialize AI providers:", error);
       new Notice("Failed to initialize AI providers");
@@ -265,6 +265,6 @@ export class AIOrchestrator {
 
   async cleanup() {
     // Cleanup resources
-    console.log("Cleaning up AI Orchestrator...");
+    console.info("Cleaning up AI Orchestrator...");
   }
 }

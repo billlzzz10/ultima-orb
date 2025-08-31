@@ -7,7 +7,7 @@ export class Logger {
   private prefix = "[Ultima-Orb]";
 
   info(message: string, ...args: any[]): void {
-    console.log(`${this.prefix} [INFO] ${message}`, ...args);
+    console.info(`${this.prefix} [INFO] ${message}`, ...args);
   }
 
   warn(message: string, ...args: any[]): void {

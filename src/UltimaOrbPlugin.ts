@@ -41,7 +41,7 @@ export class UltimaOrbPlugin extends Plugin {
   sidebarView!: SidebarView;
 
   async onload() {
-    console.log("Loading Ultima-Orb plugin...");
+    console.info("Loading Ultima-Orb plugin...");
 
     // Initialize settings
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -77,7 +77,7 @@ export class UltimaOrbPlugin extends Plugin {
     // Add settings tab
     this.addSettingTab(new SettingsTab(this.app, this));
 
-    console.log("Ultima-Orb plugin loaded successfully!");
+    console.info("Ultima-Orb plugin loaded successfully!");
   }
 
   private initializeUIComponents() {
@@ -209,7 +209,7 @@ export class UltimaOrbPlugin extends Plugin {
 
   public openEnhancedCommandPalette() {
     // Simplified command palette
-    console.log("Opening enhanced command palette...");
+    console.info("Opening enhanced command palette...");
   }
 
   public getSettingsManager(): SettingsManager {
@@ -233,13 +233,13 @@ export class UltimaOrbPlugin extends Plugin {
   }
 
   async onunload() {
-    console.log("Unloading Ultima-Orb plugin...");
+    console.info("Unloading Ultima-Orb plugin...");
 
     // Cleanup managers
     this.aiOrchestrator?.cleanup();
     this.integrationManager?.cleanup();
 
-    console.log("Ultima-Orb plugin unloaded successfully!");
+    console.info("Ultima-Orb plugin unloaded successfully!");
   }
 }
 

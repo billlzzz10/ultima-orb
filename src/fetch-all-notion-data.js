@@ -9,7 +9,7 @@ const NOTION_TOKEN = process.env.NOTION_TOKEN || "";
  * ดึงรายการ databases ทั้งหมด
  */
 async function fetchAllDatabases() {
-  console.log("🔗 ดึงรายการ databases ทั้งหมด...");
+  console.info("🔗 ดึงรายการ databases ทั้งหมด...");
 
   try {
     const response = await fetch("https://api.notion.com/v1/search", {
@@ -29,10 +29,10 @@ async function fetchAllDatabases() {
 
     if (response.ok) {
       const data = await response.json();
-      console.log(`✅ พบ ${data.results.length} databases`);
+      console.info(`✅ พบ ${data.results.length} databases`);
       return data.results;
     } else {
-      console.log("❌ ดึงรายการ databases ไม่สำเร็จ:", response.status);
+      console.info("❌ ดึงรายการ databases ไม่สำเร็จ:", response.status);
       return [];
     }
   } catch (error) {
@@ -45,7 +45,7 @@ async function fetchAllDatabases() {
  * ดึงข้อมูล database เฉพาะ
  */
 async function fetchDatabaseContent(database) {
-  console.log(
+  console.info(
     `📄 ดึงข้อมูล database: ${database.title[0]?.plain_text || "Untitled"}`
   );
 
@@ -63,7 +63,7 @@ async function fetchDatabaseContent(database) {
     );
 
     if (!dbResponse.ok) {
-      console.log(
+      console.info(
         `❌ ดึงโครงสร้าง database ${database.id} ไม่สำเร็จ:`,
         dbResponse.status
       );
@@ -125,7 +125,7 @@ async function fetchPageContent(pageId) {
     if (response.ok) {
       return await response.json();
     } else {
-      console.log(`❌ ดึงข้อมูล page ${pageId} ไม่สำเร็จ:`, response.status);
+      console.info(`❌ ดึงข้อมูล page ${pageId} ไม่สำเร็จ:`, response.status);
       return null;
     }
   } catch (error) {
@@ -153,7 +153,7 @@ async function fetchPageBlocks(pageId) {
     if (response.ok) {
       return await response.json();
     } else {
-      console.log(
+      console.info(
         `❌ ดึงข้อมูล blocks ของ page ${pageId} ไม่สำเร็จ:`,
         response.status
       );
@@ -180,7 +180,7 @@ function saveToFile(data, filename) {
 
     const filepath = path.join(outputDir, filename);
     fs.writeFileSync(filepath, JSON.stringify(data, null, 2));
-    console.log(`💾 บันทึกข้อมูลลงไฟล์: ${filepath}`);
+    console.info(`💾 บันทึกข้อมูลลงไฟล์: ${filepath}`);
     return filepath;
   } catch (error) {
     console.error("❌ เกิดข้อผิดพลาดในการบันทึกไฟล์:", error);
@@ -192,7 +192,7 @@ function saveToFile(data, filename) {
  * วิเคราะห์ข้อมูล Notion
  */
 function analyzeNotionData(databases) {
-  console.log("🔍 วิเคราะห์ข้อมูล Notion...");
+  console.info("🔍 วิเคราะห์ข้อมูล Notion...");
 
   const analysis = {
     summary: {
@@ -295,14 +295,14 @@ function generateInsights(analysis) {
  * ฟังก์ชันหลัก
  */
 async function main() {
-  console.log("🚀 เริ่มดึงข้อมูล Notion...");
-  console.log("=".repeat(50));
+  console.info("🚀 เริ่มดึงข้อมูล Notion...");
+  console.info("=".repeat(50));
 
   try {
     // 1. ดึงรายการ databases ทั้งหมด
     const databases = await fetchAllDatabases();
     if (databases.length === 0) {
-      console.log("❌ ไม่พบ databases");
+      console.info("❌ ไม่พบ databases");
       return;
     }
 
@@ -330,19 +330,19 @@ async function main() {
     saveToFile(analysis, "notion-analysis.json");
 
     // 5. แสดงสรุป
-    console.log("=".repeat(50));
-    console.log("✅ ดึงข้อมูลเสร็จสิ้น!");
-    console.log(
+    console.info("=".repeat(50));
+    console.info("✅ ดึงข้อมูลเสร็จสิ้น!");
+    console.info(
       `📊 สรุป: ${analysis.summary.total_databases} databases, ${analysis.summary.total_pages} pages`
     );
-    console.log(
+    console.info(
       `💾 ไฟล์ที่สร้าง: data/notion-raw-data.json, data/notion-analysis.json`
     );
 
     // แสดง insights
-    console.log("\n🔍 Insights:");
+    console.info("\n🔍 Insights:");
     analysis.insights.forEach((insight, index) => {
-      console.log(`${index + 1}. ${insight.title}: ${insight.description}`);
+      console.info(`${index + 1}. ${insight.title}: ${insight.description}`);
     });
   } catch (error) {
     console.error("❌ เกิดข้อผิดพลาดในฟังก์ชันหลัก:", error);

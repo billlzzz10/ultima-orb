@@ -147,15 +147,15 @@ export class BundleOptimizer {
   }
 
   /**
-   * Remove console.log statements from production code
+   * Remove console.info statements from production code
    */
   private removeConsoleLogs(): void {
-    this.logger.debug('Removing console.log statements...');
+    this.logger.debug('Removing console.info statements...');
 
-    // Simulate console.log removal
+    // Simulate console.info removal
     const consoleLogCount = this.countConsoleLogs();
     
-    this.logger.info(`Removed ${consoleLogCount} console.log statements`);
+    this.logger.info(`Removed ${consoleLogCount} console.info statements`);
   }
 
   /**
@@ -324,8 +324,8 @@ ${this.generateRecommendations().map(rec => `- ${rec}`).join('\n')}
   }
 
   private countConsoleLogs(): number {
-    // Simulate console.log counting
-    return Math.floor(Math.random() * 20) + 5; // 5-25 console.logs
+    // Simulate console.info counting
+    return Math.floor(Math.random() * 20) + 5; // 5-25 console.infos
   }
 
   private optimizeImportStatements(): number {

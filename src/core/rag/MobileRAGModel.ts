@@ -51,7 +51,7 @@ export class MobileRAGModel implements RAGModel {
     }
 
     try {
-      console.log(`🔄 Loading mobile RAG model: ${this.name}`);
+      console.info(`🔄 Loading mobile RAG model: ${this.name}`);
 
       // ตรวจสอบพื้นที่ว่าง
       const availableSpace = await this.checkAvailableSpace();
@@ -65,7 +65,7 @@ export class MobileRAGModel implements RAGModel {
       await this.loadExistingEmbeddings();
 
       this.isLoaded = true;
-      console.log(`✅ Mobile RAG model loaded: ${this.name}`);
+      console.info(`✅ Mobile RAG model loaded: ${this.name}`);
     } catch (error) {
       console.error(`❌ Failed to load mobile RAG model: ${error}`);
       throw error;
@@ -89,7 +89,7 @@ export class MobileRAGModel implements RAGModel {
       this.documents.clear();
 
       this.isLoaded = false;
-      console.log(`✅ Mobile RAG model unloaded: ${this.name}`);
+      console.info(`✅ Mobile RAG model unloaded: ${this.name}`);
     } catch (error) {
       console.error(`❌ Failed to unload mobile RAG model: ${error}`);
       throw error;
@@ -163,7 +163,7 @@ export class MobileRAGModel implements RAGModel {
       this.embeddings.set(id, embedding);
       this.documents.set(id, content);
 
-      console.log(`✅ Document added to RAG model: ${id}`);
+      console.info(`✅ Document added to RAG model: ${id}`);
     } catch (error) {
       console.error(`❌ Failed to add document: ${error}`);
       throw error;
@@ -182,7 +182,7 @@ export class MobileRAGModel implements RAGModel {
       this.embeddings.delete(id);
       this.documents.delete(id);
 
-      console.log(`✅ Document removed from RAG model: ${id}`);
+      console.info(`✅ Document removed from RAG model: ${id}`);
     } catch (error) {
       console.error(`❌ Failed to remove document: ${error}`);
       throw error;
@@ -252,7 +252,7 @@ export class MobileRAGModel implements RAGModel {
         const data = JSON.parse(stored);
         this.embeddings = new Map(data.embeddings);
         this.documents = new Map(data.documents);
-        console.log(`📥 Loaded ${this.embeddings.size} existing embeddings`);
+        console.info(`📥 Loaded ${this.embeddings.size} existing embeddings`);
       }
     } catch (error) {
       console.warn("Could not load existing embeddings:", error);
@@ -271,7 +271,7 @@ export class MobileRAGModel implements RAGModel {
       };
 
       localStorage.setItem(`rag_embeddings_${this.id}`, JSON.stringify(data));
-      console.log(`💾 Saved ${this.embeddings.size} embeddings`);
+      console.info(`💾 Saved ${this.embeddings.size} embeddings`);
     } catch (error) {
       console.warn("Could not save embeddings:", error);
     }

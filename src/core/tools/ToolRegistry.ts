@@ -497,7 +497,7 @@ export class ToolRegistry {
         console.warn(logMessage);
         break;
       default:
-        console.log(logMessage);
+        console.info(logMessage);
     }
   }
 }

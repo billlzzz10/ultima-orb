@@ -50,7 +50,7 @@ export class NotionDatabaseUpdater {
     };
 
     // อัพเดต Progress Summary page ใน Notion
-    console.log("Updating progress summary:", summaryData);
+    console.info("Updating progress summary:", summaryData);
 
     // TODO: ใช้ NotionMCPClient เพื่ออัพเดตจริง
     // await this.notionClient.updatePage("progress-summary-page-id", summaryData);
@@ -73,7 +73,7 @@ export class NotionDatabaseUpdater {
       "Last Updated": new Date().toISOString(),
     };
 
-    console.log(`Updating tool: ${tool.name}`, toolData);
+    console.info(`Updating tool: ${tool.name}`, toolData);
 
     // TODO: ใช้ NotionMCPClient เพื่ออัพเดตจริง
     // await this.notionClient.updatePage(tool.databaseId, toolData);
@@ -115,7 +115,7 @@ export class NotionDatabaseUpdater {
       },
     };
 
-    console.log("Creating Notion database structure:", databaseStructure);
+    console.info("Creating Notion database structure:", databaseStructure);
 
     // TODO: ใช้ NotionMCPClient เพื่อสร้าง database จริง
     // await this.notionClient.createDatabase(databaseStructure);

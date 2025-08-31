@@ -356,7 +356,7 @@ export class ToolDatabaseDashboard extends Modal {
   private exportToolsToJson(): void {
     const jsonData = this.toolManager.exportTools();
     // TODO: สร้าง download หรือ copy to clipboard
-    console.log("Export JSON:", jsonData);
+    console.info("Export JSON:", jsonData);
     new Notice("📤 Tools exported to JSON");
   }
 
@@ -366,7 +366,7 @@ export class ToolDatabaseDashboard extends Modal {
   private exportToolsToNotionFormat(): void {
     const notionData = this.notionUpdater.exportToolsToNotionFormat();
     // TODO: สร้าง download หรือ copy to clipboard
-    console.log("Export Notion Format:", notionData);
+    console.info("Export Notion Format:", notionData);
     new Notice("📤 Tools exported to Notion format");
   }
 
@@ -405,7 +405,7 @@ export class ToolDatabaseDashboard extends Modal {
   private generateReport(): void {
     const report = this.notionUpdater.generateNotionUpdateReport();
     // TODO: สร้าง download หรือ copy to clipboard
-    console.log("Generate Report:", report);
+    console.info("Generate Report:", report);
     new Notice("📊 Report generated");
   }
 }

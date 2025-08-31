@@ -1802,7 +1802,7 @@ export class ToolDatabaseManager {
       );
       this.importTools(data);
     } catch (error) {
-      console.log("No saved tools database found, using default");
+      console.info("No saved tools database found, using default");
     }
   }
 }
