@@ -1,0 +1,62 @@
+name: Development CI
+on:
+  push:
+    branches: [develop, feature/*]
+  pull_request:
+    branches: [develop]
+
+jobs:
+  quick-check:
+    name: 🚀 Quick Development Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Quick lint check
+        run: npm run lint
+        
+      - name: TypeScript check
+        run: npm run type-check
+        
+      - name: Quick build test
+        run: npm run build
+        
+      - name: Fast tests
+        run: npm test -- --run --reporter=basic
+
+  auto-fix:
+    name: 🔧 Auto-fix Issues
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Auto-fix linting issues
+        run: npm run lint:fix
+        
+      - name: Commit auto-fixes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git diff --quiet && git diff --staged --quiet || (git add -A && git commit -m "fix: auto-fix linting issues [skip ci]")
+          git push || echo "No changes to commit"
