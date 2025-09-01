@@ -19,8 +19,8 @@ module.exports = {
     'no-unused-vars': 'off',
     
     // 🔥 Quotes ต้องเป็น single
-    'quotes': ['error', 'double'],
-    '@typescript-eslint/quotes': ['error', 'double'],
+    'quotes': ['error', 'single'],
+    '@typescript-eslint/quotes': ['error', 'single'],
     
     // 🔥 Semicolons ต้องมี
     'semi': ['error', 'always'],
