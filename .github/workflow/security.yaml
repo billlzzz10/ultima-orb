@@ -1,0 +1,48 @@
+name: Security Scan
+on:
+  schedule:
+    - cron: '0 2 * * 1' # Weekly on Monday 2 AM
+  workflow_dispatch:
+
+jobs:
+  dependency-check:
+    name: 🔍 Dependency Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+        
+      - name: Check for vulnerable dependencies
+        run: |
+          npx audit-ci --config .audit-ci.json
+
+  code-security-scan:
+    name: 🕵️ Code Security Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Scan for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          
+      - name: Check for hardcoded secrets
+        run: |
+          # Check for common secret patterns
+          if grep -r -E "(api_key|secret|token|password)" src/ --include="*.ts" --include="*.js"; then
+            echo "⚠️ Potential secrets found in code"
+          fi
