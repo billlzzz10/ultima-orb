@@ -6,11 +6,11 @@
 export class Logger {
   private prefix = "[Ultima-Orb]";
 
-  info(message: string, ...args: any[]): void {
+  info<T extends unknown[]>(message: string, ...args: T): void {
     console.info(`${this.prefix} [INFO] ${message}`, ...args);
   }
 
-  warn(message: string, ...args: any[]): void {
+  warn<T extends unknown[]>(message: string, ...args: T): void {
     console.warn(`${this.prefix} [WARN] ${message}`, ...args);
   }
 
@@ -18,7 +18,7 @@ export class Logger {
     console.error(`${this.prefix} [ERROR] ${message}`, error);
   }
 
-  debug(message: string, ...args: any[]): void {
+  debug<T extends unknown[]>(message: string, ...args: T): void {
     console.debug(`${this.prefix} [DEBUG] ${message}`, ...args);
   }
 }
