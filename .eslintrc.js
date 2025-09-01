@@ -29,5 +29,22 @@ module.exports = {
     'indent': 'off',
     '@typescript-eslint/indent': 'off',
   },
-  ignorePatterns: ['dist/', 'node_modules/', '*.js'],
+  ignorePatterns: ['dist/', 'node_modules/'],
+  overrides: [
+    {
+      files: [
+        'scripts/*.js',
+        'src/automation-demo.js',
+        'src/fetch-all-notion-data.js',
+        'src/fetch-all-notion-data-simple.js',
+        'src/test-notion-analysis.js',
+        'src/analyze-notion-data.js',
+        'mcp_notion.js',
+      ],
+      parser: 'espree',
+      plugins: [],
+      extends: [],
+      rules: {},
+    },
+  ],
 };
