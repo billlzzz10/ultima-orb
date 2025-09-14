@@ -13,7 +13,7 @@ Ultima-Orb ได้รวม **Notion API** เข้าไว้เพื่�
 Ultima-Orb ใช้ **Notion API** โดยตรงผ่าน token ของคุณ:
 
 ```typescript
-// Token ที่ใช้: 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
+// Token ที่ใช้: NOTION-TOKEN
 // API Endpoint: https://api.notion.com/v1
 // Version: 2022-06-28
 ```
