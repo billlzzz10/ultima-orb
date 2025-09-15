@@ -248,6 +248,15 @@ export class FileImportTool extends ToolBase {
   private async importUrl(params: any): Promise<ToolResult> {
     const { url, targetFolder = "AI References", format = "md" } = params;
 
+    // SSRF protection: check URL safety before fetching content
+    if (!this.isSafeExternalUrl(url)) {
+      return {
+        success: false,
+        message: `URL นี้ไม่ปลอดภัย หรืออยู่นอกขอบเขตที่อนุญาต: ${url}`,
+        timestamp: new Date(),
+      };
+    }
+
     try {
       // ดึงเนื้อหาจาก URL
       const response = await fetch(url);
@@ -615,6 +624,40 @@ export class FileImportTool extends ToolBase {
       );
     }
     return urls;
+  }
+
+  // SSRF-safe URL checker (allow-list + block-list for local/private networks)
+  private isSafeExternalUrl(urlStr: string): boolean {
+    try {
+      const allowedDomains = [
+        // EXAMPLES: Add your allow-list here for safe domains
+        'en.wikipedia.org',
+        'www.nytimes.com',
+        'www.bbc.com',
+        // Add more allowed domains as needed
+      ];
+      const parsed = new URL(urlStr);
+      // Only allow http(s)
+      if (!['http:', 'https:'].includes(parsed.protocol)) return false;
+      // Check against allow-list
+      if (!allowedDomains.includes(parsed.hostname)) return false;
+      // Prevent localhost and private IP addresses
+      const forbiddenHosts = [
+        'localhost',
+        '127.0.0.1',
+        '::1',
+      ];
+      if (forbiddenHosts.includes(parsed.hostname)) return false;
+      // Block internal/private IP address ranges
+      // NOTE: Only works for literal hostnames, NOT DNS-resolved hostnames
+      // Optionally, use regex for private ranges
+      const privateIpRegex =
+        /^(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/;
+      if (privateIpRegex.test(parsed.hostname)) return false;
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   private async handleDrop(
