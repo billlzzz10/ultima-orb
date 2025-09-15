@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env sh ปิด
 if [ -z "$husky_skip_init" ]; then
   husky_skip_init=1
   export husky_skip_init
