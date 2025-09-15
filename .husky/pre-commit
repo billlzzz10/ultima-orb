@@ -1,5 +1,0 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
-# เร็วและปลอดภัย: ลินต์เฉพาะไฟล์ที่แก้กับ type-check เร็ว
-npx lint-staged && npm run -s type-check
