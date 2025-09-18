@@ -252,3 +252,6 @@ metrics/
 # Ignore cursor AI rules
 .cursor/rules/codacy.mdc
 .cursor/rules/ai-integration.mdc
+
+# All settings IDE
+
