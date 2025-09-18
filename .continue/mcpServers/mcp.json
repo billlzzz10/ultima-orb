@@ -8,8 +8,8 @@
         "@notionhq/notion-mcp-server@latest"
       ],
       "env": {
-        "NOTION_TOKEN": "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",
-        "OPENAPI_MCP_HEADERS": "{\"Authorization\": \"Bearer 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\", \"Notion-Version\": \"2022-06-28\" }"
+        "NOTION_TOKEN": "your_notion_token",
+        "OPENAPI_MCP_HEADERS": "{\"Authorization\": \"Bearer your_notion_token\", \"Notion-Version\": \"2022-06-28\" }"
       },
       "gallery": true
     },
