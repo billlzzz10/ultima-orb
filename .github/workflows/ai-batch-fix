@@ -1,0 +1,70 @@
+name: Batch Fix CodeQL Alerts
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * 3' # รันทุกวันตอนตี 3
+
+jobs:
+  fix-alerts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1. ดึง CodeQL alerts ทั้งหมด
+      - name: Fetch all CodeQL alerts
+        id: fetch
+        run: |
+          gh api /repos/${{ github.repository }}/code-scanning/alerts \
+            --jq '[.[] | select(.state=="open") | {file: .most_recent_instance.location.path, line: .most_recent_instance.location.start_line}]' \
+            > alerts.json
+          count=$(jq length alerts.json)
+          echo "alert_count=$count" >> $GITHUB_OUTPUT
+          if [ "$count" -eq 0 ]; then
+            echo "✅ No open alerts"
+            exit 0
+          fi
+
+      # 2. เตรียม prompt สำหรับทุก alert
+      - name: Build batch prompt
+        id: prompt
+        run: |
+          echo "You are a secure code patcher. Fix the following issues:" > prompt.txt
+          for row in $(jq -c '.[]' alerts.json); do
+            file=$(echo $row | jq -r '.file')
+            line=$(echo $row | jq -r '.line')
+            echo "\n---\nFile: $file (Line $line)" >> prompt.txt
+            echo "Code:" >> prompt.txt
+            head -n $((line+10)) "$file" | tail -n 20 >> prompt.txt
+          done
+          echo "prompt<<EOF" >> $GITHUB_OUTPUT
+          cat prompt.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      # 3. เรียก GitHub Model เพื่อ generate patch
+      - name: Call GitHub Model
+        id: fix
+        uses: github-llm/action@v1
+        with:
+          model: gpt-4.1
+          messages: |
+            - role: system
+              content: "You are a secure code patcher. Return a unified diff that fixes all issues."
+            - role: user
+              content: "${{ steps.prompt.outputs.prompt }}"
+
+      # 4. Validate patch
+      - name: Validate patch format
+        run: |
+          echo "${{ steps.fix.outputs.content }}" > patch.diff
+          if ! grep -q '^diff' patch.diff; then
+            echo "❌ Invalid patch format"
+            exit 1
+          fi
+
+      # 5. Apply patch
+      - name: Apply patch
+        run: |
+          git apply patch.diff || { echo "❌ Patch failed"; exit 1; }
+          git commit -am "🔒 Batch fix CodeQL alerts via @gpt-4.1"
+          git push
