@@ -4,9 +4,20 @@ const path = require("path");
 
 class NotionDataAnalyzer {
   constructor(dataDir = "notion-outputs", outputDir = "analysis-results") {
-    this.dataDir = dataDir;
-    this.outputDir = outputDir;
+    this.dataDir = this.sanitizePath(dataDir, "notion-outputs");
+    this.outputDir = this.sanitizePath(outputDir, "analysis-results");
     this.ensureOutputDir();
+  }
+
+  sanitizePath(inputPath, allowedBase) {
+    const resolvedPath = path.resolve(inputPath);
+    const allowedPath = path.resolve(allowedBase);
+    if (!resolvedPath.startsWith(allowedPath)) {
+      throw new Error(
+        `Path traversal attempt: ${inputPath} is outside of ${allowedBase}`
+      );
+    }
+    return resolvedPath;
   }
 
   ensureOutputDir() {

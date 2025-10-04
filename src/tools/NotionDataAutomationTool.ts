@@ -250,6 +250,13 @@ export class NotionDataAutomationTool extends ToolBase {
     conditions?: AutomationCondition[],
     actions?: AutomationAction[]
   ): Promise<ToolResult> {
+    if (!name || !trigger || !actions) {
+      return {
+        success: false,
+        error: "Missing required parameters: name, trigger, and actions are required.",
+        timestamp: new Date(),
+      };
+    }
     try {
       const rule: AutomationRule = {
         id: this.generateId(),
