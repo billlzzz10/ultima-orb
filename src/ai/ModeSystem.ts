@@ -306,12 +306,26 @@ export class ModeSystem {
       return { provider: "openai" };
     }
 
-    return {
+    const settings: {
+      provider: string;
+      model?: string;
+      temperature?: number;
+      maxTokens?: number;
+    } = {
       provider: activeMode.provider,
-      model: activeMode.model,
-      temperature: activeMode.temperature,
-      maxTokens: activeMode.maxTokens,
     };
+
+    if (activeMode.model) {
+      settings.model = activeMode.model;
+    }
+    if (activeMode.temperature) {
+      settings.temperature = activeMode.temperature;
+    }
+    if (activeMode.maxTokens) {
+      settings.maxTokens = activeMode.maxTokens;
+    }
+
+    return settings;
   }
 
   /**

@@ -317,7 +317,7 @@ export class NotionDataAnalyzer {
     if (consistencyScore < 90) {
       recommendations.push("ควรตรวจสอบและแก้ไขข้อมูลที่ซ้ำกัน");
     }
-    if (topDatabases.length > 0 && topDatabases[0].pageCount > 100) {
+    if (topDatabases.length > 0 && topDatabases[0] && topDatabases[0].pageCount > 100) {
       recommendations.push("พิจารณาแบ่ง databases ขนาดใหญ่เป็นส่วนย่อย");
     }
 
@@ -576,17 +576,17 @@ ${insights.recommendations.map((rec) => `- ${rec}`).join("\n")}
         .map((block: any) => {
           if (block.paragraph?.rich_text) {
             return block.paragraph.rich_text
-              .map((text: any) => text.plain_text)
+              .map((text: { plain_text: string; }) => text.plain_text)
               .join(" ");
           }
           if (block.heading_1?.rich_text) {
             return block.heading_1.rich_text
-              .map((text: any) => text.plain_text)
+              .map((text: { plain_text: string; }) => text.plain_text)
               .join(" ");
           }
           if (block.heading_2?.rich_text) {
             return block.heading_2.rich_text
-              .map((text: any) => text.plain_text)
+              .map((text: { plain_text: string; }) => text.plain_text)
               .join(" ");
           }
           return "";

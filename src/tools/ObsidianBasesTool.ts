@@ -430,7 +430,7 @@ baseIntensity * recencyFactor
     formula: |
 ${config.formula
   .split("\n")
-  .map((line) => `      ${line}`)
+  .map((line: string) => `      ${line}`)
   .join("\n")}`;
         } else {
           return `  ${key}:

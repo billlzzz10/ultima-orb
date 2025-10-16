@@ -488,6 +488,8 @@ export class CursorCommandPalette extends Modal {
     if (this.filteredCommands.length === 0) return;
 
     const command = this.filteredCommands[this.selectedIndex];
+    if (!command) return;
+
     try {
       await command.action();
     } catch (error) {

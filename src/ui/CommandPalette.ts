@@ -187,8 +187,9 @@ export class CommandPalette extends Modal {
         break;
       case "Enter":
         e.preventDefault();
-        if (this.filteredCommands[this.selectedIndex]) {
-          this.executeCommand(this.filteredCommands[this.selectedIndex]);
+        const command = this.filteredCommands[this.selectedIndex];
+        if (command) {
+          this.executeCommand(command);
         }
         break;
       case "Escape":

@@ -31,7 +31,22 @@ async function main() {
     new CloudDriveTool(),
   ];
 
-  const result = await router.handleQuery({ query, task, mime, tools });
+  const params: {
+    query: string;
+    task?: string;
+    mime?: string;
+    tools: any[];
+  } = {
+    query,
+    tools,
+  };
+  if (task) {
+    params.task = task;
+  }
+  if (mime) {
+    params.mime = mime;
+  }
+  const result = await router.handleQuery(params);
   console.log(JSON.stringify(result, null, 2));
 }
 

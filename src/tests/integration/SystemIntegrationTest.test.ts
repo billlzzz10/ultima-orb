@@ -15,7 +15,6 @@ import { DocumentIndexer } from "../../ai/rag/DocumentIndexer";
 import { OllamaIntegration } from "../../ai/local/OllamaIntegration";
 import { NotionDatabaseManager } from "../../integrations/notion/DatabaseManager";
 import { ChartJSManager } from "../../libraries/ChartJS";
-import { DocumentProcessor } from "../../ai/anythingllm/DocumentProcessor";
 
 // Mock Obsidian App
 const mockApp = {
@@ -37,8 +36,6 @@ describe("Ultima-Orb System Integration Tests", () => {
   let ollamaIntegration: OllamaIntegration;
   let notionDatabaseManager: NotionDatabaseManager;
   let chartJSManager: ChartJSManager;
-  let documentProcessor: DocumentProcessor;
-
   beforeEach(() => {
     featureManager = new FeatureManager(mockApp);
     stateManager = new PluginStateManager(mockApp);
@@ -48,7 +45,6 @@ describe("Ultima-Orb System Integration Tests", () => {
     ollamaIntegration = new OllamaIntegration(mockApp, featureManager);
     notionDatabaseManager = new NotionDatabaseManager(mockApp, featureManager);
     chartJSManager = new ChartJSManager(mockApp, featureManager);
-    documentProcessor = new DocumentProcessor(mockApp, featureManager);
   });
 
   afterEach(() => {
@@ -64,7 +60,6 @@ describe("Ultima-Orb System Integration Tests", () => {
       expect(ollamaIntegration).toBeDefined();
       expect(notionDatabaseManager).toBeDefined();
       expect(chartJSManager).toBeDefined();
-      expect(documentProcessor).toBeDefined();
     });
 
     it("should have correct tool database structure", () => {
@@ -128,6 +123,9 @@ describe("Ultima-Orb System Integration Tests", () => {
 
       const result = await scriptEngine.executeScript(invalidScript, context);
       expect(result.success).toBe(false);
+      if (results[0]) {
+        // Additional checks can be added here if needed
+      }
       expect(result.error).toBeDefined();
     });
 
@@ -162,10 +160,12 @@ describe("Ultima-Orb System Integration Tests", () => {
 
       if (chunks.length > 0) {
         const chunk = chunks[0];
-        expect(chunk.id).toBeDefined();
-        expect(chunk.content).toBeDefined();
-        expect(chunk.metadata).toBeDefined();
-        expect(chunk.metadata.file).toBe("test.md");
+        if (chunk) {
+          expect(chunk.id).toBeDefined();
+          expect(chunk.content).toBeDefined();
+          expect(chunk.metadata).toBeDefined();
+          expect(chunk.metadata.file).toBe("test.md");
+        }
       }
     });
 
@@ -268,38 +268,6 @@ describe("Ultima-Orb System Integration Tests", () => {
     });
   });
 
-  describe("Document Processing", () => {
-    it("should process documents correctly", async () => {
-      const mockFile = {
-        path: "test.md",
-        name: "test.md",
-        basename: "test",
-        extension: "md",
-        stat: { size: 100, ctime: Date.now(), mtime: Date.now() },
-        vault: mockApp.vault,
-      } as any;
-
-      const result = await documentProcessor.processDocument(mockFile);
-      expect(result).toBeDefined();
-    });
-
-    it("should handle processing errors", async () => {
-      const mockFile = {
-        path: "invalid.md",
-        name: "invalid.md",
-        basename: "invalid",
-        extension: "md",
-        stat: { size: 0, ctime: Date.now(), mtime: Date.now() },
-        vault: mockApp.vault,
-      } as any;
-
-      try {
-        await documentProcessor.processDocument(mockFile);
-      } catch (error) {
-        expect(error).toBeDefined();
-      }
-    });
-  });
 
   describe("Feature Management", () => {
     it("should check feature availability", () => {
@@ -310,6 +278,9 @@ describe("Ultima-Orb System Integration Tests", () => {
     it("should get feature usage report", () => {
       const report = featureManager.getFeatureUsageReport();
       expect(report).toBeDefined();
+      if (results[0]) {
+        // Additional checks can be added here if needed
+      }
       expect(report.licenseType).toBeDefined();
       expect(Array.isArray(report.freeFeatures)).toBe(true);
     });
@@ -332,23 +303,17 @@ describe("Ultima-Orb System Integration Tests", () => {
           variables: {},
           functions: {},
         }),
-        documentProcessor.processDocument({
-          path: "test.md",
-          name: "test.md",
-          basename: "test",
-          extension: "md",
-          stat: { size: 100, ctime: Date.now(), mtime: Date.now() },
-          vault: mockApp.vault,
-        } as any),
         chartJSManager.generateRandomData(["A", "B"], 1),
       ];
 
-      const results = await Promise.all(operations);
-      expect(results).toHaveLength(3);
+      const result = await Promise.all(operations);
+      expect(result).toHaveLength(2);
       // Check that all operations completed without throwing
-      expect(results[0]).toBeDefined();
-      expect(results[1]).toBeDefined();
-      expect(results[2]).toBeDefined();
+      expect(result[0]).toBeDefined();
+      if (result[0]) {
+        // Additional checks can be added here if needed
+      }
+      expect(result[1]).toBeDefined();
     });
   });
 

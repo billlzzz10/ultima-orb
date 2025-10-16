@@ -56,11 +56,16 @@ export class Router {
     cacheKeyExtras?: any;     // additional cache components
     cacheContext?: string;    // previous context to include (optional)
   }): Promise<{ text: string; provider: string; model: string }> {
-    const { provider, model } = this.pickProviderModel({
+    const pickParams: { query: string; task?: string; mime?: string } = {
       query: params.query,
-      task: params.task,
-      mime: params.mime
-    });
+    };
+    if (params.task) {
+      pickParams.task = params.task;
+    }
+    if (params.mime) {
+      pickParams.mime = params.mime;
+    }
+    const { provider, model } = this.pickProviderModel(pickParams);
 
     // guard: provider must be available (i.e., has key/host)
     const available = this.providers.listProviders();
@@ -69,11 +74,25 @@ export class Router {
     }
 
     // build prompt with constraints and optional cached context
-    const built = this.prompts.build(params.query, {
-      assistant: this.cfg.assistant_prompt || { style: "balanced", max_length: 1500, min_length: 300 },
-      cacheContext: params.cacheContext,
-      toolsNote: params.tools && params.tools.length ? "Tool calls are available." : undefined
-    });
+    const buildOptions: {
+      assistant: AssistantPromptCfg;
+      cacheContext?: string;
+      toolsNote?: string;
+    } = {
+      assistant:
+        this.cfg.assistant_prompt || {
+          style: "balanced",
+          max_length: 1500,
+          min_length: 300,
+        },
+    };
+    if (params.cacheContext) {
+      buildOptions.cacheContext = params.cacheContext;
+    }
+    if (params.tools && params.tools.length) {
+      buildOptions.toolsNote = "Tool calls are available.";
+    }
+    const built = this.prompts.build(params.query, buildOptions);
 
     // cache key
     const cacheKey = JSON.stringify({
@@ -91,11 +110,18 @@ export class Router {
     // call provider
     const prov = this.providers.get(provider);
     // normalize call signature across providers
-    const result = await prov.call({
+    const callArgs: {
+      model: string;
+      messages: Array<{ role: "system" | "user" | "assistant"; content: string }>;
+      tools?: any[];
+    } = {
       model,
       messages: built.messages,
-      tools: params.tools
-    });
+    };
+    if (params.tools) {
+      callArgs.tools = params.tools;
+    }
+    const result = await prov.call(callArgs);
 
     // best-effort extract text
     const text =

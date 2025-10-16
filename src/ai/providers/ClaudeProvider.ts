@@ -111,10 +111,17 @@ export class ClaudeProvider extends BaseProvider {
       model,
       max_tokens: request.maxTokens || this.config.maxTokens || 2048,
       messages,
-      temperature: request.temperature || this.config.temperature,
-      system: systemPrompt,
       stream: false,
     };
+
+    const temperature = request.temperature || this.config.temperature;
+    if (temperature) {
+      claudeRequest.temperature = temperature;
+    }
+
+    if (systemPrompt) {
+      claudeRequest.system = systemPrompt;
+    }
 
     try {
       const response = await this.makeRequest(claudeRequest);
@@ -143,13 +150,18 @@ export class ClaudeProvider extends BaseProvider {
     const isAvailable = await this.isAvailable();
     const isConfigured = this.validateConfig();
 
-    return {
+    const status: ProviderStatus = {
       name: this.config.name,
       isAvailable,
       isConfigured,
       lastUsed: new Date(),
-      error: isAvailable ? undefined : "Claude API not available",
     };
+
+    if (!isAvailable) {
+      status.error = "Claude API not available";
+    }
+
+    return status;
   }
 
   /**
@@ -262,23 +274,29 @@ export class ClaudeProvider extends BaseProvider {
       throw new Error("Empty response from Claude API");
     }
 
-    return {
+    const aiResponse: AIResponse = {
       content: textContent,
       model: response.model,
-      usage: response.usage
-        ? {
-            promptTokens: response.usage.input_tokens,
-            completionTokens: response.usage.output_tokens,
-            totalTokens:
-              response.usage.input_tokens + response.usage.output_tokens,
-          }
-        : undefined,
       metadata: {
         id: response.id,
         stopReason: response.stop_reason,
-        stopSequence: response.stop_sequence,
       },
     };
+
+    if (response.usage) {
+      aiResponse.usage = {
+        promptTokens: response.usage.input_tokens,
+        completionTokens: response.usage.output_tokens,
+        totalTokens:
+          response.usage.input_tokens + response.usage.output_tokens,
+      };
+    }
+
+    if (response.stop_sequence && aiResponse.metadata) {
+      aiResponse.metadata.stopSequence = response.stop_sequence;
+    }
+
+    return aiResponse;
   }
 
   /**

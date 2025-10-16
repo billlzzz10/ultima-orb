@@ -225,10 +225,10 @@ export class GitHubMCPClient {
     options: RequestInit = {}
   ): Promise<any> {
     const url = `${this.baseUrl}${endpoint}`;
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       Accept: "application/vnd.github.v3+json",
       "Content-Type": "application/json",
-      ...options.headers,
+      ...options.headers as Record<string, string>,
     };
 
     if (this.apiKey) {

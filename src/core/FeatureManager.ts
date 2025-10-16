@@ -240,7 +240,7 @@ export class FeatureManager {
       this.licenseType === "free" ? this.getFreeLimits() : this.getMaxLimits();
 
     const limit = limits[feature];
-    return limit === -1 || currentUsage < limit;
+    return limit === undefined || limit === -1 || currentUsage < limit;
   }
 
   /**

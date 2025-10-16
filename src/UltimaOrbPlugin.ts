@@ -1,4 +1,4 @@
-import { Plugin, App, PluginSettingTab } from "obsidian";
+import { Plugin, App, PluginSettingTab, WorkspaceLeaf } from "obsidian";
 import {
   UltimaOrbSettings,
   DEFAULT_SETTINGS,
@@ -173,27 +173,27 @@ export class UltimaOrbPlugin extends Plugin {
   private registerViews() {
     this.registerView(
       "ultima-orb-chat",
-      (leaf) => new ChatView(leaf, this.aiOrchestrator)
+      (leaf: WorkspaceLeaf) => new ChatView(leaf, this.aiOrchestrator)
     );
 
     this.registerView(
       "ultima-orb-flow-debugger",
-      (leaf) => new FlowDebuggerView(leaf, this.aiOrchestrator)
+      (leaf: WorkspaceLeaf) => new FlowDebuggerView(leaf, this.aiOrchestrator)
     );
 
     this.registerView(
       "ultima-orb-knowledge",
-      (leaf) => new KnowledgeView(leaf, this.aiOrchestrator)
+      (leaf: WorkspaceLeaf) => new KnowledgeView(leaf, this.aiOrchestrator)
     );
 
     this.registerView(
       "ultima-orb-tool-template",
-      (leaf) => new ToolTemplateView(leaf, this.aiOrchestrator)
+      (leaf: WorkspaceLeaf) => new ToolTemplateView(leaf, this.aiOrchestrator)
     );
 
     this.registerView(
       "ultima-orb-sidebar",
-      (leaf) => new SidebarView(leaf, this)
+      (leaf: WorkspaceLeaf) => new SidebarView(leaf, this)
     );
   }
 

@@ -61,11 +61,18 @@ export class CommandRegistrar {
       const obsidianCommand: Command = {
         id: command.id,
         name: command.name,
-        icon: command.icon,
         callback: command.callback,
-        checkCallback: command.checkCallback,
-        editorCallback: command.editorCallback,
       };
+
+      if (command.icon) {
+        obsidianCommand.icon = command.icon;
+      }
+      if (command.checkCallback) {
+        obsidianCommand.checkCallback = command.checkCallback;
+      }
+      if (command.editorCallback) {
+        obsidianCommand.editorCallback = command.editorCallback;
+      }
 
       // Add hotkeys if specified
       if (command.hotkeys && command.hotkeys.length > 0) {
@@ -225,7 +232,7 @@ export class CommandParser {
   } {
     try {
       const [commandPart, ...paramParts] = commandString.split(" --");
-      const commandId = commandPart.trim();
+      const commandId = commandPart ? commandPart.trim() : "";
       const params: Record<string, any> = {};
 
       paramParts.forEach((part) => {

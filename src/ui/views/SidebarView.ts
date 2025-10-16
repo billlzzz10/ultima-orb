@@ -25,11 +25,11 @@ export class SidebarView extends ItemView {
 
   async onOpen(): Promise<void> {
     const container = this.containerEl.children[1];
-    container.empty();
-    container.createEl("h4", { text: "Ultima-Orb Sidebar" });
-
-    // Create sidebar content
-    this.createSidebarContent(container as HTMLElement);
+    if (container) {
+      container.empty();
+      container.createEl("h4", { text: "Ultima-Orb Sidebar" });
+      this.createSidebarContent(container as HTMLElement);
+    }
   }
 
   private createSidebarContent(container: HTMLElement): void {

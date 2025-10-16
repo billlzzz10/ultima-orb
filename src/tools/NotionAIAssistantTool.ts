@@ -646,7 +646,7 @@ export class NotionAIAssistantTool extends ToolBase {
 
     // ตัวอย่างการแยก template (ในที่จริงจะต้องใช้ regex หรือ NLP)
     const lines = content.split("\n");
-    let currentSection = "";
+    let currentSection: "properties" | "formulas" | "examples" | "" = "";
 
     lines.forEach((line) => {
       if (line.includes("Properties:")) {
@@ -656,7 +656,7 @@ export class NotionAIAssistantTool extends ToolBase {
       } else if (line.includes("Examples:")) {
         currentSection = "examples";
       } else if (line.trim() && currentSection) {
-        template[currentSection].push(line.trim());
+        template[currentSection as keyof typeof template].push(line.trim());
       }
     });
 
@@ -776,7 +776,7 @@ ${content}`;
       recommendations.push("พิจารณารวม databases ที่เกี่ยวข้องกัน");
     }
 
-    if (analysis.propertyTypes["rich_text"] > 100) {
+    if (analysis.propertyTypes && analysis.propertyTypes['rich_text'] > 100) {
       recommendations.push(
         "พิจารณาใช้ select properties แทน rich_text สำหรับข้อมูลที่จำกัด"
       );
@@ -786,7 +786,7 @@ ${content}`;
   }
 
   getMetadata(): ToolMetadata {
-    return {
+    const metadata: ToolMetadata = {
       id: "notion-ai-assistant",
       name: "Notion AI Assistant",
       description: "AI assistant ที่เข้าใจโครงสร้างข้อมูล Notion และให้คำแนะนำ",
@@ -795,7 +795,10 @@ ${content}`;
       version: "1.0.0",
       author: "Ultima-Orb Team",
       tags: ["ai", "notion", "analysis", "insights", "recommendations"],
-      commands: this.metadata.commands,
     };
+    if (this.metadata && this.metadata.commands) {
+      metadata.commands = this.metadata.commands;
+    }
+    return metadata;
   }
 }

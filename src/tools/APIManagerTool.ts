@@ -126,11 +126,13 @@ export class APIManagerTool extends ToolBase {
     const newKey: APIKey = {
       name: keyName,
       key: this.encryptKey(apiKey),
-      endpoint,
       provider,
       isActive: true,
       createdAt: new Date(),
     };
+    if (endpoint) {
+      newKey.endpoint = endpoint;
+    }
 
     this.apiKeys.set(keyId, newKey);
     await this.saveAPIKeys();
@@ -593,15 +595,20 @@ export class APIManagerTool extends ToolBase {
         // For now, we just import the metadata
         const keyId = `${keyData.provider}:${keyData.name}`;
         if (!this.apiKeys.has(keyId)) {
-          this.apiKeys.set(keyId, {
+          const newKey: APIKey = {
             name: keyData.name,
             key: "", // Would need to be provided separately
-            endpoint: keyData.endpoint,
             provider: keyData.provider,
             isActive: keyData.isActive || false,
             createdAt: new Date(keyData.createdAt),
-            lastUsed: keyData.lastUsed ? new Date(keyData.lastUsed) : undefined,
-          });
+          };
+          if (keyData.endpoint) {
+            newKey.endpoint = keyData.endpoint;
+          }
+          if (keyData.lastUsed) {
+            newKey.lastUsed = new Date(keyData.lastUsed);
+          }
+          this.apiKeys.set(keyId, newKey);
           importedCount++;
         }
       }

@@ -253,7 +253,9 @@ describe("ContextStore", () => {
       });
 
       expect(sorted.length).toBeGreaterThan(1);
-      expect(sorted[0].createdAt).toBeGreaterThan(sorted[1].createdAt);
+      if (sorted[0] && sorted[1]) {
+        expect(sorted[0].createdAt).toBeGreaterThan(sorted[1].createdAt);
+      }
     });
   });
 
