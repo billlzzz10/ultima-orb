@@ -131,7 +131,14 @@ export class APIManagerTool extends ToolBase {
       createdAt: new Date(),
     };
     if (endpoint) {
-      newKey.endpoint = endpoint;
+      try {
+        const url = new URL(String(endpoint));
+        // Normalize - remove trailing slashes
+        newKey.endpoint = url.toString().replace(/\/+$/, "");
+      } catch {
+        // Fallback: trim whitespace and store as-is if not a valid URL
+        newKey.endpoint = String(endpoint).trim();
+      }
     }
 
     this.apiKeys.set(keyId, newKey);
