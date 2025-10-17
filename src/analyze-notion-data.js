@@ -10,9 +10,14 @@ class NotionDataAnalyzer {
   }
 
   sanitizePath(inputPath, allowedBase) {
+    if (typeof inputPath !== "string" || inputPath.trim().length === 0) {
+      throw new Error("Invalid path: inputPath must be a non-empty string");
+    }
     const resolvedPath = path.resolve(inputPath);
     const allowedPath = path.resolve(allowedBase);
-    if (!resolvedPath.startsWith(allowedPath)) {
+    const relative = path.relative(allowedPath, resolvedPath);
+    // If relative starts with '..' or is absolute, resolvedPath is outside allowedPath (handles different drives on Windows)
+    if (relative.startsWith("..") || path.isAbsolute(relative)) {
       throw new Error(
         `Path traversal attempt: ${inputPath} is outside of ${allowedBase}`
       );
