@@ -113,12 +113,16 @@ async function fetchDatabaseContent(database) {
  */
 function saveToFile(data, filename) {
   try {
-    const outputDir = path.join(__dirname, "..", "notion-outputs");
+    const outputDir = path.resolve(__dirname, "..", "notion-outputs");
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    const filepath = path.join(outputDir, filename);
+    const filepath = path.resolve(outputDir, filename);
+    if (!filepath.startsWith(outputDir + path.sep)) {
+      throw new Error(`Path traversal attempt detected for filename: ${filename}`);
+    }
+
     fs.writeFileSync(filepath, JSON.stringify(data, null, 2), "utf8");
     console.info(`💾 บันทึกข้อมูลลงไฟล์: ${filepath}`);
     return filepath;

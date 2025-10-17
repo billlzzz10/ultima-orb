@@ -4,9 +4,25 @@ const path = require("path");
 
 class NotionDataAnalyzer {
   constructor(dataDir = "notion-outputs", outputDir = "analysis-results") {
-    this.dataDir = dataDir;
-    this.outputDir = outputDir;
+    this.dataDir = this.sanitizePath(dataDir, "notion-outputs");
+    this.outputDir = this.sanitizePath(outputDir, "analysis-results");
     this.ensureOutputDir();
+  }
+
+  sanitizePath(inputPath, allowedBase) {
+    if (typeof inputPath !== "string" || inputPath.trim().length === 0) {
+      throw new Error("Invalid path: inputPath must be a non-empty string");
+    }
+    const resolvedPath = path.resolve(inputPath);
+    const allowedPath = path.resolve(allowedBase);
+    const relative = path.relative(allowedPath, resolvedPath);
+    // If relative starts with '..' or is absolute, resolvedPath is outside allowedPath (handles different drives on Windows)
+    if (relative.startsWith("..") || path.isAbsolute(relative)) {
+      throw new Error(
+        `Path traversal attempt: ${inputPath} is outside of ${allowedBase}`
+      );
+    }
+    return resolvedPath;
   }
 
   ensureOutputDir() {

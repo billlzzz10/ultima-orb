@@ -1,5 +1,6 @@
 import { App, Notice } from "obsidian";
 import { AIFeatures } from "./AIFeatures";
+import { evaluate } from "mathjs";
 
 /**
  * @ Commands - เรียกใช้ tools และ documents
@@ -34,11 +35,10 @@ export class AtCommands {
       description: "Perform calculations",
       execute: async (expression: string) => {
         try {
-          // ใช้ eval สำหรับการคำนวณ (ระวังเรื่อง security)
-          const result = eval(expression);
+          const result = evaluate(expression);
           return `Result: ${result}`;
-        } catch (error) {
-          return `Error: ${error}`;
+        } catch (error: any) {
+          return `Error: ${error.message}`;
         }
       },
     });

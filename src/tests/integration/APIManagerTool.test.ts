@@ -398,6 +398,11 @@ describe("APIManagerTool", () => {
         apiKey: "old-key",
       });
 
+      // Mock the testNotionConnection method
+      vi.spyOn(apiManager as any, "testNotionConnection").mockResolvedValue({
+        success: true,
+      });
+
       // Rotate the key
       const result = await apiManager.execute({
         action: "rotate_key",

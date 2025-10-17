@@ -12,5 +12,15 @@
     "enabled": true,
     "path": "./cache/",
     "max_size": 500
+  },
+  "mcpServers": {
+    "Notion": {
+      "url": "${MCP_NOTION_URL}",
+      "enabled": true
+    },
+    "ClickUp": {
+      "url": "${MCP_CLICKUP_URL}",
+      "enabled": true
+    }
   }
 }

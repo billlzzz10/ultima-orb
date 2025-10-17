@@ -213,23 +213,17 @@ export class NotionDatabaseManager {
   }
 
   async listDatabases(): Promise<NotionDatabase[]> {
-    try {
-      const response = await this.makeRequest("/search", {
-        method: "POST",
-        body: JSON.stringify({
-          filter: {
-            property: "object",
-            value: "database",
-          },
-        }),
-      });
+    const response = await this.makeRequest("/search", {
+      method: "POST",
+      body: JSON.stringify({
+        filter: {
+          property: "object",
+          value: "database",
+        },
+      }),
+    });
 
-      return response.results || [];
-    } catch (error) {
-      console.error("Error listing Notion databases:", error);
-      new Notice("Error listing Notion databases");
-      return [];
-    }
+    return response.results || [];
   }
 
   async getDatabase(databaseId: string): Promise<NotionDatabase> {
