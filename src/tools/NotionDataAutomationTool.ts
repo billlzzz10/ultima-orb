@@ -543,7 +543,12 @@ export class NotionDataAutomationTool extends ToolBase {
       return false;
     }
 
-    if (rule.trigger === "on_schedule" && typeof rule.nextRun === 'string') {
+    if (rule.trigger === "on_schedule") {
+      if (typeof rule.nextRun === "string" && !isNaN(Date.parse(rule.nextRun))) {
+        return new Date() >= new Date(rule.nextRun);
+      }
+      // If no valid nextRun is set for a scheduled rule, don't run it yet
+      return false;
       return new Date() >= new Date(rule.nextRun);
     }
 
