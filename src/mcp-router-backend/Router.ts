@@ -89,7 +89,7 @@ export class Router {
     if (params.cacheContext) {
       buildOptions.cacheContext = params.cacheContext;
     }
-    if (params.tools && params.tools.length) {
+    if (Array.isArray(params.tools) && params.tools.length > 0) {
       buildOptions.toolsNote = "Tool calls are available.";
     }
     const built = this.prompts.build(params.query, buildOptions);
