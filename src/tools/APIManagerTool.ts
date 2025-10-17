@@ -610,10 +610,22 @@ export class APIManagerTool extends ToolBase {
             createdAt: new Date(keyData.createdAt),
           };
           if (keyData.endpoint) {
-            newKey.endpoint = keyData.endpoint;
+            try {
+              const url = new URL(String(keyData.endpoint));
+              newKey.endpoint = url.toString().replace(/\/+$/, "");
+            } catch {
+              newKey.endpoint = String(keyData.endpoint).trim();
+            }
           }
           if (keyData.lastUsed) {
-            newKey.lastUsed = new Date(keyData.lastUsed);
+            const parsedLastUsed = new Date(keyData.lastUsed);
+            if (!isNaN(parsedLastUsed.getTime())) {
+              newKey.lastUsed = parsedLastUsed;
+            }
+          }
+          // Ensure createdAt is a valid Date; if not, fallback to now
+          if (!newKey.createdAt || isNaN((newKey.createdAt as Date).getTime())) {
+            newKey.createdAt = new Date();
           }
           this.apiKeys.set(keyId, newKey);
           importedCount++;
