@@ -62,9 +62,20 @@ export class NotionDataAnalyzer {
     dataDir: string = "notion-outputs",
     outputDir: string = "analysis-results"
   ) {
-    this.dataDir = dataDir;
-    this.outputDir = outputDir;
+    this.dataDir = this.sanitizePath(dataDir, "notion-outputs");
+    this.outputDir = this.sanitizePath(outputDir, "analysis-results");
     this.ensureOutputDir();
+  }
+
+  private sanitizePath(inputPath: string, allowedBase: string): string {
+    const resolvedPath = path.resolve(inputPath);
+    const allowedPath = path.resolve(allowedBase);
+    if (!resolvedPath.startsWith(allowedPath)) {
+      throw new Error(
+        `Path traversal attempt: ${inputPath} is outside of ${allowedBase}`
+      );
+    }
+    return resolvedPath;
   }
 
   private ensureOutputDir(): void {

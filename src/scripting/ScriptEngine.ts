@@ -28,6 +28,10 @@ export class ScriptEngine {
     this.initializeBuiltInFunctions();
   }
 
+  private escapeRegExp(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
   private initializeBuiltInFunctions(): void {
     // Date/Time Functions
     this.customFunctions.set("now", () => new Date());
@@ -118,7 +122,8 @@ export class ScriptEngine {
     this.customFunctions.set(
       "replace",
       (text: string, search: string, replace: string) => {
-        return text.replace(new RegExp(search, "g"), replace);
+        const safeSearch = this.escapeRegExp(search);
+        return text.replace(new RegExp(safeSearch, "g"), replace);
       }
     );
 
@@ -148,6 +153,7 @@ export class ScriptEngine {
         variables: result.variables,
       };
     } catch (error) {
+      console.error("CAUGHT IN EXECUTESCRIPT", error);
       return {
         success: false,
         output: "",
@@ -176,11 +182,7 @@ export class ScriptEngine {
       // Async support
       async: true,
 
-      // Security restrictions
-      eval: undefined,
-      Function: undefined,
-      setTimeout: undefined,
-      setInterval: undefined,
+      // Security restrictions are handled in executeInSandbox
     };
   }
 
@@ -190,7 +192,11 @@ export class ScriptEngine {
   ): Promise<{ output: string; variables: Record<string, any> }> {
     // Create a function from the script
     const functionBody = `
-      "use strict";
+      const eval = undefined;
+      const Function = undefined;
+      const setTimeout = undefined;
+      const setInterval = undefined;
+
       let output = "";
       let variables = {};
       

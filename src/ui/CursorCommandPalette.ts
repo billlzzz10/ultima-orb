@@ -537,7 +537,7 @@ class ResultModal extends Modal {
     contentEl.createEl("h2", { text: this.title });
 
     const contentDiv = contentEl.createEl("div", { cls: "result-content" });
-    contentDiv.innerHTML = this.content.replace(/\n/g, "<br>");
+    contentDiv.innerText = this.content;
 
     const closeBtn = contentEl.createEl("button", {
       text: "Close",

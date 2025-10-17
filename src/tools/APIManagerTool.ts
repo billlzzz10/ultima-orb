@@ -547,14 +547,51 @@ export class APIManagerTool extends ToolBase {
     }
 
     // Test the new key first
-    const testResult = await this.testConnection(provider, keyName);
-    if (!testResult.success) {
-      return {
-        success: false,
-        error: `New key validation failed: ${testResult.error}`,
-        timestamp: new Date(),
-      };
+    try {
+      let testResult;
+      const endpoint = apiKey.endpoint;
+
+      switch (provider) {
+        case "notion":
+          testResult = await this.testNotionConnection(newKey);
+          break;
+        case "azure-openai":
+          if (!endpoint) throw new Error("Endpoint is required for Azure OpenAI");
+          testResult = await this.testAzureOpenAIConnection(
+            newKey,
+            endpoint
+          );
+          break;
+        case "openai":
+          testResult = await this.testOpenAIConnection(newKey);
+          break;
+        case "ollama":
+           if (!endpoint) throw new Error("Endpoint is required for Ollama");
+          testResult = await this.testOllamaConnection(endpoint);
+          break;
+        default:
+          return {
+            success: false,
+            error: `Unsupported provider for testing: ${provider}`,
+            timestamp: new Date(),
+          };
+      }
+
+      if (!testResult.success) {
+        return {
+          success: false,
+          error: `New key validation failed: ${testResult.error}`,
+          timestamp: new Date(),
+        };
+      }
+    } catch (error: any) {
+        return {
+            success: false,
+            error: `New key validation failed: ${error.message}`,
+            timestamp: new Date(),
+        };
     }
+
 
     // Update the key
     apiKey.key = this.encryptKey(newKey);

@@ -98,6 +98,8 @@ export class ProviderManager {
         },
       });
     }
+
+    // Duplicate MCP server registration removed (already registered earlier in initializeProviders).
   }
 
   listProviders(): string[] {

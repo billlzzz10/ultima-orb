@@ -90,7 +90,7 @@ export class ContextStore {
 
     // อัปเดต payload
     if (updates.payload) {
-      context.payload = { ...context.payload, ...updates.payload };
+      context.payload = updates.payload;
     }
 
     // อัปเดต audit trail
