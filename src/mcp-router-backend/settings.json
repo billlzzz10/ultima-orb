@@ -15,10 +15,12 @@
   },
   "mcpServers": {
     "Notion": {
-      "url": "https://mcp.notion.com/mcp"
+      "url": "${MCP_NOTION_URL}",
+      "enabled": true
     },
     "ClickUp": {
-      "url": "https://mcp.clickup.com/mcp"
+      "url": "${MCP_CLICKUP_URL}",
+      "enabled": true
     }
   }
 }
