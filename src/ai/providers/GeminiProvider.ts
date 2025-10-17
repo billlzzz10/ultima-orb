@@ -118,12 +118,12 @@ export class GeminiProvider extends BaseProvider {
       topK: 40,
     };
 
-    const temperature = request.temperature || this.config.temperature;
-    if (temperature) {
+    const temperature = request.temperature ?? this.config.temperature;
+    if (typeof temperature === "number") {
       generationConfig.temperature = temperature;
     }
-    const maxTokens = request.maxTokens || this.config.maxTokens;
-    if (maxTokens) {
+    const maxTokens = request.maxTokens ?? this.config.maxTokens;
+    if (typeof maxTokens === "number") {
       generationConfig.maxOutputTokens = maxTokens;
     }
 
