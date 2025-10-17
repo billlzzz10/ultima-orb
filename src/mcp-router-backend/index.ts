@@ -30,7 +30,7 @@ async function main() {
     new MemoryTool(),
     new FilesystemTool(),
     new CloudDriveTool(),
-    new ShellTool(true),
+    ...(settings.allowShell === true ? [new ShellTool(true)] : []),
   ];
 
   const result = await router.handleQuery({ query, task, mime, tools });
