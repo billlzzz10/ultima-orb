@@ -121,7 +121,13 @@ export class Router {
     if (params.tools) {
       callArgs.tools = params.tools;
     }
-    const result = await prov.call(callArgs);
+    let result: any;
+    try {
+      result = await prov.call(callArgs);
+    } catch (err) {
+      const msg = (err && (err as Error).message) ? (err as Error).message : String(err);
+      throw new Error(`Provider "${provider}" call failed: ${msg}`);
+    }
 
     // best-effort extract text
     const text =
