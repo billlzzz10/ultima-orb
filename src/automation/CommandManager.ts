@@ -64,15 +64,12 @@ export class CommandRegistrar {
         callback: command.callback,
       };
 
-      if (command.icon) {
-        obsidianCommand.icon = command.icon;
-      }
-      if (command.checkCallback) {
-        obsidianCommand.checkCallback = command.checkCallback;
-      }
-      if (command.editorCallback) {
-        obsidianCommand.editorCallback = command.editorCallback;
-      }
+      Object.assign(
+        obsidianCommand,
+        command.icon ? { icon: command.icon } : {},
+        command.checkCallback ? { checkCallback: command.checkCallback } : {},
+        command.editorCallback ? { editorCallback: command.editorCallback } : {}
+      );
 
       // Add hotkeys if specified
       if (command.hotkeys && command.hotkeys.length > 0) {
