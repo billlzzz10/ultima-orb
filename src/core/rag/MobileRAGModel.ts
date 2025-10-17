@@ -333,9 +333,9 @@ export class MobileRAGModel implements RAGModel {
     let magnitude2 = 0;
 
     for (let i = 0; i < embedding1.length; i++) {
-      dotProduct += embedding1[i] * embedding2[i];
-      magnitude1 += embedding1[i] * embedding1[i];
-      magnitude2 += embedding2[i] * embedding2[i];
+      dotProduct += (embedding1[i] ?? 0) * (embedding2[i] ?? 0);
+      magnitude1 += (embedding1[i] ?? 0) * (embedding1[i] ?? 0);
+      magnitude2 += (embedding2[i] ?? 0) * (embedding2[i] ?? 0);
     }
 
     magnitude1 = Math.sqrt(magnitude1);

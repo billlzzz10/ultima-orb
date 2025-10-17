@@ -198,7 +198,7 @@ describe("NotionDataAutomationTool", () => {
       const result = await automationTool.execute({
         action: "create_automation_rule",
         name: "Test Rule",
-        trigger: "invalid_trigger",
+        trigger: "invalid_trigger" as any,
         actions: [],
       });
 

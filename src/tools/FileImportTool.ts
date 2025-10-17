@@ -715,7 +715,7 @@ export class FileImportTool extends ToolBase {
 
   private extractTitleFromHtml(html: string): string | null {
     const match = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-    return match ? match[1].trim() : null;
+    return match && match[1] ? match[1].trim() : null;
   }
 
   private extractTitleFromUrl(url: string): string {

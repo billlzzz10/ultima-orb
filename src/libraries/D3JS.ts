@@ -682,16 +682,23 @@ export class D3JSManager {
     count: number,
     categories: string[] = ["A", "B", "C", "D", "E"]
   ): D3Data[] {
-    return Array.from({ length: count }, (_, i) => ({
-      id: `item-${i}`,
-      value: Math.random() * 100,
-      label: `Item ${i + 1}`,
-      category: categories[i % categories.length],
-      color:
-        this.getDefaultConfig().colors[
-          i % this.getDefaultConfig().colors.length
-        ],
-    }));
+    return Array.from({ length: count }, (_, i) => {
+      const item: D3Data = {
+        id: `item-${i}`,
+        value: Math.random() * 100,
+        label: `Item ${i + 1}`,
+      };
+      const category = categories[i % categories.length];
+      if (category) {
+        item.category = category;
+      }
+      const colors = this.getDefaultConfig().colors;
+      const color = colors[i % colors.length];
+      if (color) {
+        item.color = color;
+      }
+      return item;
+    });
   }
 
   generateTimeSeriesData(days: number): D3Data[] {

@@ -28,10 +28,18 @@ export class ToolTemplateView extends ItemView {
 
   async onOpen(): Promise<void> {
     const container = this.containerEl.children[1];
-    container.empty();
-    container.createEl("h4", { text: "Tool Templates" });
+    if (container) {
+      container.empty();
+    }
+    if (container) {
+      container.createEl("h4", { text: "Tool Templates" });
+    }
 
-    this.createToolTemplateInterface(container as HTMLElement);
+    if (container instanceof HTMLElement) {
+      this.createToolTemplateInterface(container);
+    } else {
+      console.error("ToolTemplateView: container is not an HTMLElement");
+    }
   }
 
   private createToolTemplateInterface(container: HTMLElement): void {

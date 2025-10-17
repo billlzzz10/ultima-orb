@@ -25,10 +25,18 @@ export class FlowDebuggerView extends ItemView {
 
   async onOpen(): Promise<void> {
     const container = this.containerEl.children[1];
-    container.empty();
-    container.createEl("h4", { text: "AI Flow Debugger" });
+    if (container) {
+      container.empty();
+    }
+    if (container) {
+      container.createEl("h4", { text: "AI Flow Debugger" });
+    }
 
-    this.createFlowDebuggerInterface(container as HTMLElement);
+    if (container instanceof HTMLElement) {
+      this.createFlowDebuggerInterface(container);
+    } else {
+      console.error("FlowDebuggerView: container is not an HTMLElement");
+    }
   }
 
   private createFlowDebuggerInterface(container: HTMLElement): void {

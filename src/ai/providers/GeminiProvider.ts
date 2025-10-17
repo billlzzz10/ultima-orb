@@ -113,14 +113,23 @@ export class GeminiProvider extends BaseProvider {
     const model = request.model || this.config.model || "gemini-pro";
     const contents = this.buildContents(request);
 
+    const generationConfig: GeminiRequest["generationConfig"] = {
+      topP: 0.8,
+      topK: 40,
+    };
+
+    const temperature = request.temperature ?? this.config.temperature;
+    if (typeof temperature === "number") {
+      generationConfig.temperature = temperature;
+    }
+    const maxTokens = request.maxTokens ?? this.config.maxTokens;
+    if (typeof maxTokens === "number") {
+      generationConfig.maxOutputTokens = maxTokens;
+    }
+
     const geminiRequest: GeminiRequest = {
       contents,
-      generationConfig: {
-        temperature: request.temperature || this.config.temperature,
-        maxOutputTokens: request.maxTokens || this.config.maxTokens,
-        topP: 0.8,
-        topK: 40,
-      },
+      generationConfig,
       safetySettings: [
         {
           category: "HARM_CATEGORY_HARASSMENT",
@@ -168,13 +177,18 @@ export class GeminiProvider extends BaseProvider {
     const isAvailable = await this.isAvailable();
     const isConfigured = this.validateConfig();
 
-    return {
+    const status: ProviderStatus = {
       name: this.config.name,
       isAvailable,
       isConfigured,
       lastUsed: new Date(),
-      error: isAvailable ? undefined : "Gemini API not available",
     };
+
+    if (!isAvailable) {
+      status.error = "Gemini API not available";
+    }
+
+    return status;
   }
 
   /**
@@ -274,28 +288,41 @@ export class GeminiProvider extends BaseProvider {
     }
 
     const candidate = response.candidates[0];
+    if (!candidate || !candidate.content || !candidate.content.parts) {
+      throw new Error("Invalid candidate in Gemini response");
+    }
+
     const content = candidate.content.parts.map((part) => part.text).join("");
 
     if (!content) {
       throw new Error("Empty response from Gemini API");
     }
 
-    return {
+    const aiResponse: AIResponse = {
       content,
       model: this.config.model || "gemini-pro",
-      usage: response.usageMetadata
-        ? {
-            promptTokens: response.usageMetadata.promptTokenCount,
-            completionTokens: response.usageMetadata.candidatesTokenCount,
-            totalTokens: response.usageMetadata.totalTokenCount,
-          }
-        : undefined,
       metadata: {
         finishReason: candidate.finishReason,
-        safetyRatings: candidate.safetyRatings,
-        promptFeedback: response.promptFeedback,
       },
     };
+
+    if (response.usageMetadata) {
+      aiResponse.usage = {
+        promptTokens: response.usageMetadata.promptTokenCount,
+        completionTokens: response.usageMetadata.candidatesTokenCount,
+        totalTokens: response.usageMetadata.totalTokenCount,
+      };
+    }
+
+    if (candidate.safetyRatings && aiResponse.metadata) {
+      aiResponse.metadata.safetyRatings = candidate.safetyRatings;
+    }
+
+    if (response.promptFeedback && aiResponse.metadata) {
+      aiResponse.metadata.promptFeedback = response.promptFeedback;
+    }
+
+    return aiResponse;
   }
 
   /**

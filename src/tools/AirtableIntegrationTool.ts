@@ -843,7 +843,7 @@ export class AirtableIntegrationTool extends ToolBase {
       return [];
     }
 
-    const headers = Object.keys(records[0].fields);
+    const headers = records[0] ? Object.keys(records[0].fields) : [];
     const csvContent = [
       headers.join(","),
       ...records.map((record) =>

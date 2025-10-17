@@ -355,7 +355,10 @@ export class EnhancedCommandPalette extends Modal {
       if (!grouped[cmd.category]) {
         grouped[cmd.category] = [];
       }
-      grouped[cmd.category].push(cmd);
+      const categoryGroup = grouped[cmd.category];
+      if (categoryGroup) {
+        categoryGroup.push(cmd);
+      }
     });
 
     return grouped;

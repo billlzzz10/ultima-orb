@@ -121,7 +121,7 @@ export class DocumentIndexer {
             start: startLine,
             end: i,
             type: this.detectContentType(currentChunk),
-            tags: this.extractTags(currentChunk),
+            tags: this.extractTags(currentChunk || ""),
             created: new Date(file.stat.ctime),
             modified: new Date(file.stat.mtime),
           },

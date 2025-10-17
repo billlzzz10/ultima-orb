@@ -127,19 +127,30 @@ export class OllamaProvider extends BaseProvider {
     const model = request.model || this.config.model || "llama2";
     const prompt = this.buildPrompt(request);
 
+    const options: OllamaRequest["options"] = {
+      top_k: 40,
+      top_p: 0.9,
+      repeat_penalty: 1.1,
+    };
+
+    const temperature = request.temperature || this.config.temperature;
+    if (temperature) {
+      options.temperature = temperature;
+    }
+    const maxTokens = request.maxTokens || this.config.maxTokens;
+    if (maxTokens) {
+      options.num_predict = maxTokens;
+    }
+
     const ollamaRequest: OllamaRequest = {
       model,
       prompt,
-      system: request.systemPrompt,
-      options: {
-        temperature: request.temperature || this.config.temperature,
-        num_predict: request.maxTokens || this.config.maxTokens,
-        top_k: 40,
-        top_p: 0.9,
-        repeat_penalty: 1.1,
-      },
+      options,
       stream: false,
     };
+    if (request.systemPrompt) {
+      ollamaRequest.system = request.systemPrompt;
+    }
 
     try {
       const response = await this.makeRequest(ollamaRequest);
@@ -180,13 +191,18 @@ export class OllamaProvider extends BaseProvider {
     const isAvailable = await this.isAvailable();
     const isConfigured = this.validateConfig();
 
-    return {
+    const status: ProviderStatus = {
       name: this.config.name,
       isAvailable,
       isConfigured,
       lastUsed: new Date(),
-      error: isAvailable ? undefined : "Ollama server not available",
     };
+
+    if (!isAvailable) {
+      status.error = "Ollama server not available";
+    }
+
+    return status;
   }
 
   /**

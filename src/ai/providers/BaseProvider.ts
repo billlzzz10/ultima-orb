@@ -4,14 +4,18 @@ import { Logger } from "../../services/Logger";
  * AI Error Class
  */
 export class AIError extends Error {
-  public readonly code?: string;
   public readonly details?: any;
+  public readonly code?: string;
 
   constructor(message: string, details?: any, code?: string) {
     super(message);
     this.name = "AIError";
-    this.details = details;
-    this.code = code;
+    if (details) {
+      this.details = details;
+    }
+    if (code) {
+      this.code = code;
+    }
   }
 }
 
@@ -208,15 +212,33 @@ export abstract class BaseProvider {
    * Create default request
    */
   createRequest(prompt: string, options?: Partial<AIRequest>): AIRequest {
-    return {
+    const request: AIRequest = {
       prompt,
-      model: options?.model || this.config.model,
-      temperature: options?.temperature || this.config.temperature,
-      maxTokens: options?.maxTokens || this.config.maxTokens,
-      systemPrompt: options?.systemPrompt,
-      context: options?.context,
-      attachments: options?.attachments,
     };
+
+    const model = options?.model || this.config.model;
+    if (model) {
+      request.model = model;
+    }
+    const temperature = options?.temperature || this.config.temperature;
+    if (temperature) {
+      request.temperature = temperature;
+    }
+    const maxTokens = options?.maxTokens || this.config.maxTokens;
+    if (maxTokens) {
+      request.maxTokens = maxTokens;
+    }
+    if (options?.systemPrompt) {
+      request.systemPrompt = options.systemPrompt;
+    }
+    if (options?.context) {
+      request.context = options.context;
+    }
+    if (options?.attachments) {
+      request.attachments = options.attachments;
+    }
+
+    return request;
   }
 
   /**

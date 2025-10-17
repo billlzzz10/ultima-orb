@@ -126,11 +126,20 @@ export class APIManagerTool extends ToolBase {
     const newKey: APIKey = {
       name: keyName,
       key: this.encryptKey(apiKey),
-      endpoint,
       provider,
       isActive: true,
       createdAt: new Date(),
     };
+    if (endpoint) {
+      try {
+        const url = new URL(String(endpoint));
+        // Normalize - remove trailing slashes
+        newKey.endpoint = url.toString().replace(/\/+$/, "");
+      } catch {
+        // Fallback: trim whitespace and store as-is if not a valid URL
+        newKey.endpoint = String(endpoint).trim();
+      }
+    }
 
     this.apiKeys.set(keyId, newKey);
     await this.saveAPIKeys();
@@ -630,15 +639,32 @@ export class APIManagerTool extends ToolBase {
         // For now, we just import the metadata
         const keyId = `${keyData.provider}:${keyData.name}`;
         if (!this.apiKeys.has(keyId)) {
-          this.apiKeys.set(keyId, {
+          const newKey: APIKey = {
             name: keyData.name,
             key: "", // Would need to be provided separately
-            endpoint: keyData.endpoint,
             provider: keyData.provider,
             isActive: keyData.isActive || false,
             createdAt: new Date(keyData.createdAt),
-            lastUsed: keyData.lastUsed ? new Date(keyData.lastUsed) : undefined,
-          });
+          };
+          if (keyData.endpoint) {
+            try {
+              const url = new URL(String(keyData.endpoint));
+              newKey.endpoint = url.toString().replace(/\/+$/, "");
+            } catch {
+              newKey.endpoint = String(keyData.endpoint).trim();
+            }
+          }
+          if (keyData.lastUsed) {
+            const parsedLastUsed = new Date(keyData.lastUsed);
+            if (!isNaN(parsedLastUsed.getTime())) {
+              newKey.lastUsed = parsedLastUsed;
+            }
+          }
+          // Ensure createdAt is a valid Date; if not, fallback to now
+          if (!newKey.createdAt || isNaN((newKey.createdAt as Date).getTime())) {
+            newKey.createdAt = new Date();
+          }
+          this.apiKeys.set(keyId, newKey);
           importedCount++;
         }
       }

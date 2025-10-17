@@ -82,7 +82,7 @@ export class ContextManager {
       const frontmatter =
         this.app.metadataCache.getFileCache(file)?.frontmatter || {};
       const tags =
-        this.app.metadataCache.getFileCache(file)?.tags?.map((t) => t.tag) ||
+        this.app.metadataCache.getFileCache(file)?.tags?.map((t: any) => t.tag) ||
         [];
 
       return {

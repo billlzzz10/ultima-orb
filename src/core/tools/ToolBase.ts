@@ -135,12 +135,17 @@ export abstract class ToolBase {
 
   // Create success result
   protected createSuccessResult(data?: any, message?: string): ToolResult {
-    return {
+    const result: ToolResult = {
       success: true,
-      data,
-      message,
       timestamp: new Date(),
     };
+    if (data) {
+      result.data = data;
+    }
+    if (message) {
+      result.message = message;
+    }
+    return result;
   }
 
   // Create error result

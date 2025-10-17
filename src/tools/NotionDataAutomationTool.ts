@@ -266,9 +266,11 @@ export class NotionDataAutomationTool extends ToolBase {
         conditions: conditions || [],
         actions: actions || [],
         enabled: true,
-        lastRun: undefined,
-        nextRun: this.calculateNextRun(trigger),
       };
+      const nextRun = this.calculateNextRun(trigger);
+      if (nextRun) {
+        rule.nextRun = nextRun;
+      }
 
       this.automationRules.push(rule);
       await this.saveAutomationData();
@@ -308,7 +310,6 @@ export class NotionDataAutomationTool extends ToolBase {
           due_date: "due_date",
         },
         syncSchedule: "daily",
-        lastSync: undefined,
         enabled: true,
       };
 
@@ -549,7 +550,12 @@ export class NotionDataAutomationTool extends ToolBase {
       return false;
     }
 
-    if (rule.trigger === "on_schedule" && rule.nextRun) {
+    if (rule.trigger === "on_schedule") {
+      if (typeof rule.nextRun === "string" && !isNaN(Date.parse(rule.nextRun))) {
+        return new Date() >= new Date(rule.nextRun);
+      }
+      // If no valid nextRun is set for a scheduled rule, don't run it yet
+      return false;
       return new Date() >= new Date(rule.nextRun);
     }
 
@@ -756,7 +762,7 @@ ${this.syncConfigs
   }
 
   getMetadata(): ToolMetadata {
-    return {
+    const metadata: ToolMetadata = {
       id: "notion-data-automation",
       name: "Notion Data Automation",
       description: "จัดการข้อมูล Notion แบบอัตโนมัติ พร้อม sync กับ Obsidian",
@@ -765,7 +771,10 @@ ${this.syncConfigs
       version: "1.0.0",
       author: "Ultima-Orb Team",
       tags: ["automation", "notion", "sync", "data-management", "workflow"],
-      commands: this.metadata.commands,
     };
+    if (this.metadata.commands) {
+      metadata.commands = this.metadata.commands;
+    }
+    return metadata;
   }
 }

@@ -572,8 +572,11 @@ export class NotionDatabaseTool extends ToolBase {
     const options: RequestInit = {
       method,
       headers,
-      body: body ? JSON.stringify(body) : undefined
     };
+
+    if (body) {
+      options.body = JSON.stringify(body);
+    }
 
     const response = await fetch(url, options);
     

@@ -158,7 +158,7 @@ export class RAGFeaturesTool extends ToolBase {
       const metadata = data.metadata?.[i] || {};
       
       // Split document into chunks
-      const documentChunks = this.chunkDocument(document, metadata);
+      const documentChunks = this.chunkDocument(document || "", metadata);
       chunks.push(...documentChunks);
     }
 
@@ -167,9 +167,12 @@ export class RAGFeaturesTool extends ToolBase {
     
     // Add chunks and embeddings to index
     chunks.forEach((chunk, index) => {
-      chunk.embedding = embeddings[index];
-      this.currentIndex!.documents.push(chunk);
-      this.currentIndex!.embeddings.set(chunk.id, embeddings[index]);
+      const embedding = embeddings[index];
+      if (embedding) {
+        chunk.embedding = embedding;
+        this.currentIndex!.documents.push(chunk);
+        this.currentIndex!.embeddings.set(chunk.id, embedding);
+      }
     });
 
     // Update metadata
@@ -206,7 +209,7 @@ export class RAGFeaturesTool extends ToolBase {
     // Calculate similarities
     const similarities = this.currentIndex.documents.map((doc, index) => ({
       document: doc,
-      similarity: this.cosineSimilarity(queryEmbedding[0], doc.embedding || [])
+      similarity: this.cosineSimilarity(queryEmbedding[0]!, doc.embedding || [])
     }));
 
     // Filter and sort by similarity
@@ -358,12 +361,12 @@ export class RAGFeaturesTool extends ToolBase {
     return texts.map(() => Array.from({ length: 1536 }, () => Math.random() - 0.5));
   }
 
-  private cosineSimilarity(vec1: number[], vec2: number[]): number {
-    if (vec1.length !== vec2.length) {
+  private cosineSimilarity(vec1: number[], vec2: number[] | undefined): number {
+    if (!vec2 || vec1.length !== vec2.length) {
       return 0;
     }
 
-    const dotProduct = vec1.reduce((sum, val, i) => sum + val * vec2[i], 0);
+    const dotProduct = vec1.reduce((sum, val, i) => sum + val * (vec2[i] ?? 0), 0);
     const magnitude1 = Math.sqrt(vec1.reduce((sum, val) => sum + val * val, 0));
     const magnitude2 = Math.sqrt(vec2.reduce((sum, val) => sum + val * val, 0));
 
@@ -383,8 +386,8 @@ export class RAGFeaturesTool extends ToolBase {
       }
       
       if (filters.tags && filters.tags.length > 0) {
-        const hasTag = filters.tags.some((tag: string) => 
-          doc.metadata.tags?.includes(tag)
+        const hasTag = filters.tags.some((tag: string) =>
+          doc.metadata.tags ? doc.metadata.tags.includes(tag) : false
         );
         if (!hasTag) return false;
       }
@@ -463,6 +466,7 @@ export class RAGFeaturesTool extends ToolBase {
   private deduplicateResults(results: DocumentChunk[]): DocumentChunk[] {
     const seen = new Set<string>();
     return results.filter(doc => {
+      if (!doc.metadata) return false;
       const key = doc.metadata.source + doc.metadata.chunkIndex;
       if (seen.has(key)) {
         return false;
@@ -482,10 +486,14 @@ export class RAGFeaturesTool extends ToolBase {
       name: index.name,
       totalDocuments: index.metadata.totalDocuments,
       totalChunks: index.metadata.totalChunks,
-      averageChunkSize: index.documents.reduce((sum, doc) => sum + doc.content.length, 0) / index.documents.length,
+      averageChunkSize:
+        index.documents.length > 0
+          ? index.documents.reduce((sum, doc) => sum + doc.content.length, 0) /
+            index.documents.length
+          : 0,
       createdAt: index.metadata.createdAt,
       updatedAt: index.metadata.updatedAt,
-      embeddingModel: index.metadata.embeddingModel
+      embeddingModel: index.metadata.embeddingModel,
     };
   }
 
