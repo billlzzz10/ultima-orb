@@ -16,13 +16,16 @@ export class ShellTool {
     }
 
     try {
-      const { stdout, stderr } = await execAsync(command);
-      if (stderr) {
-        return `Error: ${stderr}`;
+      const { stdout, stderr } = await execAsync(command, { maxBuffer: 10 * 1024 * 1024, timeout: 30_000 });
+      const safeStdout = String(stdout ?? "").trim();
+      const safeStderr = String(stderr ?? "").trim();
+      if (safeStderr) {
+        return `Error: ${safeStderr.slice(0, 1000)}`; // limit returned stderr to avoid leaking large/ sensitive output
       }
-      return stdout;
+      return safeStdout;
     } catch (error: any) {
-      return `Execution failed: ${error.message}`;
+      const msg = error instanceof Error ? error.message : String(error);
+      return `Execution failed: ${msg}`;
     }
   }
 }
