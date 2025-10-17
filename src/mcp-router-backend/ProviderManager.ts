@@ -99,27 +99,7 @@ export class ProviderManager {
       });
     }
 
-    if (this.settings.mcpServers) {
-      for (const [name, config] of Object.entries(this.settings.mcpServers)) {
-        if (config.url) {
-          this.registerProvider(name, {
-            call: async (args) => {
-              const response = await fetch(config.url, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify(args),
-              });
-              if (!response.ok) {
-                throw new Error(`MCP server error: ${response.status} ${response.statusText}`);
-              }
-              return await response.json();
-            },
-          });
-        }
-      }
-    }
+    // Duplicate MCP server registration removed (already registered earlier in initializeProviders).
   }
 
   listProviders(): string[] {
