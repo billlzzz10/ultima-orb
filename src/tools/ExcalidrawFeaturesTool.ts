@@ -461,7 +461,9 @@ export class ExcalidrawFeaturesTool extends ToolBase {
       },
       
       line: (points: { x: number; y: number }[], color?: string) => {
-        const options: any = { type: 'line', x: 0, y: 0, points };
+        const originX = points && points.length > 0 ? points[0].x : 0;
+        const originY = points && points.length > 0 ? points[0].y : 0;
+        const options: any = { type: 'line', x: originX, y: originY, points };
         if (color) options.color = color;
         return this.addElement(options);
       },
