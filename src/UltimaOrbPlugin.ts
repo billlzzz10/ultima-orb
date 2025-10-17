@@ -33,12 +33,12 @@ export class UltimaOrbPlugin extends Plugin {
   integrationManager!: IntegrationManager;
 
   // UI Components
-  chatView!: ChatView;
+  chatView?: ChatView;
   settingsTab!: SettingsTab;
-  flowDebuggerView!: FlowDebuggerView;
-  knowledgeView!: KnowledgeView;
-  toolTemplateView!: ToolTemplateView;
-  sidebarView!: SidebarView;
+  flowDebuggerView?: FlowDebuggerView;
+  knowledgeView?: KnowledgeView;
+  toolTemplateView?: ToolTemplateView;
+  sidebarView?: SidebarView;
 
   async onload() {
     console.info("Loading Ultima-Orb plugin...");
@@ -80,28 +80,27 @@ export class UltimaOrbPlugin extends Plugin {
     console.info("Ultima-Orb plugin loaded successfully!");
   }
 
+  private getOrCreateLeaf(): WorkspaceLeaf {
+    return this.app.workspace.getRightLeaf(false) || this.app.workspace.getLeftLeaf(false) || this.app.workspace.getLeaf(true);
+  }
+
   private initializeUIComponents() {
-    this.chatView = new ChatView(
-      this.app.workspace.getRightLeaf(false)!,
-      this.aiOrchestrator
-    );
+    const chatLeaf = this.getOrCreateLeaf();
+    this.chatView = new ChatView(chatLeaf, this.aiOrchestrator);
+
+    const flowDebuggerLeaf = this.getOrCreateLeaf();
+    this.flowDebuggerView = new FlowDebuggerView(flowDebuggerLeaf, this.aiOrchestrator);
+
+    const knowledgeLeaf = this.getOrCreateLeaf();
+    this.knowledgeView = new KnowledgeView(knowledgeLeaf, this.aiOrchestrator);
+
+    const toolTemplateLeaf = this.getOrCreateLeaf();
+    this.toolTemplateView = new ToolTemplateView(toolTemplateLeaf, this.aiOrchestrator);
+
+    const sidebarLeaf = this.getOrCreateLeaf();
+    this.sidebarView = new SidebarView(sidebarLeaf, this);
+
     this.settingsTab = new SettingsTab(this.app, this);
-    this.flowDebuggerView = new FlowDebuggerView(
-      this.app.workspace.getRightLeaf(false)!,
-      this.aiOrchestrator
-    );
-    this.knowledgeView = new KnowledgeView(
-      this.app.workspace.getRightLeaf(false)!,
-      this.aiOrchestrator
-    );
-    this.toolTemplateView = new ToolTemplateView(
-      this.app.workspace.getRightLeaf(false)!,
-      this.aiOrchestrator
-    );
-    this.sidebarView = new SidebarView(
-      this.app.workspace.getRightLeaf(false)!,
-      this
-    );
   }
 
   private registerCommands() {
@@ -173,33 +172,50 @@ export class UltimaOrbPlugin extends Plugin {
   private registerViews() {
     this.registerView(
       "ultima-orb-chat",
-      (leaf: WorkspaceLeaf) => new ChatView(leaf, this.aiOrchestrator)
+      (leaf) => {
+        if (!leaf) throw new Error("Leaf is undefined for ChatView");
+        return new ChatView(leaf, this.aiOrchestrator);
+      }
     );
 
     this.registerView(
       "ultima-orb-flow-debugger",
-      (leaf: WorkspaceLeaf) => new FlowDebuggerView(leaf, this.aiOrchestrator)
+      (leaf) => {
+        if (!leaf) throw new Error("Leaf is undefined for FlowDebuggerView");
+        return new FlowDebuggerView(leaf, this.aiOrchestrator);
+      }
     );
 
     this.registerView(
       "ultima-orb-knowledge",
-      (leaf: WorkspaceLeaf) => new KnowledgeView(leaf, this.aiOrchestrator)
+      (leaf) => {
+        if (!leaf) throw new Error("Leaf is undefined for KnowledgeView");
+        return new KnowledgeView(leaf, this.aiOrchestrator);
+      }
     );
 
     this.registerView(
       "ultima-orb-tool-template",
-      (leaf: WorkspaceLeaf) => new ToolTemplateView(leaf, this.aiOrchestrator)
+      (leaf) => {
+        if (!leaf) throw new Error("Leaf is undefined for ToolTemplateView");
+        return new ToolTemplateView(leaf, this.aiOrchestrator);
+      }
     );
 
     this.registerView(
       "ultima-orb-sidebar",
-      (leaf: WorkspaceLeaf) => new SidebarView(leaf, this)
+      (leaf) => {
+        if (!leaf) throw new Error("Leaf is undefined for SidebarView");
+        return new SidebarView(leaf, this);
+      }
     );
   }
 
   // Public methods for UI access
   public openChatView() {
-    this.chatView.open();
+    if (this.chatView) {
+      this.chatView.open();
+    }
   }
 
   public openSettings() {
@@ -245,3 +261,4 @@ export class UltimaOrbPlugin extends Plugin {
 
 // Default export for main.ts
 export default UltimaOrbPlugin;
+
