@@ -27,8 +27,16 @@ export class SidebarView extends ItemView {
     const container = this.containerEl.children[1];
     if (container) {
       container.empty();
+    }
+    if (container) {
       container.createEl("h4", { text: "Ultima-Orb Sidebar" });
-      this.createSidebarContent(container as HTMLElement);
+    }
+
+    // Create sidebar content
+    if (container instanceof HTMLElement) {
+      this.createSidebarContent(container);
+    } else {
+      console.error("SidebarView: container is not an HTMLElement");
     }
   }
 
