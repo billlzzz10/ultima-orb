@@ -38,8 +38,8 @@ export interface ProcessingResult {
   metadata: DocumentMetadata;
   content: string;
   chunks: string[];
-  summary?: string;
-  keywords: string[];
+  summary?: string | undefined;
+  keywords?: string[] | undefined;
   language: string;
   metrics: {
     wordCount: number;

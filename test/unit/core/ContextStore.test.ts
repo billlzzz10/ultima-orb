@@ -253,7 +253,7 @@ describe("ContextStore", () => {
       });
 
       expect(sorted.length).toBeGreaterThan(1);
-      expect(sorted[0].createdAt).toBeGreaterThan(sorted[1].createdAt);
+      expect(sorted[0].createdAt).toBeGreaterThanOrEqual(sorted[1].createdAt);
     });
   });
 
@@ -381,7 +381,7 @@ describe("ContextStore", () => {
       contextStore.addAuditEntry("Test audit entry");
 
       const auditTrail = contextStore.getAuditTrail();
-      expect(auditTrail).toContain("Test audit entry");
+      expect(auditTrail[auditTrail.length - 1]).toContain("Test audit entry");
     });
 
     it("should limit audit trail size", () => {

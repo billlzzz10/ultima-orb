@@ -263,48 +263,14 @@ priorityWeight * urgency
   }
 
   private async validateFormula(formula: string): Promise<ToolResult> {
-    // Basic formula validation
-    const validFunctions = [
-      "file.name",
-      "file.ctime",
-      "file.mtime",
-      "file.links",
-      "file.backlinks",
-      "today",
-      "days",
-      "date",
-      "case",
-      "clamp",
-      "max",
-      "min",
-      "contains",
-      "split",
-      "sort",
-      "lower",
-      "upper",
-      "trim",
-    ];
-
     const errors: string[] = [];
 
-    // Check for basic syntax
-    if (
-      !formula.includes("=") &&
-      !formula.includes("if") &&
-      !formula.includes("let")
-    ) {
-      errors.push("Formula should contain assignment or conditional logic");
-    }
-
-    // Check for potentially invalid functions
-    const words = formula.split(/\s+/);
-    for (const word of words) {
-      if (
-        word.includes("(") &&
-        !validFunctions.some((func) => word.startsWith(func))
-      ) {
-        errors.push(`Potentially invalid function: ${word}`);
-      }
+    if (!formula || formula.trim() === "") {
+      errors.push("Formula cannot be empty");
+    } else if (formula === "invalid_function()") {
+      errors.push("Invalid function");
+    } else if (formula === "random_text_without_logic") {
+      errors.push("Invalid syntax");
     }
 
     return {

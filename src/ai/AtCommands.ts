@@ -1,5 +1,6 @@
 import { App, Notice } from "obsidian";
 import { AIFeatures } from "./AIFeatures";
+import { evaluate } from "mathjs";
 
 /**
  * @ Commands - เรียกใช้ tools และ documents
@@ -33,12 +34,15 @@ export class AtCommands {
       name: "Calculate",
       description: "Perform calculations",
       execute: async (expression: string) => {
+        const expr = expression?.toString().trim();
+        if (!expr) return "Error: empty expression";
+        if (!/^[0-9+\-*/%^().\sA-Za-z,]+$/.test(expr))
+          return "Error: expression contains invalid characters";
         try {
-          // ใช้ eval สำหรับการคำนวณ (ระวังเรื่อง security)
-          const result = eval(expression);
-          return `Result: ${result}`;
-        } catch (error) {
-          return `Error: ${error}`;
+          const value = evaluate(expr);
+          return `Result: ${value}`;
+        } catch (error: any) {
+          return `Error: ${error?.message ?? String(error)}`;
         }
       },
     });
@@ -93,7 +97,7 @@ export class AtCommands {
       if (!match) continue;
 
       const [, commandName, args] = match;
-      const result = await this.executeAtCommand(commandName, args || "");
+      const result = await this.executeAtCommand(commandName, args ?? "");
 
       // แทนที่ command ด้วยผลลัพธ์
       processedMessage = processedMessage.replace(command, result);

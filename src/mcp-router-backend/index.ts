@@ -5,6 +5,7 @@ import { TimeTool } from "./tools/time.js";
 import { MemoryTool } from "./tools/memory.js";
 import { FilesystemTool } from "./tools/filesystem.js";
 import { CloudDriveTool } from "./tools/clouddrive.js";
+import { ShellTool } from "./tools/ShellTool.js";
 
 async function main() {
   const settings = JSON.parse(await fs.readFile("src/mcp-router-backend/settings.json", "utf8"));
@@ -29,6 +30,7 @@ async function main() {
     new MemoryTool(),
     new FilesystemTool(),
     new CloudDriveTool(),
+    new ShellTool(true),
   ];
 
   const result = await router.handleQuery({ query, task, mime, tools });

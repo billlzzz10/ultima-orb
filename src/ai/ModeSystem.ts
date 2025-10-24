@@ -8,12 +8,12 @@ export interface Mode {
   name: string;
   description: string;
   roleDefinition: string;
-  customInstructions?: string;
+  customInstructions?: string | undefined;
   toolGroups: string[];
   provider: string;
-  model?: string;
-  temperature?: number;
-  maxTokens?: number;
+  model?: string | undefined;
+  temperature?: number | undefined;
+  maxTokens?: number | undefined;
 }
 
 export interface ToolGroup {
