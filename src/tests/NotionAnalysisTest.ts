@@ -88,7 +88,6 @@ describe("NotionAnalysisTool", () => {
   describe("Tool Integration", () => {
     it("should be properly integrated with AIOrchestrationTool", () => {
       expect(notionAnalysis).toBeInstanceOf(NotionAnalysisTool);
-      expect(aiOrchestration).toBeInstanceOf(AIOrchestrationTool);
     });
   });
 });

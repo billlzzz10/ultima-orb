@@ -93,7 +93,7 @@ export class AtCommands {
       if (!match) continue;
 
       const [, commandName, args] = match;
-      const result = await this.executeAtCommand(commandName, args || "");
+      const result = await this.executeAtCommand(commandName, args);
 
       // แทนที่ command ด้วยผลลัพธ์
       processedMessage = processedMessage.replace(command, result);
@@ -107,13 +107,14 @@ export class AtCommands {
    */
   private async executeAtCommand(
     commandName: string,
-    args: string
+    args: string | undefined
   ): Promise<string> {
+    const commandArgs = args || "";
     // ตรวจสอบ Tool
     if (this.tools.has(commandName)) {
       const tool = this.tools.get(commandName)!;
       try {
-        return await tool.execute(args);
+        return await tool.execute(commandArgs);
       } catch (error) {
         return `Error executing @${commandName}: ${error}`;
       }
@@ -134,10 +135,10 @@ export class AtCommands {
         return this.getListText();
 
       case "import":
-        return await this.importDocument(args);
+        return await this.importDocument(commandArgs);
 
       case "url":
-        return await this.importFromUrl(args);
+        return await this.importFromUrl(commandArgs);
 
       default:
         return `Unknown @ command: ${commandName}. Use @help for available commands.`;

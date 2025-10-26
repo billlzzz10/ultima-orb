@@ -92,11 +92,15 @@ export class AIOrchestrationTool extends ToolBase {
       // สร้าง AI request
       const request: AIRequest = {
         prompt,
-        model,
         temperature,
         maxTokens,
-        systemPrompt,
       };
+      if (model) {
+        request.model = model;
+      }
+      if (systemPrompt) {
+        request.systemPrompt = systemPrompt;
+      }
 
       // ลองใช้ provider ที่เลือก
       let response: AIResponse;
@@ -165,9 +169,12 @@ export class AIOrchestrationTool extends ToolBase {
     const failedIndex = fallbackOrder.indexOf(failedProvider);
 
     for (let i = failedIndex + 1; i < fallbackOrder.length; i++) {
-      const provider = this.providers.get(fallbackOrder[i]);
-      if (provider && provider.isConfigured()) {
-        return provider;
+      const providerName = fallbackOrder[i];
+      if (providerName) {
+        const provider = this.providers.get(providerName);
+        if (provider?.isConfigured()) {
+          return provider;
+        }
       }
     }
 
@@ -315,11 +322,18 @@ export class AIOrchestrationTool extends ToolBase {
 
       // ตรวจสอบว่า provider รองรับการสร้างภาพ
       if (selectedProvider instanceof AzureOpenAIProvider) {
-        const response = await selectedProvider.generateImage(prompt, {
-          size: options?.size,
-          quality: options?.quality,
-          style: options?.style,
-        });
+        const imageOptions: {
+          size?: "1024x1024" | "1792x1024" | "1024x1792";
+          quality?: "standard" | "hd";
+          style?: "vivid" | "natural";
+        } = {};
+        if (options?.size) imageOptions.size = options.size;
+        if (options?.quality) imageOptions.quality = options.quality;
+        if (options?.style) imageOptions.style = options.style;
+        const response = await selectedProvider.generateImage(
+          prompt,
+          imageOptions
+        );
 
         return {
           success: true,

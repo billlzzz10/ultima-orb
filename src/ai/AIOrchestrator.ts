@@ -1,7 +1,7 @@
 import { App, Notice } from "obsidian";
 import { FeatureManager } from "../core/FeatureManager";
 import { UltimaOrbSettings } from "../settings";
-import { OpenAIProvider } from "./providers/OpenAIProvider";
+import { OpenAIProvider, OpenAIRequest } from "./providers/OpenAIProvider";
 import { OllamaIntegration } from "./local/OllamaIntegration";
 import { ModeSystem } from "./ModeSystem";
 
@@ -101,12 +101,20 @@ export class AIOrchestrator {
       const fullPrompt = `${context}\n\nUser: ${message}`;
 
       if (provider === "openai" && this.openAIProvider) {
-        const response = await this.openAIProvider.chatCompletion({
+        const request: OpenAIRequest = {
           model: model,
           messages: [{ role: "user" as const, content: fullPrompt }],
-          temperature: aiSettings.temperature,
-          max_tokens: aiSettings.maxTokens,
-        });
+        };
+
+        if (aiSettings.temperature) {
+          request.temperature = aiSettings.temperature;
+        }
+
+        if (aiSettings.maxTokens) {
+          request.max_tokens = aiSettings.maxTokens;
+        }
+
+        const response = await this.openAIProvider.chatCompletion(request);
         return response.choices[0]?.message?.content || "No response from AI";
       } else if (provider === "ollama" && this.ollamaIntegration) {
         return await this.ollamaIntegration.chat([

@@ -228,7 +228,8 @@ export class ScriptEngine {
     let result = template;
 
     for (const match of template.matchAll(scriptPattern)) {
-      const script = match[1].trim();
+      const script = match[1] ? match[1].trim() : "";
+      if (!script) continue;
       const scriptResult = await this.executeScript(script, context);
 
       if (scriptResult.success) {

@@ -27,10 +27,18 @@ export class KnowledgeView extends ItemView {
 
   async onOpen(): Promise<void> {
     const container = this.containerEl.children[1];
-    container.empty();
-    container.createEl("h4", { text: "Knowledge Base" });
+    if (container) {
+      container.empty();
+    }
+    if (container) {
+      container.createEl("h4", { text: "Knowledge Base" });
+    }
 
-    this.createKnowledgeInterface(container as HTMLElement);
+    if (container instanceof HTMLElement) {
+      this.createKnowledgeInterface(container);
+    } else {
+      console.error("KnowledgeView: container is not an HTMLElement");
+    }
   }
 
   private createKnowledgeInterface(container: HTMLElement): void {

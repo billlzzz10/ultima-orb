@@ -322,9 +322,9 @@ export class OpenAIProvider {
 
   private async makeRequest(endpoint: string, options: RequestInit = {}): Promise<any> {
     const url = `${this.baseUrl}${endpoint}`;
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       "Authorization": `Bearer ${this.apiKey}`,
-      ...options.headers
+      ...options.headers as Record<string, string>
     };
 
     // Don't set Content-Type for FormData

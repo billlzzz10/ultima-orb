@@ -140,18 +140,19 @@ export class ExcalidrawFeaturesTool extends ToolBase {
       type: data.type,
       x: data.x,
       y: data.y,
-      width: data.width,
-      height: data.height,
-      text: data.text,
       color: data.color || '#000000',
       strokeWidth: data.strokeWidth || 2,
-      fillColor: data.fillColor,
-      points: data.points,
       rotation: 0,
       opacity: 1,
       locked: false,
       selected: false
     };
+
+    if (data.width) element.width = data.width;
+    if (data.height) element.height = data.height;
+    if (data.text) element.text = data.text;
+    if (data.fillColor) element.fillColor = data.fillColor;
+    if (data.points) element.points = data.points;
 
     this.currentCanvas.elements.push(element);
     this.currentCanvas.updatedAt = new Date();
@@ -197,11 +198,13 @@ export class ExcalidrawFeaturesTool extends ToolBase {
     this.currentCanvas.updatedAt = new Date();
     this.selectedElements.delete(data.id);
 
-    new Notice(`Deleted ${deletedElement.type}`);
+    if (deletedElement) {
+      new Notice(`Deleted ${deletedElement.type}`);
+    }
     
     return {
       success: true,
-      elements: [deletedElement]
+      elements: deletedElement ? [deletedElement] : []
     };
   }
 
@@ -355,7 +358,9 @@ export class ExcalidrawFeaturesTool extends ToolBase {
           if (element.points && element.points.length >= 2) {
             const start = element.points[0];
             const end = element.points[element.points.length - 1];
-            svg += `<line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="${element.color}" stroke-width="${element.strokeWidth}" marker-end="url(#arrowhead)"/>`;
+            if (start && end) {
+              svg += `<line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="${element.color}" stroke-width="${element.strokeWidth}" marker-end="url(#arrowhead)"/>`;
+            }
           }
           break;
       }
@@ -401,7 +406,7 @@ export class ExcalidrawFeaturesTool extends ToolBase {
     // Parse SVG elements (simplified)
     const rects = svg.querySelectorAll('rect');
     rects.forEach(rect => {
-      canvas.elements.push({
+      const element: DrawingElement = {
         id: this.generateId(),
         type: 'rectangle',
         x: parseFloat(rect.getAttribute('x') || '0'),
@@ -410,12 +415,16 @@ export class ExcalidrawFeaturesTool extends ToolBase {
         height: parseFloat(rect.getAttribute('height') || '100'),
         color: rect.getAttribute('stroke') || '#000000',
         strokeWidth: parseFloat(rect.getAttribute('stroke-width') || '2'),
-        fillColor: rect.getAttribute('fill') || undefined,
         rotation: 0,
         opacity: 1,
         locked: false,
         selected: false
-      });
+      };
+      const fillColor = rect.getAttribute('fill');
+      if (fillColor) {
+        element.fillColor = fillColor;
+      }
+      canvas.elements.push(element);
     });
 
     return canvas;
@@ -439,20 +448,37 @@ export class ExcalidrawFeaturesTool extends ToolBase {
   getDrawingTools() {
     return {
       // Shape tools
-      rectangle: (x: number, y: number, width: number, height: number, color?: string) => 
-        this.addElement({ type: 'rectangle', x, y, width, height, color }),
+      rectangle: (x: number, y: number, width: number, height: number, color?: string) => {
+        const options: any = { type: 'rectangle', x, y, width, height };
+        if (color) options.color = color;
+        return this.addElement(options);
+      },
       
-      circle: (x: number, y: number, radius: number, color?: string) => 
-        this.addElement({ type: 'circle', x, y, width: radius, color }),
+      circle: (x: number, y: number, radius: number, color?: string) => {
+        const options: any = { type: 'circle', x, y, width: radius };
+        if (color) options.color = color;
+        return this.addElement(options);
+      },
       
-      line: (points: { x: number; y: number }[], color?: string) => 
-        this.addElement({ type: 'line', x: 0, y: 0, points, color }),
+      line: (points: { x: number; y: number }[], color?: string) => {
+        const originX = points && points.length > 0 ? points[0].x : 0;
+        const originY = points && points.length > 0 ? points[0].y : 0;
+        const options: any = { type: 'line', x: originX, y: originY, points };
+        if (color) options.color = color;
+        return this.addElement(options);
+      },
       
-      arrow: (start: { x: number; y: number }, end: { x: number; y: number }, color?: string) => 
-        this.addElement({ type: 'arrow', x: 0, y: 0, points: [start, end], color }),
+      arrow: (start: { x: number; y: number }, end: { x: number; y: number }, color?: string) => {
+        const options: any = { type: 'arrow', x: 0, y: 0, points: [start, end] };
+        if (color) options.color = color;
+        return this.addElement(options);
+      },
       
-      text: (x: number, y: number, text: string, color?: string) => 
-        this.addElement({ type: 'text', x, y, text, color }),
+      text: (x: number, y: number, text: string, color?: string) => {
+        const options: any = { type: 'text', x, y, text };
+        if (color) options.color = color;
+        return this.addElement(options);
+      },
       
       // Selection tools
       selectAll: () => {

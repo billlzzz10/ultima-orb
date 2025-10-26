@@ -48,11 +48,14 @@ export class ContextStore {
       source: config.source,
       scope: config.scope,
       payload: config.payload,
-      expiresAt: config.expiresAt,
       auditTrail: [],
       createdAt: Date.now(),
       priority: "medium",
     };
+
+    if (config.expiresAt) {
+      context.expiresAt = config.expiresAt;
+    }
 
     this.contexts.set(config.id, context);
     this.auditTrail.push(`Created context: ${config.id} (${config.scope})`);

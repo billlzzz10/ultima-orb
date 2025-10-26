@@ -30,10 +30,18 @@ export class ChatView extends ItemView {
 
   async onOpen(): Promise<void> {
     const container = this.containerEl.children[1];
-    container.empty();
-    container.createEl("h4", { text: "Ultima-Orb AI Chat" });
+    if (container) {
+      container.empty();
+    }
+    if (container) {
+      container.createEl("h4", { text: "Ultima-Orb AI Chat" });
+    }
 
-    this.createChatInterface(container as HTMLElement);
+    if (container instanceof HTMLElement) {
+      this.createChatInterface(container);
+    } else {
+      console.error("ChatView: container is not an HTMLElement");
+    }
   }
 
   private createChatInterface(container: HTMLElement): void {
